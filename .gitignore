@@ -104,5 +104,6 @@ dist
 .tern-port
 
 
-./out
-./.vscode
+out/
+.vscode/
+package-lock.json
