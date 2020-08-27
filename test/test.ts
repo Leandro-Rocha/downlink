@@ -1,6 +1,77 @@
-import Process from "./game/process"
-import Resource, { ResourceTypes } from "./game/resource"
+import Resource, { ResourceTypes } from "../game/resource"
+import sinon from "sinon";
 require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
+import { expect } from 'chai';
+import { Process, Status } from "../game/process";
+
+var clock = sinon.useFakeTimers()
+
+multipleDownloadsFromDifferentServers()
+
+function multipleDownloadsFromDifferentServers() {
+    const downlinkA = new Resource(ResourceTypes.NETWORK, 'downlinkA', 1)
+    const uplinkU = new Resource(ResourceTypes.NETWORK, 'uplinkU', 1)
+    const uplinkZ = new Resource(ResourceTypes.NETWORK, 'uplinkZ', 1)
+
+    const proc1 = new Process('A DL1 from U', uplinkU, downlinkA, 10 * 1000)
+    const proc2 = new Process('A DL2 from Z', uplinkZ, downlinkA, 10 * 1000)
+
+    proc1.start()
+    setTimeout(() => proc2.start(), 5000)
+
+    expect(proc1.isRunning()).to.be.true
+
+    expect(Object.keys(downlinkA.consumers)).to.have.lengthOf(1)
+    expect(downlinkA.consumers).to.have.property(proc1.PID.toString())
+    expect(downlinkA.consumers[1].process).to.be.equal(proc1)
+    expect(downlinkA.consumers[1].allocation).to.be.equal(1)
+
+    expect(Object.keys(uplinkU.consumers)).to.have.lengthOf(1)
+    expect(uplinkU.consumers).to.have.property(proc1.PID.toString())
+    expect(uplinkU.consumers[1].process).to.be.equal(proc1)
+
+    // after 5 seconds
+    clock.tick(5000)
+
+    expect(proc2.isRunning()).to.be.true
+    expect(proc1.progress()).to.be.equal(50)
+
+    expect(Object.keys(downlinkA.consumers)).to.have.lengthOf(2)
+    expect(downlinkA.consumers).to.have.property(proc1.PID.toString())
+    expect(downlinkA.consumers).to.have.property(proc2.PID.toString())
+    expect(downlinkA.consumers[1].process).to.be.equal(proc1)
+    expect(downlinkA.consumers[2].process).to.be.equal(proc2)
+    expect(downlinkA.consumers[1].allocation).to.be.equal(0.5)
+    expect(downlinkA.consumers[2].allocation).to.be.equal(0.5)
+
+    // after 15 seconds
+    clock.tick(10000)
+
+    expect(proc1.isRunning()).to.be.false
+    expect(proc1.status).to.be.equal(Status.DEAD)
+
+    expect(Object.keys(downlinkA.consumers)).to.have.lengthOf(1)
+    expect(downlinkA.consumers).to.not.have.property(proc1.PID.toString())
+    expect(downlinkA.consumers).to.have.property(proc2.PID.toString())
+    expect(downlinkA.consumers[2].process).to.be.equal(proc2)
+    expect(downlinkA.consumers[2].allocation).to.be.equal(1)
+
+    // after 20 seconds
+    clock.tick(5000)
+
+    expect(proc2.isRunning()).to.be.false
+    expect(proc2.status).to.be.equal(Status.DEAD)
+
+    expect(Object.keys(downlinkA.consumers)).to.have.lengthOf(0)
+    expect(downlinkA.consumers).to.not.have.property(proc1.PID.toString())
+    expect(downlinkA.consumers).to.not.have.property(proc2.PID.toString())
+
+}
+
+
+
+
+
 
 
 // const uplinkZ = new Resource(ResourceTypes.NETWORK, 'uplinkZ', 2)
@@ -19,19 +90,8 @@ require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
 // setTimeout(() => proc2.start(), 5000)
 
 
-multipleDownloadsFromDifferentServers()
-
-function multipleDownloadsFromDifferentServers() {
-    const downlinkA = new Resource(ResourceTypes.NETWORK, 'downlinkA', 1)
-    const uplinkU = new Resource(ResourceTypes.NETWORK, 'uplinkU', 1)
-    const uplinkZ = new Resource(ResourceTypes.NETWORK, 'uplinkZ', 1)
 
 
-    const proc1 = new Process('A DL1 from U', uplinkU, downlinkA, 10 * 1000)
-    const proc2 = new Process('A DL2 from Z', uplinkZ, downlinkA, 10 * 1000)
-    proc1.start()
-    setTimeout(() => proc2.start(), 5000)
-}
 
 
 
@@ -90,6 +150,3 @@ function multipleDownloadsFromDifferentServers() {
 //     const downlink1 = new Resource(ResourceTypes.NETWORK, 'Local server downlink 1', 1)
 //     new Process('download ' + i++, uplink1, downlink1, 5000).start()
 // }
-
-
-

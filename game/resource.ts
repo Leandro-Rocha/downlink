@@ -1,5 +1,5 @@
 import { Interruptions } from "./interruptions"
-import Process from "./process"
+import { Process } from "./process"
 import { Observer } from "./signal-handler"
 import { EventEmitter } from "events"
 
@@ -63,9 +63,6 @@ export default class Resource extends Observer {
 
     addConsumer(consumer: Process) {
         this.consumers[consumer.PID] = { process: consumer, allocation: 0 }
-
-        consumer.subscribe(this, 'PROCESS_STARTED', this.handleProcess)
-        consumer.subscribe(this, 'PROCESS_FINISHED', this.handleProcess)
     }
 
     removeConsumer(consumer: Process) {

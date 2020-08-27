@@ -2,14 +2,14 @@ import { Interruptions } from "./interruptions"
 import Resource from "./resource"
 import { Observer } from "./signal-handler"
 
-enum Status {
+export enum Status {
     RUNNING,
     IDLE,
     FINISHED,
     DEAD
 }
 
-export default class Process extends Observer {
+export class Process extends Observer {
     static lastPID: number = 1
     name: string
     PID: number
@@ -42,8 +42,11 @@ export default class Process extends Observer {
 
         this.maxWorkRate = Math.min(uplink.capacity, downlink.capacity)
 
-        uplink.addConsumer(this)
-        downlink.addConsumer(this)
+        this.subscribe(this.uplink, 'PROCESS_STARTED', this.uplink.handleProcess)
+        this.subscribe(this.uplink, 'PROCESS_FINISHED', this.uplink.handleProcess)
+
+        this.subscribe(this.downlink, 'PROCESS_STARTED', this.downlink.handleProcess)
+        this.subscribe(this.downlink, 'PROCESS_FINISHED', this.downlink.handleProcess)
     }
 
     isRunning() { return this.status === Status.RUNNING }
@@ -78,19 +81,20 @@ export default class Process extends Observer {
         this.lastUpdateTime = this.startTime
         this.status = Status.RUNNING
 
+        this.uplink.addConsumer(this)
+        this.downlink.addConsumer(this)
+
         this.uplink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
         this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
 
         this.send(this, Interruptions.PROCESS_STARTED)
     }
 
-    bla = () => this.handleAllocationChanged()
-
-    handleAllocationChanged() {
+    handleAllocationChanged(emitter: any) {
 
         this.makeProgress()
 
-        // console.info(`[${this.name}][u:${this.uplink.getAllocation(this.PID)}/d:${this.downlink.getAllocation(this.PID)}] interrupted by [] with [${Interruptions[Interruptions.RESOURCE_ALLOCATION_UPDATED]}] after ${this.timeSinceStart() / 1000} seconds. Work done: ${this.progress()}%`)
+        // console.info(`[${this.name}][u:${this.uplink.getAllocation(this.PID)}/d:${this.downlink.getAllocation(this.PID)}] interrupted by [${emitter.name}] with [${Interruptions.RESOURCE_ALLOCATION_UPDATED}] after ${this.timeSinceStart() / 1000} seconds. Work done: ${this.progress()}%`)
 
         const downlinkAllocation = this.downlink.getAllocation(this.PID)
         const uplinkAllocation = this.uplink.getAllocation(this.PID)
@@ -127,7 +131,7 @@ export default class Process extends Observer {
 
 
         // if (this.lastUpdateTime - this.startTime > this.totalWork + 10)
-            console.info(`Process (${this.name}) exited with status ${status} - work done = ${this.progress()}% - total time=${this.timeSinceStart() / 1000}`)
+        console.info(`Process (${this.name}) exited with status ${status} - work done = ${this.progress()}% - total time=${this.timeSinceStart() / 1000}`)
 
     }
 }
