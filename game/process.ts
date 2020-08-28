@@ -94,7 +94,7 @@ export class Process extends Observer {
 
         this.makeProgress()
 
-        // console.info(`[${this.name}][u:${this.uplink.getAllocation(this.PID)}/d:${this.downlink.getAllocation(this.PID)}] interrupted by [${emitter.name}] with [${Interruptions.RESOURCE_ALLOCATION_UPDATED}] after ${this.timeSinceStart() / 1000} seconds. Work done: ${this.progress()}%`)
+        console.info(`[${this.name}][u:${this.uplink.getAllocation(this.PID)}/d:${this.downlink.getAllocation(this.PID)}] interrupted by [${emitter.name}] with [${Interruptions.RESOURCE_ALLOCATION_UPDATED}] after ${this.timeSinceStart() / 1000} seconds. Work done: ${this.progress()}%`)
 
         const downlinkAllocation = this.downlink.getAllocation(this.PID)
         const uplinkAllocation = this.uplink.getAllocation(this.PID)
@@ -105,6 +105,15 @@ export class Process extends Observer {
             console.info(`New workRate for ${this.name} before:[${this.workRate}] new:[${newAllocation}]`)
 
             clearTimeout(this.timeout)
+
+            this.uplink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
+            this.downlink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
+
+            this.downlink.updateAllocation()
+            this.uplink.updateAllocation()
+
+            this.uplink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
+            this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
 
             if (this.progress() >= 100) {
                 this.exit(3)

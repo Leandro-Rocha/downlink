@@ -4,17 +4,20 @@ require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
 import { expect } from 'chai';
 import { Process, Status } from "../game/process";
 
-var clock = sinon.useFakeTimers()
 
-multipleDownloadsFromDifferentServers()
+
+// multipleDownloadsFromDifferentServers()
+balance()
 
 function multipleDownloadsFromDifferentServers() {
+    var clock = sinon.useFakeTimers()
+
     const downlinkA = new Resource(ResourceTypes.NETWORK, 'downlinkA', 1)
     const uplinkU = new Resource(ResourceTypes.NETWORK, 'uplinkU', 1)
     const uplinkZ = new Resource(ResourceTypes.NETWORK, 'uplinkZ', 1)
 
-    const proc1 = new Process('A DL1 from U', uplinkU, downlinkA, 10 * 1000)
-    const proc2 = new Process('A DL2 from Z', uplinkZ, downlinkA, 10 * 1000)
+    const proc1 = new Process('A <- U', uplinkU, downlinkA, 10 * 1000)
+    const proc2 = new Process('A <- Z', uplinkZ, downlinkA, 10 * 1000)
 
     proc1.start()
     setTimeout(() => proc2.start(), 5000)
@@ -70,9 +73,26 @@ function multipleDownloadsFromDifferentServers() {
 
 
 
+function balance() {
+    var clock = sinon.useFakeTimers()
 
+    const downlinkA = new Resource(ResourceTypes.NETWORK, 'downlinkA', 1)
+    const downlinkB = new Resource(ResourceTypes.NETWORK, 'downlinkB', 0.5)
 
+    const uplinkX = new Resource(ResourceTypes.NETWORK, 'uplinkY', 1)
+    const uplinkY = new Resource(ResourceTypes.NETWORK, 'uplinkY', 1)
 
+    const proc1 = new Process('A <- X', uplinkX, downlinkA, 10 * 1000)
+    const proc2 = new Process('B <- X', uplinkX, downlinkB, 10 * 1000)
+
+    const proc3 = new Process('B <- Y', uplinkY, downlinkB, 10 * 1000)
+
+    proc1.start()
+    proc2.start()
+    setTimeout(() => proc3.start(), 10000)
+
+    clock.tick(60000)
+}
 
 // const uplinkZ = new Resource(ResourceTypes.NETWORK, 'uplinkZ', 2)
 // const downlinkZ = new Resource(ResourceTypes.NETWORK, 'downlinkZ', 1)
