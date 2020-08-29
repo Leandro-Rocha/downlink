@@ -3,11 +3,64 @@ import sinon from "sinon";
 require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
 import { expect } from 'chai';
 import { Process, Status } from "../game/process";
+import { GameLoop } from "../game/game-loop";
+import { ResourceManager } from "../game/resource-manager";
 
-
+const rmInstance = ResourceManager
 
 // multipleDownloadsFromDifferentServers()
-balance()
+// balance()
+iterative()
+// resourceManagerTest()
+
+function resourceManagerTest() {
+    const A = new Resource(ResourceTypes.NETWORK, 'A', 1)
+    const B = new Resource(ResourceTypes.NETWORK, 'B', 0.5)
+    const X = new Resource(ResourceTypes.NETWORK, 'X', 1)
+    const Y = new Resource(ResourceTypes.NETWORK, 'Y', 1)
+
+    A.addConsumer(X)
+    X.addConsumer(A)
+
+    A.addConsumer(Y)
+    Y.addConsumer(A)
+
+    B.addConsumer(X)
+    X.addConsumer(B)
+
+    rmInstance.addResources(A, B, X, Y)
+
+    A.removeConsumer(X)
+    A.removeConsumer(Y)
+
+    rmInstance.removeResources(A)
+}
+
+function iterative() {
+    var clock = sinon.useFakeTimers()
+    const gameloop = new GameLoop()
+
+    const downlinkA = new Resource(ResourceTypes.NETWORK, 'A', 1)
+    const downlinkB = new Resource(ResourceTypes.NETWORK, 'B', 0.5)
+
+    const uplinkX = new Resource(ResourceTypes.NETWORK, 'X', 1)
+    const uplinkY = new Resource(ResourceTypes.NETWORK, 'Y', 1)
+
+    const proc1 = new Process('AX', uplinkX, downlinkA, 10 * 1000)
+    const proc2 = new Process('BX', uplinkX, downlinkB, 10 * 1000)
+    const proc3 = new Process('BY', uplinkY, downlinkB, 10 * 1000)
+
+    proc1.start()
+    proc2.start()
+    setTimeout(() => proc3.start(), 10000)
+
+    gameloop.processes.push(proc1, proc2, proc3)
+
+    gameloop.start()
+    clock.tick(60000)
+}
+
+
 
 function multipleDownloadsFromDifferentServers() {
     var clock = sinon.useFakeTimers()

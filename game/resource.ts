@@ -2,21 +2,23 @@ import { Interruptions } from "./interruptions"
 import { Process } from "./process"
 import { Observer } from "./signal-handler"
 import { EventEmitter } from "events"
+import { ResourceManager } from "./resource-manager"
 
 export default class Resource extends Observer {
     type: ResourceTypes
     name: string
+    id: string
     capacity: number
     allocated: number
 
-    consumers: { [keys: number]: { process: Process, allocation: number } } = {}
-    observers: any[] = []
+    consumers: Resource[] = []
 
     constructor(type: ResourceTypes, name: string, capacity: number) {
         super()
 
         this.type = type
         this.name = name
+        this.id = name
         this.capacity = capacity
         this.allocated = 0
     }
@@ -25,51 +27,49 @@ export default class Resource extends Observer {
         this.updateAllocation()
     }
 
-    getAllocation(PID: number) {
-        if (this.consumers[PID] === undefined) return 0
-        return this.consumers[PID].allocation
-    }
+    updateAllocation(provoker: Resource) {
+        const sortedConsumers: Resource[] = Object.values(this.consumers)
 
-    updateAllocation() {
-        var runningConsumers: { process: Process, allocation: number }[] = []
 
-        for (const consumer of Object.values(this.consumers)) {
-
-            if (consumer.process.isRunning()) {
-                runningConsumers.push(consumer)
-            }
-            else {
-                consumer.allocation = 0
-            }
-        }
-
-        runningConsumers.sort((c1, c2) => c1.process.maxWorkRate - c2.process.maxWorkRate)
+        sortedConsumers.sort((c1, c2) => {
+            const c1Cap = c1 === provoker ? ResourceManager.getAllocationByPair(this, c1) : c1.capacity
+            const c2Cap = c2 === provoker ? ResourceManager.getAllocationByPair(this, c2) : c2.capacity
+            return c1Cap - c2Cap
+        })
 
         this.allocated = 0
+        var allocationCount = 0
 
-        while (runningConsumers.length > 0) {
-            const fairShare = (this.capacity - this.allocated) / runningConsumers.length
-            const c = runningConsumers.shift()
-            if (c === undefined) continue
+        sortedConsumers.forEach(consumer => {
+            const fairShare = (this.capacity - this.allocated) / ((sortedConsumers.length - allocationCount) || 1)
 
-            const newAllocation = Math.min(c.process.maxWorkRate, fairShare)
+            const newAllocation = Math.min(consumer === provoker ? ResourceManager.getAllocationByPair(this, consumer) : consumer.capacity, fairShare)
+
             this.allocated += newAllocation
-            c.allocation = newAllocation
-        }
+            allocationCount++
 
-        this.send(this, 'RESOURCE_ALLOCATION_UPDATED')
+            const currentAllocation = ResourceManager.getAllocationByPair(this, consumer)
+
+            if (currentAllocation != newAllocation) {
+                ResourceManager.setAllocationByPair(this, consumer, newAllocation)
+
+                if (provoker === undefined || consumer !== provoker) {
+                    // console.log(`Propagating change from ${this.id} to ${consumer.id}`);
+                    consumer.updateAllocation(this)
+                }
+            }
+        })
+
+        this.send(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
     }
 
 
-    addConsumer(consumer: Process) {
-        this.consumers[consumer.PID] = { process: consumer, allocation: 0 }
+    addConsumer(consumer: Resource) {
+        this.consumers.push(consumer)
     }
 
-    removeConsumer(consumer: Process) {
-        delete this.consumers[consumer.PID]
-
-        consumer.unsubscribe(this, 'PROCESS_STARTED')
-        consumer.unsubscribe(this, 'PROCESS_FINISHED')
+    removeConsumer(consumer: Resource) {
+        this.consumers = this.consumers.filter(c => c !== consumer)
     }
 }
 
