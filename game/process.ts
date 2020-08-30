@@ -76,7 +76,7 @@ export class Process extends Observer {
     }
 
     start() {
-        console.info(`Process (${this.name}) started`)
+        // console.info(`Process (${this.name}) started`)
         this.startTime = Date.now()
         this.lastUpdateTime = this.startTime
         this.status = Status.RUNNING
@@ -84,8 +84,8 @@ export class Process extends Observer {
         this.uplink.addConsumer(this.downlink)
         this.downlink.addConsumer(this.uplink)
 
-        // this.uplink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
-        this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
+        this.uplink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
+        // this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
 
         this.send(this, Interruptions.PROCESS_STARTED)
     }
@@ -96,7 +96,7 @@ export class Process extends Observer {
         const newAllocation = ResourceManager.getAllocationByPair(this.downlink, this.uplink)
 
         if (newAllocation != this.workRate) {
-            console.info(`New workRate for ${this.name} before:[${this.workRate}] new:[${newAllocation}]`)
+            // console.info(`New workRate for ${this.name} before:[${this.workRate}] new:[${newAllocation}]`)
             this.workRate = newAllocation
         }
     }
@@ -104,11 +104,11 @@ export class Process extends Observer {
     exit(status: number) {
         this.status = Status.DEAD
 
-        // if (this.lastUpdateTime - this.startTime > this.totalWork + 10)
-        console.info(`Process (${this.name}) exited with status ${status} - work done = ${this.progress()}% - total time=${this.timeSinceStart() / 1000}`)
+        if (this.lastUpdateTime - this.startTime > this.totalWork + 10)
+            console.info(`Process (${this.name}) exited with status ${status} - work done = ${this.progress()}% - total time=${this.timeSinceStart() / 1000}`)
 
         this.uplink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
-        this.downlink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
+        // this.downlink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
 
         this.send(this, Interruptions.PROCESS_FINISHED)
 
