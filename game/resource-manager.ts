@@ -3,12 +3,21 @@ import { resetHistory } from "sinon";
 import { Observer } from "./signal-handler";
 
 class ResourceMatrix {
-    private allocationMatrix: { [key: string]: number } = {}
+    allocationMatrix: { [key: string]: number } = {}
+    orientedMatrix: { [key: string]: number } = {}
 
     getAllocation(index: string) {
         return this.allocationMatrix[index]
     }
 
+    getOrientedAllocation(index: string) {
+        return this.orientedMatrix[index]
+    }
+
+    setOrientedAllocation(index: string, value: number) {
+        if (index === undefined || value === undefined) return
+        this.orientedMatrix[index] = value
+    }
     setAllocation(index: string, value: number) {
         if (index === undefined || value === undefined) return
         this.allocationMatrix[index] = value

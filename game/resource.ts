@@ -27,25 +27,49 @@ export default class Resource extends Observer {
         this.updateAllocation()
     }
 
-    updateAllocation() {
-        const sortedConsumers: Resource[] = Object.values(this.consumers)
-        sortedConsumers.sort((c1, c2) => c1.capacity - c2.capacity)
+    getOrientedAllocation(consumer: Resource) {
+        return ResourceManager.resourceMatrix.getOrientedAllocation(`${this.id}-${consumer.id}`)
+    }
 
-        this.allocated = 0
+    getOrientedAllocationOrCapacity(consumer: Resource) {
+        const orientedAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${this.id}-${consumer.id}`)
+        return orientedAllocation || consumer.capacity
+    }
+
+    setOrientedAllocation(consumer: Resource, value: number) {
+        ResourceManager.resourceMatrix.setOrientedAllocation(`${this.id}-${consumer.id}`, value)
+    }
+
+    updateAllocation(padding = '', provoker: Resource) {
+        // console.log(`${padding}Evaluating ${this.id}`)
+        // console.log(`${padding}Oriented - ${ResourceManager.resourceMatrix.allocationMatrix}`)
+
+        const sortedConsumers: Resource[] = Object.values(this.consumers)
+        sortedConsumers.sort((c1, c2) => c1.getOrientedAllocationOrCapacity(this) - c2.getOrientedAllocationOrCapacity(this))
+
+        var allocated = 0
         var allocationCount = 0
 
         sortedConsumers.forEach(consumer => {
-            const fairShare = (this.capacity - this.allocated) / ((sortedConsumers.length - allocationCount) || 1)
+            const fairShare = (this.capacity - allocated) / ((sortedConsumers.length - allocationCount) || 1)
 
-            const currentAllocation = ResourceManager.getAllocationByPair(this, consumer) || Number.MAX_VALUE
-            const newAllocation = Math.min(currentAllocation, fairShare)
 
-            this.allocated += newAllocation
+            const newAllocation = Math.min(fairShare, (provoker === consumer) ? consumer.getOrientedAllocationOrCapacity(this) : consumer.capacity)
+
+            const oldAllocation = this.getOrientedAllocation(consumer)
+            this.setOrientedAllocation(consumer, newAllocation)
+
+            allocated += newAllocation
             allocationCount++
 
-            if (currentAllocation != newAllocation) {
+            // console.log(`${padding}${this.id} - ${consumer.id} f[${fairShare}] - o[${oldAllocation}] - n[${newAllocation}]`)
+
+            if (oldAllocation !== newAllocation) {
+                consumer.updateAllocation(padding + '   ', this)
+
                 ResourceManager.setAllocationByPair(this, consumer, newAllocation)
-                consumer.updateAllocation()
+
+                // console.log(`${padding}Out of ${consumer.id}`)
             }
         })
 

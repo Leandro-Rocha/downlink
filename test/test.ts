@@ -10,9 +10,9 @@ const rmInstance = ResourceManager
 
 // multipleDownloadsFromDifferentServers()
 // balance()
-// iterative()
+iterative()
 // resourceManagerTest()
-performance()
+// performance()
 
 function performance() {
     const gameloop = new GameLoop()
@@ -66,22 +66,49 @@ function performance() {
 function resourceManagerTest() {
     const A = new Resource(ResourceTypes.NETWORK, 'A', 1)
     const B = new Resource(ResourceTypes.NETWORK, 'B', 0.5)
+    const C = new Resource(ResourceTypes.NETWORK, 'C', 1)
     const X = new Resource(ResourceTypes.NETWORK, 'X', 1)
     const Y = new Resource(ResourceTypes.NETWORK, 'Y', 1)
+    const Z = new Resource(ResourceTypes.NETWORK, 'Z', 1)
+
+    rmInstance.addResources(A, B, X, Y)
 
     A.addConsumer(X)
     X.addConsumer(A)
 
+    A.updateAllocation('', A)
+    console.log(rmInstance.resourceMatrix.allocationMatrix)
+    console.log(rmInstance.resourceMatrix.orientedMatrix)
+
     // A.addConsumer(Y)
     // Y.addConsumer(A)
+
+    // A.addConsumer(Z)
+    // Z.addConsumer(A)
 
     B.addConsumer(X)
     X.addConsumer(B)
 
+    B.updateAllocation('', B)
+    console.log(rmInstance.resourceMatrix.allocationMatrix)
+    console.log(rmInstance.resourceMatrix.orientedMatrix)
+
+    // A.updateAllocation()
+    // console.log(rmInstance.resourceMatrix.allocationMatrix)
+
     B.addConsumer(Y)
     Y.addConsumer(B)
 
-    rmInstance.addResources(A, B, X, Y)
+    B.updateAllocation('')
+    console.log(rmInstance.resourceMatrix.allocationMatrix)
+    console.log(rmInstance.resourceMatrix.orientedMatrix)
+
+
+    C.addConsumer(Y)
+    Y.addConsumer(C)
+    C.updateAllocation('')
+    console.log(rmInstance.resourceMatrix.allocationMatrix)
+    console.log(rmInstance.resourceMatrix.orientedMatrix)
 
     // console.log(rmInstance.getResourceNetwork(A).map(r => r.id))
 
@@ -89,15 +116,18 @@ function resourceManagerTest() {
     // X.removeConsumer(A)
     // rmInstance.removeResources(A)
 
+
+
+
     // console.log(rmInstance.getResourceNetwork(B).map(r => r.id))
 
     // rmInstance.updateAllocation(A)
-    A.updateAllocation()
 
-    console.log(rmInstance.getAllocationByPair(A, X))
-    console.log(rmInstance.getAllocationByPair(A, Y))
-    console.log(rmInstance.getAllocationByPair(B, X))
-    console.log(rmInstance.getAllocationByPair(B, Y))
+
+    // console.log(rmInstance.getAllocationByPair(A, X))
+    // console.log(rmInstance.getAllocationByPair(A, Y))
+    // console.log(rmInstance.getAllocationByPair(B, X))
+    // console.log(rmInstance.getAllocationByPair(B, Y))
 
 }
 
@@ -160,7 +190,7 @@ function multipleDownloadsFromDifferentServers() {
     clock.tick(5000)
 
     expect(proc2.isRunning()).to.be.true
-    expect(proc1.progress()).to.be.approximately(50,10)
+    expect(proc1.progress()).to.be.approximately(50, 10)
 
     expect(Object.keys(downlinkA.consumers)).to.have.lengthOf(2)
     // expect(downlinkA.consumers).to.have.property(proc1.PID.toString())
