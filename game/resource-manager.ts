@@ -1,5 +1,6 @@
 import Resource from "./resource";
 import { resetHistory } from "sinon";
+import { Observer } from "./signal-handler";
 
 class ResourceMatrix {
     private allocationMatrix: { [key: string]: number } = {}
@@ -26,6 +27,7 @@ class ResourceMatrix {
 export class ResourceManager {
     static resourceList: Resource[] = []
     static resourceMatrix: ResourceMatrix = new ResourceMatrix()
+    static observer: Observer = new Observer()
 
     static addResources(...resources: Resource[]) {
         if (resources === undefined) return
@@ -71,24 +73,30 @@ export class ResourceManager {
         ResourceManager.resourceMatrix.setAllocation(index, value)
     }
 
+    static updateAllocation(resource: Resource) {
+        ResourceManager.resourceMatrix = new ResourceMatrix()
+        this.getResourceNetwork(resource).forEach(r => r.updateAllocation())
+    }
 
 
 
+    static getResourceNetwork(resource: Resource) {
+        const result: { path: Resource[], visitedResources: Resource[] } = { path: [], visitedResources: [] }
 
-    deepSearch(resource: Resource) {
-        const result: { path: string, visitedResources: Resource[] } = { path: '', visitedResources: [] }
+        result.path.push(resource)
+
         this.internalDPS(resource, result)
 
         return result.path
     }
 
-    private internalDPS(resource: Resource, result: any) {
+    private static internalDPS(resource: Resource, result: { path: Resource[], visitedResources: Resource[] }) {
 
         result.visitedResources.push(resource)
 
         resource.consumers.forEach(consumer => {
             if (!result.visitedResources.includes(consumer)) {
-                result.path += `-> ${consumer.name} `
+                result.path.push(consumer)
                 this.internalDPS(consumer, result)
             }
         })

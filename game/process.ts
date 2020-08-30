@@ -43,11 +43,8 @@ export class Process extends Observer {
 
         this.maxWorkRate = Math.min(uplink.capacity, downlink.capacity)
 
-        this.subscribe(this.uplink, Interruptions.PROCESS_STARTED, this.uplink.handleProcess)
-        this.subscribe(this.uplink, Interruptions.PROCESS_FINISHED, this.uplink.handleProcess)
-
-        this.subscribe(this.downlink, Interruptions.PROCESS_STARTED, this.downlink.handleProcess)
-        this.subscribe(this.downlink, Interruptions.PROCESS_FINISHED, this.downlink.handleProcess)
+        this.subscribe(ResourceManager, Interruptions.PROCESS_STARTED, () => ResourceManager.updateAllocation(this.downlink))
+        this.subscribe(ResourceManager, Interruptions.PROCESS_FINISHED, () => ResourceManager.updateAllocation(this.downlink))
     }
 
     isRunning() { return this.status === Status.RUNNING }
@@ -85,7 +82,7 @@ export class Process extends Observer {
         this.downlink.addConsumer(this.uplink)
 
         this.uplink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
-        // this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
+        this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
 
         this.send(this, Interruptions.PROCESS_STARTED)
     }
@@ -105,12 +102,14 @@ export class Process extends Observer {
         this.status = Status.DEAD
 
         if (this.lastUpdateTime - this.startTime > this.totalWork + 10)
-            console.info(`Process (${this.name}) exited with status ${status} - work done = ${this.progress()}% - total time=${this.timeSinceStart() / 1000}`)
+        console.info(`Process (${this.name}) exited with status ${status} - work done = ${this.progress()}% - total time=${this.timeSinceStart() / 1000}`)
 
-        this.uplink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
-        // this.downlink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
+        this.uplink.removeConsumer(this.downlink)
+        this.downlink.removeConsumer(this.uplink)
 
         this.send(this, Interruptions.PROCESS_FINISHED)
 
+        ResourceManager.observer.unsubscribe(this, Interruptions.PROCESS_STARTED)
+        ResourceManager.observer.unsubscribe(this, Interruptions.PROCESS_FINISHED)
     }
 }

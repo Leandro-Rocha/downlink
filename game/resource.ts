@@ -27,15 +27,9 @@ export default class Resource extends Observer {
         this.updateAllocation()
     }
 
-    updateAllocation(provoker: Resource) {
+    updateAllocation() {
         const sortedConsumers: Resource[] = Object.values(this.consumers)
-
-
-        sortedConsumers.sort((c1, c2) => {
-            const c1Cap = c1 === provoker ? ResourceManager.getAllocationByPair(this, c1) : c1.capacity
-            const c2Cap = c2 === provoker ? ResourceManager.getAllocationByPair(this, c2) : c2.capacity
-            return c1Cap - c2Cap
-        })
+        sortedConsumers.sort((c1, c2) => c1.capacity - c2.capacity)
 
         this.allocated = 0
         var allocationCount = 0
@@ -43,20 +37,15 @@ export default class Resource extends Observer {
         sortedConsumers.forEach(consumer => {
             const fairShare = (this.capacity - this.allocated) / ((sortedConsumers.length - allocationCount) || 1)
 
-            const newAllocation = Math.min(consumer === provoker ? ResourceManager.getAllocationByPair(this, consumer) : consumer.capacity, fairShare)
+            const currentAllocation = ResourceManager.getAllocationByPair(this, consumer) || Number.MAX_VALUE
+            const newAllocation = Math.min(currentAllocation, fairShare)
 
             this.allocated += newAllocation
             allocationCount++
 
-            const currentAllocation = ResourceManager.getAllocationByPair(this, consumer)
-
             if (currentAllocation != newAllocation) {
                 ResourceManager.setAllocationByPair(this, consumer, newAllocation)
-
-                if (provoker === undefined || consumer !== provoker) {
-                    // console.log(`Propagating change from ${this.id} to ${consumer.id}`);
-                    consumer.updateAllocation(this)
-                }
+                consumer.updateAllocation()
             }
         })
 
