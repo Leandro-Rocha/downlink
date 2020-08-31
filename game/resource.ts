@@ -37,10 +37,12 @@ export default class Resource extends Observer {
     }
 
     setOrientedAllocation(consumer: Resource, value: number) {
+        // console.log(`${this.id}-${consumer.id} ----> ${value}`)
+
         ResourceManager.resourceMatrix.setOrientedAllocation(`${this.id}-${consumer.id}`, value)
     }
 
-    updateAllocation(padding = '', provoker: Resource) {
+    updateAllocation(padding = '', provoker: Resource | undefined = undefined) {
         // console.log(`${padding}Evaluating ${this.id}`)
         // console.log(`${padding}Oriented - ${ResourceManager.resourceMatrix.allocationMatrix}`)
 
@@ -53,27 +55,48 @@ export default class Resource extends Observer {
         sortedConsumers.forEach(consumer => {
             const fairShare = (this.capacity - allocated) / ((sortedConsumers.length - allocationCount) || 1)
 
+            const newAllocation = Math.min(fairShare,
+                // (provoker === consumer) ?
+                consumer.getOrientedAllocationOrCapacity(this)
+                // :
+                // consumer.capacity
+            )
 
-            const newAllocation = Math.min(fairShare, (provoker === consumer) ? consumer.getOrientedAllocationOrCapacity(this) : consumer.capacity)
+            const thisToThat = this.getOrientedAllocation(consumer)
 
-            const oldAllocation = this.getOrientedAllocation(consumer)
             this.setOrientedAllocation(consumer, newAllocation)
 
             allocated += newAllocation
             allocationCount++
 
-            // console.log(`${padding}${this.id} - ${consumer.id} f[${fairShare}] - o[${oldAllocation}] - n[${newAllocation}]`)
+            console.log(`${padding}${this.id} - ${consumer.id} f[${fairShare}] - o[${thisToThat}] - n[${newAllocation}]`)
 
-            if (oldAllocation !== newAllocation) {
+            const thatToThis = consumer.getOrientedAllocation(this)
+
+
+            if (thisToThat !== newAllocation
+                || thisToThat !== thatToThis
+                // && provoker !== consumer
+            ) {
                 consumer.updateAllocation(padding + '   ', this)
 
-                ResourceManager.setAllocationByPair(this, consumer, newAllocation)
-
                 // console.log(`${padding}Out of ${consumer.id}`)
+
+                // if (thisToThat === thatToThis)
+
             }
+            else {
+                // console.log(`${padding}Setting MATRIX`)
+
+                ResourceManager.setAllocationByPair(this, consumer, newAllocation)
+            }
+
+
+
+
         })
 
-        this.send(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
+        // this.send(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
     }
 
 

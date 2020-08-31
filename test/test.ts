@@ -10,8 +10,8 @@ const rmInstance = ResourceManager
 
 // multipleDownloadsFromDifferentServers()
 // balance()
-iterative()
-// resourceManagerTest()
+// iterative()
+resourceManagerTest()
 // performance()
 
 function performance() {
@@ -75,59 +75,77 @@ function resourceManagerTest() {
 
     A.addConsumer(X)
     X.addConsumer(A)
+    // A.updateAllocation()
+    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(1)
+    // console.log(rmInstance.resourceMatrix.allocationMatrix)
+    // console.log(rmInstance.resourceMatrix.orientedMatrix)
 
-    A.updateAllocation('', A)
-    console.log(rmInstance.resourceMatrix.allocationMatrix)
-    console.log(rmInstance.resourceMatrix.orientedMatrix)
+    // A.addConsumer(X)
+    // X.addConsumer(A)
+    // A.updateAllocation()
 
-    // A.addConsumer(Y)
-    // Y.addConsumer(A)
+    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.5)
+    // console.log(rmInstance.resourceMatrix.allocationMatrix)
+    // console.log(rmInstance.resourceMatrix.orientedMatrix)
 
-    // A.addConsumer(Z)
-    // Z.addConsumer(A)
 
     B.addConsumer(X)
     X.addConsumer(B)
-
-    B.updateAllocation('', B)
-    console.log(rmInstance.resourceMatrix.allocationMatrix)
-    console.log(rmInstance.resourceMatrix.orientedMatrix)
-
-    // A.updateAllocation()
+    // B.updateAllocation()
     // console.log(rmInstance.resourceMatrix.allocationMatrix)
+    // console.log(rmInstance.resourceMatrix.orientedMatrix)
+
+    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.5)
+    // expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.5)
+
 
     B.addConsumer(Y)
     Y.addConsumer(B)
+    console.log("============================================================")
+    
+    B.updateAllocation()
+    // B.updateAllocation()
 
-    B.updateAllocation('')
+    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.75)
+    // expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
+    // expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
+
+    console.log(rmInstance.resourceMatrix.allocationMatrix)
+    console.log(rmInstance.resourceMatrix.orientedMatrix)
+
+    // Adding A->Y
+    A.addConsumer(Y)
+    Y.addConsumer(A)
+    console.log("============================================================")
+    A.updateAllocation()
+
+    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.5)
+    // expect(rmInstance.getAllocationByPair(A, Y)).to.be.equal(0.5)
+    // expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
+    // expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
+
     console.log(rmInstance.resourceMatrix.allocationMatrix)
     console.log(rmInstance.resourceMatrix.orientedMatrix)
 
 
-    C.addConsumer(Y)
-    Y.addConsumer(C)
-    C.updateAllocation('')
+    // Removing A->Y
+    rmInstance.resourceMatrix.orientedMatrix = {}
+    rmInstance.resourceMatrix.allocationMatrix = {}
+    A.removeConsumer(Y)
+    Y.removeConsumer(A)
+    console.log("============================================================")
+    X.updateAllocation()
+
     console.log(rmInstance.resourceMatrix.allocationMatrix)
     console.log(rmInstance.resourceMatrix.orientedMatrix)
 
-    // console.log(rmInstance.getResourceNetwork(A).map(r => r.id))
-
-    // A.removeConsumer(X)
-    // X.removeConsumer(A)
-    // rmInstance.removeResources(A)
+    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.75)
+    // expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
+    // expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
 
 
 
 
-    // console.log(rmInstance.getResourceNetwork(B).map(r => r.id))
-
-    // rmInstance.updateAllocation(A)
-
-
-    // console.log(rmInstance.getAllocationByPair(A, X))
-    // console.log(rmInstance.getAllocationByPair(A, Y))
-    // console.log(rmInstance.getAllocationByPair(B, X))
-    // console.log(rmInstance.getAllocationByPair(B, Y))
 
 }
 
