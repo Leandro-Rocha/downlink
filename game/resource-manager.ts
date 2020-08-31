@@ -28,8 +28,19 @@ class ResourceMatrix {
         return Object.keys(this.allocationMatrix).filter(index => index.includes(id))
     }
 
+    removeOrientedAllocationsForResource(id: string) {
+        if (id === undefined || id.length === 0) return
+        Object.keys(this.orientedMatrix)
+            .filter(index => index.includes(id))
+            .forEach(index => this.removeOrientedEntry(index))
+    }
+
     removeEntry(index: string) {
         delete this.allocationMatrix[index]
+    }
+
+    removeOrientedEntry(index: string) {
+        delete this.orientedMatrix[index]
     }
 }
 
@@ -46,6 +57,33 @@ export class ResourceManager {
         resources.forEach(r1 => r1.consumers.forEach(r2 => {
             this.setAllocationByPair(r1, r2, 0)
         }))
+    }
+
+    static linkResources(resourceA: Resource, resourceB: Resource) {
+        resourceA.addConsumer(resourceB)
+        resourceB.addConsumer(resourceA)
+
+        resourceA.updateOriented()
+    }
+
+    static unlinkResources(resourceA: Resource, resourceB: Resource) {
+        resourceA.removeConsumer(resourceB)
+        resourceB.removeConsumer(resourceA)
+
+        console.log('==========================================')
+
+        console.log(this.resourceMatrix.allocationMatrix)
+        console.log(this.resourceMatrix.orientedMatrix)
+
+        this.resourceMatrix.removeEntry(this.getMatrixIndex(resourceA, resourceB))
+        this.resourceMatrix.removeOrientedAllocationsForResource(resourceA.id)
+        this.resourceMatrix.removeOrientedAllocationsForResource(resourceB.id)
+        
+        console.log('==========================================')
+        console.log(this.resourceMatrix.allocationMatrix)
+        console.log(this.resourceMatrix.orientedMatrix)
+
+        resourceA.updateOriented()
     }
 
     static removeResources(...resources: Resource[]) {
