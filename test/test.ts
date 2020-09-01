@@ -27,61 +27,82 @@ function nonRecursive() {
     // rmInstance.addResources(A, B, X, Y)
 
     rmInstance.linkResources(A, X)
-    expect(rmInstance.getAllocationByPair(A, X), 'Wrong allocation').to.be.equal(1)
-    expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
-    expect(rmInstance.getAllocationByPair(B, X)).to.be.undefined
-    expect(rmInstance.getAllocationByPair(B, Y)).to.be.undefined
-    expect(A.allocated).to.be.equal(1)
-    expect(B.allocated).to.be.equal(0)
-    expect(X.allocated).to.be.equal(1)
-    expect(Y.allocated).to.be.equal(0)
+    expect(rmInstance.getAllocationByPair(A, X), 'Wrong allocation on matrix').to.be.equal(1)
+    expect(rmInstance.getAllocationByPair(A, Y), 'Wrong allocation on matrix').to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, X), 'Wrong allocation on matrix').to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, Y), 'Wrong allocation on matrix').to.be.undefined
+    expect(A.allocated, 'Wrong allocation on resource').to.be.equal(1)
+    expect(B.allocated, 'Wrong allocation on resource').to.be.equal(0)
+    expect(X.allocated, 'Wrong allocation on resource').to.be.equal(1)
+    expect(Y.allocated, 'Wrong allocation on resource').to.be.equal(0)
 
     expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
 
     console.log('****************************************************************')
 
     rmInstance.linkResources(B, X)
-    expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.5)
-    expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
-    expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.5)
-    expect(rmInstance.getAllocationByPair(B, Y)).to.be.undefined
+    expect(rmInstance.getAllocationByPair(A, X), 'Wrong allocation on matrix').to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(A, Y), 'Wrong allocation on matrix').to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, X), 'Wrong allocation on matrix').to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(B, Y), 'Wrong allocation on matrix').to.be.undefined
 
-    // expect(A.allocated).to.be.equal(0.5)
-    // expect(B.allocated).to.be.equal(0.5)
-    // expect(X.allocated).to.be.equal(1)
-    // expect(Y.allocated).to.be.equal(0)
+    expect(A.allocated, 'Wrong allocation on resource').to.be.equal(0.5)
+    expect(B.allocated, 'Wrong allocation on resource').to.be.equal(0.5)
+    expect(X.allocated, 'Wrong allocation on resource').to.be.equal(1)
+    expect(Y.allocated, 'Wrong allocation on resource').to.be.equal(0)
 
     expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
-    
+
     console.log('****************************************************************')
 
     rmInstance.linkResources(B, Y)
-    expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.75)
-    expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
-    expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
-    expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
+    expect(rmInstance.getAllocationByPair(A, X), 'Wrong allocation on matrix').to.be.equal(0.75)
+    expect(rmInstance.getAllocationByPair(A, Y), 'Wrong allocation on matrix').to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, X), 'Wrong allocation on matrix').to.be.equal(0.25)
+    expect(rmInstance.getAllocationByPair(B, Y), 'Wrong allocation on matrix').to.be.equal(0.25)
+
+    expect(A.allocated, 'Wrong allocation on resource').to.be.equal(0.75)
+    expect(B.allocated, 'Wrong allocation on resource').to.be.equal(0.5)
+    expect(X.allocated, 'Wrong allocation on resource').to.be.equal(1)
+    expect(Y.allocated, 'Wrong allocation on resource').to.be.equal(0.25)
+
     expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
     console.log('****************************************************************')
 
     rmInstance.linkResources(A, Y)
-    expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.5)
-    expect(rmInstance.getAllocationByPair(A, Y)).to.be.equal(0.5)
-    expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
-    expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
+    expect(rmInstance.getAllocationByPair(A, X), 'Wrong allocation on matrix').to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(A, Y), 'Wrong allocation on matrix').to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(B, X), 'Wrong allocation on matrix').to.be.equal(0.25)
+    expect(rmInstance.getAllocationByPair(B, Y), 'Wrong allocation on matrix').to.be.equal(0.25)
+
+    expect(A.allocated, 'Wrong allocation on resource').to.be.equal(1)
+    expect(B.allocated, 'Wrong allocation on resource').to.be.equal(0.5)
+    expect(X.allocated, 'Wrong allocation on resource').to.be.equal(0.75)
+    expect(Y.allocated, 'Wrong allocation on resource').to.be.equal(0.75)
+
     expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
     console.log('****************************************************************')
 
-    // rmInstance.unlinkResources(A, Y)
+    rmInstance.unlinkResources(A, Y)
 
-    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.75)
-    // expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
-    // expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
-    // expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
-    // expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
+   expect(rmInstance.getAllocationByPair(A, X), 'Wrong allocation on matrix').to.be.equal(0.75)
+    expect(rmInstance.getAllocationByPair(A, Y), 'Wrong allocation on matrix').to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, X), 'Wrong allocation on matrix').to.be.equal(0.25)
+    expect(rmInstance.getAllocationByPair(B, Y), 'Wrong allocation on matrix').to.be.equal(0.25)
+
+    expect(A.allocated, 'Wrong allocation on resource').to.be.equal(0.75)
+    expect(B.allocated, 'Wrong allocation on resource').to.be.equal(0.5)
+    expect(X.allocated, 'Wrong allocation on resource').to.be.equal(1)
+    expect(Y.allocated, 'Wrong allocation on resource').to.be.equal(0.25)
+
+    expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
+    console.log('****************************************************************')
 
     rmInstance.linkResources(A, Z)
+    rmInstance.linkResources(A, Y)
     rmInstance.linkResources(C, Y)
-    // rmInstance.linkResources(C, Z)
+    console.log('****************************************************************')
+    rmInstance.linkResources(C, Z)
 
     console.log(rmInstance.resourceMatrix.allocationMatrix)
     console.log(rmInstance.resourceMatrix.orientedMatrix)

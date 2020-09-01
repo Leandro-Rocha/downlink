@@ -67,7 +67,7 @@ export class ResourceManager {
             const resource = ResourceManager.reallocationList.shift()
             if (resource === undefined) return
 
-            // console.log(`=================${resource.id}======================`)
+            console.log(`=================${resource.id}======================`)
 
 
             // Removes all allocations from that consumer / zero allocation
@@ -89,17 +89,19 @@ export class ResourceManager {
 
                 if (consumer.canAllocate(desiredAllocation)) {
 
-                    if (desiredAllocation === thatToThis || desiredAllocation === currentAllocation) {
-                        resource.allocate(desiredAllocation)
-                        consumer.allocate(desiredAllocation)
-                        this.setAllocationByPair(resource, consumer, desiredAllocation)
+                    resource.allocate(desiredAllocation)
+                    consumer.allocate(desiredAllocation)
+                    this.setAllocationByPair(resource, consumer, desiredAllocation)
+                    ResourceManager.resourceMatrix.removeOrientedEntry(`${resource.id}-${consumer.id}`)
+                    ResourceManager.resourceMatrix.removeOrientedEntry(`${consumer.id}-${resource.id}`)
 
-                        ResourceManager.resourceMatrix.removeOrientedEntry(`${resource.id}-${consumer.id}`)
-                        ResourceManager.resourceMatrix.removeOrientedEntry(`${consumer.id}-${resource.id}`)
+                    if (desiredAllocation === thatToThis || desiredAllocation === currentAllocation) {
+
+                        
                     }
                     else {
                         // Allocation successful, no propagations, clear allocation intention
-                        if (consumer.freeCapacity() < 0.1) {
+                        if (consumer.freeCapacity() === 0) {
 
                         }
                         else { // Check if can allocate free resources
@@ -107,12 +109,12 @@ export class ResourceManager {
                             //  Add consumer to reallocationList
                             ResourceManager.reallocationList.push(consumer)
                             // resource.free(desiredAllocation)
-                            // console.log(`${consumer.id} has free resources after allocating [${desiredAllocation}]. Adding to list`)
+                            console.log(`${consumer.id} has free resources after allocating [${desiredAllocation}]. Adding to list`)
                         }
                     }
                 }
                 else {
-                    // console.log(`${consumer.id} cannot allocate [${desiredAllocation}]. Adding to list`)
+                    console.log(`${consumer.id} cannot allocate [${desiredAllocation}]. Adding to list`)
                     // resource.free(desiredAllocation)
                     ResourceManager.reallocationList.push(consumer)
                 }
