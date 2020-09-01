@@ -11,8 +11,82 @@ const rmInstance = ResourceManager
 // multipleDownloadsFromDifferentServers()
 // balance()
 // iterative()
-resourceManagerTest()
+// resourceManagerTest()
 // performance()
+
+nonRecursive()
+
+function nonRecursive() {
+    const A = new Resource(ResourceTypes.NETWORK, 'A', 1)
+    const B = new Resource(ResourceTypes.NETWORK, 'B', 0.5)
+    const C = new Resource(ResourceTypes.NETWORK, 'C', 2)
+    const X = new Resource(ResourceTypes.NETWORK, 'X', 1)
+    const Y = new Resource(ResourceTypes.NETWORK, 'Y', 1)
+    const Z = new Resource(ResourceTypes.NETWORK, 'Z', 1)
+
+    // rmInstance.addResources(A, B, X, Y)
+
+    rmInstance.linkResources(A, X)
+    expect(rmInstance.getAllocationByPair(A, X), 'Wrong allocation').to.be.equal(1)
+    expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, X)).to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, Y)).to.be.undefined
+    expect(A.allocated).to.be.equal(1)
+    expect(B.allocated).to.be.equal(0)
+    expect(X.allocated).to.be.equal(1)
+    expect(Y.allocated).to.be.equal(0)
+
+    expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
+
+    console.log('****************************************************************')
+
+    rmInstance.linkResources(B, X)
+    expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(B, Y)).to.be.undefined
+
+    // expect(A.allocated).to.be.equal(0.5)
+    // expect(B.allocated).to.be.equal(0.5)
+    // expect(X.allocated).to.be.equal(1)
+    // expect(Y.allocated).to.be.equal(0)
+
+    expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
+    
+    console.log('****************************************************************')
+
+    rmInstance.linkResources(B, Y)
+    expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.75)
+    expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
+    expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
+    expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
+    expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
+    console.log('****************************************************************')
+
+    rmInstance.linkResources(A, Y)
+    expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(A, Y)).to.be.equal(0.5)
+    expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
+    expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
+    expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
+    console.log('****************************************************************')
+
+    // rmInstance.unlinkResources(A, Y)
+
+    // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.75)
+    // expect(rmInstance.getAllocationByPair(A, Y)).to.be.undefined
+    // expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
+    // expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
+    // expect(Object.keys(rmInstance.resourceMatrix.orientedMatrix)).has.lengthOf(0)
+
+    rmInstance.linkResources(A, Z)
+    rmInstance.linkResources(C, Y)
+    // rmInstance.linkResources(C, Z)
+
+    console.log(rmInstance.resourceMatrix.allocationMatrix)
+    console.log(rmInstance.resourceMatrix.orientedMatrix)
+    console.log(rmInstance.reallocationList)
+}
 
 function performance() {
     const gameloop = new GameLoop()
@@ -108,11 +182,6 @@ function resourceManagerTest() {
     // expect(rmInstance.getAllocationByPair(A, X)).to.be.equal(0.75)
     // expect(rmInstance.getAllocationByPair(B, X)).to.be.equal(0.25)
     // expect(rmInstance.getAllocationByPair(B, Y)).to.be.equal(0.25)
-
-
-
-
-
 }
 
 function iterative() {

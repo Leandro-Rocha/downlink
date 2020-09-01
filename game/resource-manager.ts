@@ -28,10 +28,11 @@ class ResourceMatrix {
         return Object.keys(this.allocationMatrix).filter(index => index.includes(id))
     }
 
-    removeOrientedAllocationsForResource(id: string) {
-        if (id === undefined || id.length === 0) return
+    removeOrientedAllocationsForResource(resource: Resource) {
+        if (resource === undefined) return
+
         Object.keys(this.orientedMatrix)
-            .filter(index => index.includes(id))
+            .filter(index => index.includes(resource.id))
             .forEach(index => this.removeOrientedEntry(index))
     }
 
@@ -46,6 +47,7 @@ class ResourceMatrix {
 
 export class ResourceManager {
     static resourceList: Resource[] = []
+    static reallocationList: Resource[] = []
     static resourceMatrix: ResourceMatrix = new ResourceMatrix()
     static observer: Observer = new Observer()
 
@@ -59,31 +61,84 @@ export class ResourceManager {
         }))
     }
 
+    static processReallocationList() {
+
+        while (ResourceManager.reallocationList.length > 0) {
+            const resource = ResourceManager.reallocationList.shift()
+            if (resource === undefined) return
+
+            // console.log(`=================${resource.id}======================`)
+
+
+            // Removes all allocations from that consumer / zero allocation
+            resource.allocated = 0
+            resource.consumers.forEach(consumer => {
+                const currentAllocation = ResourceManager.getAllocationByPair(resource, consumer) || 0
+                // ResourceManager.resourceMatrix.removeEntry(ResourceManager.getMatrixIndex(resource, consumer))
+                consumer.free(currentAllocation)
+            })
+
+            // Update its fairShare considering consumers free allocations
+            resource.updateFairShare()
+
+            resource.consumers.forEach(consumer => {
+                const desiredAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${resource.id}-${consumer.id}`)
+
+                const thatToThis = ResourceManager.resourceMatrix.getOrientedAllocation(`${consumer.id}-${resource.id}`)
+                const currentAllocation = ResourceManager.getAllocationByPair(resource, consumer)
+
+                if (consumer.canAllocate(desiredAllocation)) {
+
+                    if (desiredAllocation === thatToThis || desiredAllocation === currentAllocation) {
+                        resource.allocate(desiredAllocation)
+                        consumer.allocate(desiredAllocation)
+                        this.setAllocationByPair(resource, consumer, desiredAllocation)
+
+                        ResourceManager.resourceMatrix.removeOrientedEntry(`${resource.id}-${consumer.id}`)
+                        ResourceManager.resourceMatrix.removeOrientedEntry(`${consumer.id}-${resource.id}`)
+                    }
+                    else {
+                        // Allocation successful, no propagations, clear allocation intention
+                        if (consumer.freeCapacity() < 0.1) {
+
+                        }
+                        else { // Check if can allocate free resources
+
+                            //  Add consumer to reallocationList
+                            ResourceManager.reallocationList.push(consumer)
+                            // resource.free(desiredAllocation)
+                            // console.log(`${consumer.id} has free resources after allocating [${desiredAllocation}]. Adding to list`)
+                        }
+                    }
+                }
+                else {
+                    // console.log(`${consumer.id} cannot allocate [${desiredAllocation}]. Adding to list`)
+                    // resource.free(desiredAllocation)
+                    ResourceManager.reallocationList.push(consumer)
+                }
+            })
+        }
+    }
+
     static linkResources(resourceA: Resource, resourceB: Resource) {
         resourceA.addConsumer(resourceB)
         resourceB.addConsumer(resourceA)
 
-        resourceA.updateOriented()
+        ResourceManager.reallocationList.push(resourceA)
+
+        ResourceManager.processReallocationList()
     }
+
 
     static unlinkResources(resourceA: Resource, resourceB: Resource) {
         resourceA.removeConsumer(resourceB)
         resourceB.removeConsumer(resourceA)
-
-        console.log('==========================================')
-
-        console.log(this.resourceMatrix.allocationMatrix)
-        console.log(this.resourceMatrix.orientedMatrix)
-
         this.resourceMatrix.removeEntry(this.getMatrixIndex(resourceA, resourceB))
-        this.resourceMatrix.removeOrientedAllocationsForResource(resourceA.id)
-        this.resourceMatrix.removeOrientedAllocationsForResource(resourceB.id)
-        
-        console.log('==========================================')
-        console.log(this.resourceMatrix.allocationMatrix)
-        console.log(this.resourceMatrix.orientedMatrix)
 
-        resourceA.updateOriented()
+        ResourceManager.reallocationList.push(resourceA)
+        ResourceManager.reallocationList.push(resourceB)
+
+        ResourceManager.processReallocationList()
     }
 
     static removeResources(...resources: Resource[]) {
@@ -109,6 +164,7 @@ export class ResourceManager {
     }
 
     static setAllocationByPair(resourceA: Resource, resourceB: Resource, value: number) {
+        console.log(`Setting allocation for ${resourceA.id}-${resourceB.id}:${value}`)
         this.setAllocation(ResourceManager.getMatrixIndex(resourceA, resourceB), value)
     }
 

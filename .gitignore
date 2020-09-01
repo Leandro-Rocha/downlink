@@ -107,3 +107,6 @@ dist
 out/
 .vscode/
 package-lock.json
+
+# OS X folder info
+.DS_Store
