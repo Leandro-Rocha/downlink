@@ -2,74 +2,82 @@ import { Interruptions } from "./interruptions"
 import { Process } from "./process"
 import { Observer } from "./signal-handler"
 import { EventEmitter } from "events"
+import { ResourceManager } from "./resource-manager"
 
 export default class Resource extends Observer {
     type: ResourceTypes
     name: string
+    id: string
     capacity: number
     allocated: number
 
-    consumers: { [keys: number]: { process: Process, allocation: number } } = {}
-    observers: any[] = []
+    consumers: Resource[] = []
 
     constructor(type: ResourceTypes, name: string, capacity: number) {
         super()
 
         this.type = type
         this.name = name
+        this.id = name
         this.capacity = capacity
         this.allocated = 0
     }
 
-    handleProcess() {
-        this.updateAllocation()
+    canAllocate(desiredAllocation: number) {
+        return this.freeCapacity() >= desiredAllocation
     }
 
-    getAllocation(PID: number) {
-        if (this.consumers[PID] === undefined) return 0
-        return this.consumers[PID].allocation
+    allocate(desiredAllocation: number) {
+        this.allocated += desiredAllocation
     }
 
-    updateAllocation() {
-        var runningConsumers: { process: Process, allocation: number }[] = []
+    free(amount: number) {
+        this.allocated -= amount
+    }
 
-        for (const consumer of Object.values(this.consumers)) {
+    freeCapacity() {
+        return this.capacity - this.allocated
+    }
 
-            if (consumer.process.isRunning()) {
-                runningConsumers.push(consumer)
-            }
-            else {
-                consumer.allocation = 0
-            }
-        }
+    getOrientedAllocation(consumer: Resource) {
+        return ResourceManager.resourceMatrix.getOrientedAllocation(`${this.id}-${consumer.id}`)
+    }
 
-        runningConsumers.sort((c1, c2) => c1.process.maxWorkRate - c2.process.maxWorkRate)
+    getOrientedAllocationOrFreeCapacity(consumer: Resource) {
+        const orientedAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${this.id}-${consumer.id}`)
+        return orientedAllocation || consumer.freeCapacity()
+    }
 
-        this.allocated = 0
+    // TODO move to ResourceManager
+    setOrientedAllocation(consumer: Resource, value: number) {
+        ResourceManager.resourceMatrix.setOrientedAllocation(`${this.id}-${consumer.id}`, value)
+    }
 
-        while (runningConsumers.length > 0) {
-            const fairShare = (this.capacity - this.allocated) / runningConsumers.length
-            const c = runningConsumers.shift()
-            if (c === undefined) continue
+    updateFairShare() {
+        const sortedConsumers = [...this.consumers.sort((c1, c2) => this.getOrientedAllocationOrFreeCapacity(c1) - this.getOrientedAllocationOrFreeCapacity(c2))]
 
-            const newAllocation = Math.min(c.process.maxWorkRate, fairShare)
-            this.allocated += newAllocation
-            c.allocation = newAllocation
-        }
+        var allocated = 0
+        var allocationCount = 0
 
-        this.send(this, 'RESOURCE_ALLOCATION_UPDATED')
+        sortedConsumers.forEach(consumer => {
+            const fairShare = (this.capacity - allocated) / ((sortedConsumers.length - allocationCount) || 1)
+
+            const newAllocation = Math.min(fairShare, consumer.getOrientedAllocation(this) || consumer.freeCapacity() || consumer.capacity)
+
+            allocated += newAllocation
+            allocationCount++
+
+            this.setOrientedAllocation(consumer, newAllocation)
+        })
     }
 
 
-    addConsumer(consumer: Process) {
-        this.consumers[consumer.PID] = { process: consumer, allocation: 0 }
+    addConsumer(consumer: Resource) {
+        this.consumers.push(consumer)
     }
 
-    removeConsumer(consumer: Process) {
-        delete this.consumers[consumer.PID]
-
-        consumer.unsubscribe(this, 'PROCESS_STARTED')
-        consumer.unsubscribe(this, 'PROCESS_FINISHED')
+    removeConsumer(consumer: Resource) {
+        this.consumers = this.consumers.filter(c => c !== consumer)
     }
 }
 

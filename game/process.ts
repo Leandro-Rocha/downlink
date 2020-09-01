@@ -1,6 +1,7 @@
 import { Interruptions } from "./interruptions"
 import Resource from "./resource"
 import { Observer } from "./signal-handler"
+import { ResourceManager } from "./resource-manager"
 
 export enum Status {
     RUNNING,
@@ -42,11 +43,8 @@ export class Process extends Observer {
 
         this.maxWorkRate = Math.min(uplink.capacity, downlink.capacity)
 
-        this.subscribe(this.uplink, 'PROCESS_STARTED', this.uplink.handleProcess)
-        this.subscribe(this.uplink, 'PROCESS_FINISHED', this.uplink.handleProcess)
-
-        this.subscribe(this.downlink, 'PROCESS_STARTED', this.downlink.handleProcess)
-        this.subscribe(this.downlink, 'PROCESS_FINISHED', this.downlink.handleProcess)
+        this.subscribe(ResourceManager, Interruptions.PROCESS_STARTED, () => ResourceManager.updateAllocation(this.downlink))
+        this.subscribe(ResourceManager, Interruptions.PROCESS_FINISHED, () => ResourceManager.updateAllocation(this.downlink))
     }
 
     isRunning() { return this.status === Status.RUNNING }
@@ -64,11 +62,10 @@ export class Process extends Observer {
         return (Date.now() - this.lastUpdateTime)
     }
 
-    makeProgress() {
-        this.workDone += this.timeSinceLastUpdate() * this.workRate
-        this.lastUpdateTime = Date.now()
+    makeProgress(elapsed: number) {
+        this.workDone += elapsed * this.workRate
 
-        if (this.progress() >= 100) this.status = Status.FINISHED
+        if (this.progress() >= 100) this.exit(0)
     }
 
     progress(): number {
@@ -76,13 +73,13 @@ export class Process extends Observer {
     }
 
     start() {
-        console.info(`Process (${this.name}) started`)
+        // console.info(`Process (${this.name}) started`)
         this.startTime = Date.now()
         this.lastUpdateTime = this.startTime
         this.status = Status.RUNNING
 
-        this.uplink.addConsumer(this)
-        this.downlink.addConsumer(this)
+        this.uplink.addConsumer(this.downlink)
+        this.downlink.addConsumer(this.uplink)
 
         this.uplink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
         this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
@@ -91,56 +88,28 @@ export class Process extends Observer {
     }
 
     handleAllocationChanged(emitter: any) {
+        // console.info(`[${this.name}][u:${this.uplink.getAllocation(this.PID)}/d:${this.downlink.getAllocation(this.PID)}] interrupted by [${emitter.name}] with [${Interruptions.RESOURCE_ALLOCATION_UPDATED}] after ${this.timeSinceStart() / 1000} seconds. Work done: ${this.progress()}%`)
 
-        this.makeProgress()
-
-        console.info(`[${this.name}][u:${this.uplink.getAllocation(this.PID)}/d:${this.downlink.getAllocation(this.PID)}] interrupted by [${emitter.name}] with [${Interruptions.RESOURCE_ALLOCATION_UPDATED}] after ${this.timeSinceStart() / 1000} seconds. Work done: ${this.progress()}%`)
-
-        const downlinkAllocation = this.downlink.getAllocation(this.PID)
-        const uplinkAllocation = this.uplink.getAllocation(this.PID)
-
-        const newAllocation = Math.min(downlinkAllocation, uplinkAllocation)
+        const newAllocation = ResourceManager.getAllocationByPair(this.downlink, this.uplink)
 
         if (newAllocation != this.workRate) {
             console.info(`New workRate for ${this.name} before:[${this.workRate}] new:[${newAllocation}]`)
-
-            clearTimeout(this.timeout)
-
-            this.uplink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
-            this.downlink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
-
-            this.downlink.updateAllocation()
-            this.uplink.updateAllocation()
-
-            this.uplink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
-            this.downlink.subscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED, this.handleAllocationChanged)
-
-            if (this.progress() >= 100) {
-                this.exit(3)
-            }
-            else {
-                this.workRate = newAllocation
-                this.timeout = setTimeout(() => this.exit(1), this.timeToComplete())
-            }
+            this.workRate = newAllocation
         }
     }
 
     exit(status: number) {
-        this.makeProgress()
-
         this.status = Status.DEAD
-
-        this.uplink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
-        this.downlink.unsubscribe(this, Interruptions.RESOURCE_ALLOCATION_UPDATED)
-
-        this.send(this, 'PROCESS_FINISHED')
-
-        this.uplink.removeConsumer(this)
-        this.downlink.removeConsumer(this)
-
 
         // if (this.lastUpdateTime - this.startTime > this.totalWork + 10)
         console.info(`Process (${this.name}) exited with status ${status} - work done = ${this.progress()}% - total time=${this.timeSinceStart() / 1000}`)
 
+        this.uplink.removeConsumer(this.downlink)
+        this.downlink.removeConsumer(this.uplink)
+
+        this.send(this, Interruptions.PROCESS_FINISHED)
+
+        ResourceManager.observer.unsubscribe(this, Interruptions.PROCESS_STARTED)
+        ResourceManager.observer.unsubscribe(this, Interruptions.PROCESS_FINISHED)
     }
 }
