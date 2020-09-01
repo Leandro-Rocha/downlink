@@ -1,11 +1,11 @@
 {
-  "name": "hacker",
+  "name": "downlink",
   "version": "0.0.1",
   "description": "",
   "main": "game.js",
   "scripts": {
     "start": "ts-node-dev --transpile-only ./test/test.ts",
-    "test": "mocha 'test/**/*.ts'"
+    "test": "mocha -r ts-node/register 'test/**/*.ts'"
   },
   "author": "",
   "license": "ISC",

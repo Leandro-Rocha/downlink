@@ -48,9 +48,8 @@ export default class Resource extends Observer {
         return orientedAllocation || consumer.freeCapacity()
     }
 
+    // TODO move to ResourceManager
     setOrientedAllocation(consumer: Resource, value: number) {
-        // console.log(`${this.id}-${consumer.id} ----> ${value}`)
-
         ResourceManager.resourceMatrix.setOrientedAllocation(`${this.id}-${consumer.id}`, value)
     }
 
@@ -63,8 +62,6 @@ export default class Resource extends Observer {
         sortedConsumers.forEach(consumer => {
             const fairShare = (this.capacity - allocated) / ((sortedConsumers.length - allocationCount) || 1)
 
-            const currentAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${this.id}-${consumer.id}`)
-
             const newAllocation = Math.min(fairShare, consumer.getOrientedAllocation(this) || consumer.freeCapacity() || consumer.capacity)
 
             allocated += newAllocation
@@ -76,7 +73,6 @@ export default class Resource extends Observer {
 
 
     addConsumer(consumer: Resource) {
-        // console.log(`${this.id} is adding ${consumer.id}`)
         this.consumers.push(consumer)
     }
 

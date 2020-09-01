@@ -1,8 +1,7 @@
 import Resource from "./resource";
-import { resetHistory } from "sinon";
 import { Observer } from "./signal-handler";
 
-class ResourceMatrix {
+export class ResourceMatrix {
     allocationMatrix: { [key: string]: number } = {}
     orientedMatrix: { [key: string]: number } = {}
 
@@ -67,14 +66,10 @@ export class ResourceManager {
             const resource = ResourceManager.reallocationList.shift()
             if (resource === undefined) return
 
-            console.log(`=================${resource.id}======================`)
-
-
             // Removes all allocations from that consumer / zero allocation
             resource.allocated = 0
             resource.consumers.forEach(consumer => {
                 const currentAllocation = ResourceManager.getAllocationByPair(resource, consumer) || 0
-                // ResourceManager.resourceMatrix.removeEntry(ResourceManager.getMatrixIndex(resource, consumer))
                 consumer.free(currentAllocation)
             })
 
@@ -84,9 +79,6 @@ export class ResourceManager {
             resource.consumers.forEach(consumer => {
                 const desiredAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${resource.id}-${consumer.id}`)
 
-                const thatToThis = ResourceManager.resourceMatrix.getOrientedAllocation(`${consumer.id}-${resource.id}`)
-                const currentAllocation = ResourceManager.getAllocationByPair(resource, consumer)
-
                 if (consumer.canAllocate(desiredAllocation)) {
 
                     resource.allocate(desiredAllocation)
@@ -95,27 +87,13 @@ export class ResourceManager {
                     ResourceManager.resourceMatrix.removeOrientedEntry(`${resource.id}-${consumer.id}`)
                     ResourceManager.resourceMatrix.removeOrientedEntry(`${consumer.id}-${resource.id}`)
 
-                    if (desiredAllocation === thatToThis || desiredAllocation === currentAllocation) {
-
-                        
-                    }
-                    else {
-                        // Allocation successful, no propagations, clear allocation intention
-                        if (consumer.freeCapacity() === 0) {
-
-                        }
-                        else { // Check if can allocate free resources
-
-                            //  Add consumer to reallocationList
-                            ResourceManager.reallocationList.push(consumer)
-                            // resource.free(desiredAllocation)
-                            console.log(`${consumer.id} has free resources after allocating [${desiredAllocation}]. Adding to list`)
-                        }
+                    // If consumer still have capacity to allocate, give it a chance to redistribute
+                    if (consumer.freeCapacity() !== 0) {
+                        ResourceManager.reallocationList.push(consumer)
                     }
                 }
                 else {
-                    console.log(`${consumer.id} cannot allocate [${desiredAllocation}]. Adding to list`)
-                    // resource.free(desiredAllocation)
+                    // Consumer does not have enough capacity, redistribute what it have
                     ResourceManager.reallocationList.push(consumer)
                 }
             })
@@ -127,8 +105,6 @@ export class ResourceManager {
         resourceB.addConsumer(resourceA)
 
         ResourceManager.reallocationList.push(resourceA)
-
-        ResourceManager.processReallocationList()
     }
 
 
@@ -139,8 +115,6 @@ export class ResourceManager {
 
         ResourceManager.reallocationList.push(resourceA)
         ResourceManager.reallocationList.push(resourceB)
-
-        ResourceManager.processReallocationList()
     }
 
     static removeResources(...resources: Resource[]) {
@@ -166,7 +140,6 @@ export class ResourceManager {
     }
 
     static setAllocationByPair(resourceA: Resource, resourceB: Resource, value: number) {
-        console.log(`Setting allocation for ${resourceA.id}-${resourceB.id}:${value}`)
         this.setAllocation(ResourceManager.getMatrixIndex(resourceA, resourceB), value)
     }
 
@@ -180,7 +153,7 @@ export class ResourceManager {
 
     static updateAllocation(resource: Resource) {
         ResourceManager.resourceMatrix = new ResourceMatrix()
-        this.getResourceNetwork(resource).forEach(r => r.updateAllocation())
+        // this.getResourceNetwork(resource).forEach(r => r.updateAllocation())
     }
 
 
