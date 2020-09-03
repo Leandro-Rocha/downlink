@@ -10,10 +10,11 @@ export default class Resource extends Observer {
     id: string
     capacity: number
     allocated: number
+    priority?: number
 
     consumers: Resource[] = []
 
-    constructor(type: ResourceTypes, name: string, capacity: number) {
+    constructor(type: ResourceTypes, name: string, capacity: number, priority?: number) {
         super()
 
         this.type = type
@@ -21,6 +22,8 @@ export default class Resource extends Observer {
         this.id = name
         this.capacity = capacity
         this.allocated = 0
+
+        this.priority = priority
     }
 
     canAllocate(desiredAllocation: number) {
@@ -36,7 +39,7 @@ export default class Resource extends Observer {
     }
 
     freeCapacity() {
-        return this.capacity - this.allocated
+        return ((this.capacity * this.getPriority()) - this.allocated)
     }
 
     getOrientedAllocation(consumer: Resource) {
@@ -62,13 +65,18 @@ export default class Resource extends Observer {
         sortedConsumers.forEach(consumer => {
             const fairShare = (this.capacity - allocated) / ((sortedConsumers.length - allocationCount) || 1)
 
-            const newAllocation = Math.min(fairShare, consumer.getOrientedAllocation(this) || consumer.freeCapacity() || consumer.capacity)
+            const newAllocation = Math.min(fairShare, consumer.getOrientedAllocation(this) || (consumer.freeCapacity()) || (consumer.capacity * consumer.getPriority()))
 
             allocated += newAllocation
             allocationCount++
 
             this.setOrientedAllocation(consumer, newAllocation)
         })
+    }
+
+    getPriority() {
+        if (this.priority === undefined) return 1
+        return this.priority / 5
     }
 
 

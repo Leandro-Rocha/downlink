@@ -1,7 +1,7 @@
 import { expect } from "chai"
 import 'mocha'
-import Resource, { ResourceTypes } from "../game/resource"
-import { ResourceManager, ResourceMatrix } from "../game/resource-manager"
+import Resource, { ResourceTypes } from "../src/resource"
+import { ResourceManager, ResourceMatrix } from "../src/resource-manager"
 
 
 describe('ResourceManager',

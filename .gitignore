@@ -105,7 +105,7 @@ dist
 
 
 out/
-.vscode/
+.vscode/settings.json
 package-lock.json
 
 # OS X folder info

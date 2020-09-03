@@ -93,7 +93,7 @@ export class ResourceManager {
                     }
                 }
                 else {
-                    // Consumer does not have enough capacity, redistribute what it have
+                    // Consumer does not have enough capacity, redistribute what it have 
                     ResourceManager.reallocationList.push(consumer)
                 }
             })
@@ -125,8 +125,8 @@ export class ResourceManager {
                 console.error(`Cannot remove resource [${r.id}] from matrix as it still have consumers:[${r.consumers.map(c => c.id)}]`)
             }
             else {
-                this.resourceMatrix.getAllocationsForResource(r.id)
-                    ?.forEach(index => this.resourceMatrix.removeEntry(index))
+                this.resourceMatrix.getAllocationsForResource(r.id) || []
+                    .forEach(index => this.resourceMatrix.removeEntry(index))
             }
         })
     }
