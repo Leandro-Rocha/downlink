@@ -9,7 +9,7 @@
             "args": [
                 "-r",
                 "ts-node/register",
-                "--timeout 1000",
+                "--timeout 99999",
                 "--colors",
                 "--recursive",
                 "${workspaceFolder}/test/**/*.ts"
