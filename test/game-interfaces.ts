@@ -1,6 +1,8 @@
 import 'mocha'
 import { expect } from 'chai'
-import { ResourceManager } from '../src/resource-manager'
+import { Resource, ResourceTypes } from '../src/resource'
+import { NetworkInterface } from '../src/network-interfaces'
+// import { ResourceManager } from '../src/resource-manager'
 
 describe('Game Interfaces',
     () => {
@@ -8,14 +10,6 @@ describe('Game Interfaces',
         // it('can create file transfer process', createFileTransferProcess)
     })
 
-//TODO revert names
-enum ResourceTypes {
-    DOWNLINK = 'D',
-    UPLINK = 'U',
-    MEMORY = 'MEMORY',
-    CPU = 'CPU',
-    STORAGE = 'CPU',
-}
 
 enum ConnectionStatus {
     KNOWN = 'KNOWN',
@@ -52,45 +46,7 @@ class OperationResult<T> {
     }
 }
 
-class Resource {
-    name: string
-    type: ResourceTypes
-    capacity: number
-    allocated: number
-    consumers: Resource[]
 
-    constructor(name: string, type: ResourceTypes, capacity: number) {
-        this.name = name
-        this.type = type
-        this.capacity = capacity
-        this.allocated = 0
-        this.consumers = []
-    }
-
-    allocate(desiredAllocation: number) {
-        this.allocated += desiredAllocation
-    }
-
-    free(amount: number) {
-        this.allocated -= amount
-    }
-
-    canAllocate(amount: number): boolean {
-        return amount + this.allocated <= this.capacity
-    }
-
-    freeCapacity() {
-        return this.capacity - this.allocated
-    }
-
-    addConsumer(consumer: Resource) {
-        this.consumers.push(consumer)
-    }
-
-    removeConsumer(consumer: Resource) {
-        this.consumers = this.consumers.filter(c => c !== consumer)
-    }
-}
 
 class Storage extends Resource {
     files: File[] = []
@@ -145,57 +101,57 @@ class Memory extends Resource {
     }
 }
 
-export class NetworkInterface extends Resource {
-    counter = 1
+// export class NetworkInterface extends Resource {
+//     counter = 1
 
-    processes: NetworkProcess[] = []
+//     processes: NetworkProcess[] = []
 
-    constructor(name: string, type: ResourceTypes, capacity: number) {
-        super(name, type, capacity)
-    }
+//     constructor(name: string, type: ResourceTypes, capacity: number) {
+//         super(name, type, capacity)
+//     }
 
-    updateFairShare() {
-        const sortedProcesses = [...this.processes]
-            .sort((p1, p2) => p1.pair.getFreeCapacity() - p2.pair.getFreeCapacity())
+//     updateFairShare() {
+//         const sortedProcesses = [...this.processes]
+//             .sort((p1, p2) => p1.pair.getFreeCapacity() - p2.pair.getFreeCapacity())
 
-        var allocated = 0
-        var unused = 0
-        var allocationCount = 0
+//         var allocated = 0
+//         var unused = 0
+//         var allocationCount = 0
 
-        sortedProcesses.forEach(process => {
-            const pair = process.pair
+//         sortedProcesses.forEach(process => {
+//             const pair = process.pair
 
-            const fairShare = process.getCapacity() + unused
-            const pairAllocation = pair.getOrientedAllocation(process) || pair.getFreeCapacity() + pair.networkLink.getUnusedAllocation() || pair.getCapacity()
+//             const fairShare = process.getCapacity() + unused
+//             const pairAllocation = pair.getOrientedAllocation(process) || pair.getFreeCapacity() + pair.networkLink.getUnusedAllocation() || pair.getCapacity()
 
-            // TODO change to optional chaining
-            const newAllocation = Math.min(fairShare, pairAllocation,
-                // (process.bounceInfo || {}).sharedAllocation || Number.MAX_VALUE
-            )
+//             // TODO change to optional chaining
+//             const newAllocation = Math.min(fairShare, pairAllocation,
+//                 // (process.bounceInfo || {}).sharedAllocation || Number.MAX_VALUE
+//             )
 
-            allocated += newAllocation
-            allocationCount++
-            unused += fairShare - newAllocation
+//             allocated += newAllocation
+//             allocationCount++
+//             unused += fairShare - newAllocation
 
-            process.setOrientedAllocation(pair, newAllocation)
+//             process.setOrientedAllocation(pair, newAllocation)
 
-            // console.log(`${process.pid}-${pair.pid}:${newAllocation}`)
-        })
-    }
+//             // console.log(`${process.pid}-${pair.pid}:${newAllocation}`)
+//         })
+//     }
 
-    getUnusedAllocation() {
-        const unused = this.processes
-            .filter(t => t.allocated > 0)
-            .reduce((acc, t) => acc += t.getCapacity() - t.allocated, 0)
+//     getUnusedAllocation() {
+//         const unused = this.processes
+//             .filter(t => t.allocated > 0)
+//             .reduce((acc, t) => acc += t.getCapacity() - t.allocated, 0)
 
-        if (unused < 0) {
-            console.log('!!!!!!!!!!!!!!!!!!')
-        }
+//         if (unused < 0) {
+//             console.log('!!!!!!!!!!!!!!!!!!')
+//         }
 
-        return unused < 0 ? 0 : unused
-    }
+//         return unused < 0 ? 0 : unused
+//     }
 
-}
+// }
 
 
 class Downlink extends NetworkInterface {
@@ -226,90 +182,90 @@ class Process {
     }
 }
 
-export class NetworkProcess extends Process {
-    networkLink: NetworkInterface
-    pair!: NetworkProcess
-    allocated: number
-    bounceInfo!: { sharedAllocation: number, chain: NetworkProcess[] }
+// export class NetworkProcess extends Process {
+//     networkLink: NetworkInterface
+//     pair!: NetworkProcess
+//     allocated: number
+//     bounceInfo!: { sharedAllocation: number, chain: NetworkProcess[] }
 
-    constructor(pid: string, networkLink: NetworkInterface) {
-        super(pid)
+//     constructor(pid: string, networkLink: NetworkInterface) {
+//         super(pid)
 
-        this.pid = pid + networkLink.type + networkLink.counter++
+//         this.pid = pid + networkLink.type + networkLink.counter++
 
 
-        this.networkLink = networkLink
-        this.allocated = 0
-    }
+//         this.networkLink = networkLink
+//         this.allocated = 0
+//     }
 
-    getSharedPriority() {
-        return this.networkLink.processes.reduce((acc, process) => acc += process.priority, 0)
-    }
+//     getSharedPriority() {
+//         return this.networkLink.processes.reduce((acc, process) => acc += process.priority, 0)
+//     }
 
-    getMyPriorityShare(): number {
-        return this.priority / this.getSharedPriority()
-    }
+//     getMyPriorityShare(): number {
+//         return this.priority / this.getSharedPriority()
+//     }
 
-    getOrientedAllocation(consumer: NetworkProcess) {
-        return ResourceManager.resourceMatrix.getOrientedAllocation(`${this.pid}-${consumer.pid}`)
-    }
+//     // getOrientedAllocation(consumer: NetworkProcess) {
+//     //     return ResourceManager.resourceMatrix.getOrientedAllocation(`${this.pid}-${consumer.pid}`)
+//     // }
 
-    setOrientedAllocation(consumer: NetworkProcess, value: number) {
-        ResourceManager.resourceMatrix.setOrientedAllocation(`${this.pid}-${consumer.pid}`, value)
-    }
+//     // setOrientedAllocation(consumer: NetworkProcess, value: number) {
+//     //     ResourceManager.resourceMatrix.setOrientedAllocation(`${this.pid}-${consumer.pid}`, value)
+//     // }
 
-    getOrientedAllocationOrFreeCapacity(consumer: NetworkProcess) {
-        const orientedAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${this.pid}-${consumer.pid}`)
-        return orientedAllocation || consumer.getFreeCapacity()
-    }
+//     // getOrientedAllocationOrFreeCapacity(consumer: NetworkProcess) {
+//     //     const orientedAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${this.pid}-${consumer.pid}`)
+//     //     return orientedAllocation || consumer.getFreeCapacity()
+//     // }
 
-    updateFairShare() {
-        const sortedConsumers = [...this.getInterfaceConsumers().sort((c1, c2) => this.getOrientedAllocationOrFreeCapacity(c1) - this.getOrientedAllocationOrFreeCapacity(c2))]
+//     // updateFairShare() {
+//     //     const sortedConsumers = [...this.getInterfaceConsumers().sort((c1, c2) => this.getOrientedAllocationOrFreeCapacity(c1) - this.getOrientedAllocationOrFreeCapacity(c2))]
 
-        const consumer = this.pair
-        const fairShare = (this.getCapacity()) + this.networkLink.getUnusedAllocation()
-        // / ((this.getInterfaceConsumers().length - allocationCount) || 1)
+//     //     const consumer = this.pair
+//     //     const fairShare = (this.getCapacity()) + this.networkLink.getUnusedAllocation()
+//     //     // / ((this.getInterfaceConsumers().length - allocationCount) || 1)
 
-        const maxAllocation = consumer.getOrientedAllocation(this)
-            || (consumer.getFreeCapacity() + consumer.networkLink.getUnusedAllocation())
-            || (consumer.getCapacity())
+//     //     const maxAllocation = consumer.getOrientedAllocation(this)
+//     //         || (consumer.getFreeCapacity() + consumer.networkLink.getUnusedAllocation())
+//     //         || (consumer.getCapacity())
 
-        var newAllocation = Math.min(fairShare, maxAllocation)
-        // newAllocation = Math.min(newAllocation, this.bounceInfo.sharedAllocation)
+//     //     var newAllocation = Math.min(fairShare, maxAllocation)
+//     //     // newAllocation = Math.min(newAllocation, this.bounceInfo.sharedAllocation)
 
-        // console.log(`${this.pid}-${consumer.pid}:${newAllocation}`)
+//     //     // console.log(`${this.pid}-${consumer.pid}:${newAllocation}`)
 
-        this.setOrientedAllocation(consumer, newAllocation)
-    }
+//     //     this.setOrientedAllocation(consumer, newAllocation)
+//     // }
 
-    allocate(amount: number) {
-        this.allocated += amount
-    }
+//     allocate(amount: number) {
+//         this.allocated += amount
+//     }
 
-    free(amount: number) {
-        this.allocated -= amount
-    }
+//     free(amount: number) {
+//         this.allocated -= amount
+//     }
 
-    canAllocate(amount: number): boolean {
-        return amount + this.allocated <= this.getCapacity() + this.networkLink.getUnusedAllocation()
-    }
+//     canAllocate(amount: number): boolean {
+//         return amount + this.allocated <= this.getCapacity() + this.networkLink.getUnusedAllocation()
+//     }
 
-    getCapacity(): number {
-        return (this.networkLink.capacity * this.getMyPriorityShare())
-    }
+//     getCapacity(): number {
+//         return (this.networkLink.capacity * this.getMyPriorityShare())
+//     }
 
-    getFreeCapacity(): number {
-        return this.getCapacity() - this.allocated
-    }
+//     getFreeCapacity(): number {
+//         return this.getCapacity() - this.allocated
+//     }
 
-    getInterfaceTotalCapacity(): number {
-        return this.networkLink.capacity
-    }
+//     getInterfaceTotalCapacity(): number {
+//         return this.networkLink.capacity
+//     }
 
-    getInterfaceConsumers(): NetworkProcess[] {
-        return this.networkLink.processes
-    }
-}
+//     // getInterfaceConsumers(): NetworkProcess[] {
+//     //     return this.networkLink.processes
+//     // }
+// }
 
 class Gateway {
 
@@ -366,65 +322,65 @@ export class Player {
     }
 }
 
-type FileTransferDetails = { pairs: { downloadProcess: NetworkProcess, uploadProcess: NetworkProcess }[] }
+// type FileTransferDetails = { pairs: { downloadProcess: NetworkProcess, uploadProcess: NetworkProcess }[] }
 
-export enum FileTransferType {
-    DOWNLOAD = 'DOWNLOAD',
-    UPLOAD = 'UPLOAD'
-}
+// export enum FileTransferType {
+//     DOWNLOAD = 'DOWNLOAD',
+//     UPLOAD = 'UPLOAD'
+// }
 
-export class FileTransferFactory {
+// export class FileTransferFactory {
 
-    static createFileTransfer(transferType: FileTransferType, file: File, ...connectionPath: Gateway[]): OperationResult<FileTransferDetails> {
-        const result = new OperationResult<FileTransferDetails>()
-        result.details = { pairs: [] }
+//     static createFileTransfer(transferType: FileTransferType, file: File, ...connectionPath: Gateway[]): OperationResult<FileTransferDetails> {
+//         const result = new OperationResult<FileTransferDetails>()
+//         result.details = { pairs: [] }
 
-        result.validate(connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
-        if (!result.isSuccessful()) return result
+//         result.validate(connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
+//         if (!result.isSuccessful()) return result
 
-        var workingConnectionPath = [...connectionPath]
+//         var workingConnectionPath = [...connectionPath]
 
-        if (transferType === FileTransferType.UPLOAD)
-            workingConnectionPath = workingConnectionPath.reverse()
+//         if (transferType === FileTransferType.UPLOAD)
+//             workingConnectionPath = workingConnectionPath.reverse()
 
-        const fileOwner = connectionPath[connectionPath.length - 1]
-        result.validate(fileOwner.storage.files.includes(file), `File [${file.name}] does not exists.`)
-        if (!result.isSuccessful()) return result
+//         const fileOwner = connectionPath[connectionPath.length - 1]
+//         result.validate(fileOwner.storage.files.includes(file), `File [${file.name}] does not exists.`)
+//         if (!result.isSuccessful()) return result
 
-        const bounceInfo: { sharedAllocation: number, chain: NetworkProcess[] } = { sharedAllocation: Number.MAX_VALUE, chain: [] }
+//         const bounceInfo: { sharedAllocation: number, chain: NetworkProcess[] } = { sharedAllocation: Number.MAX_VALUE, chain: [] }
 
-        while (workingConnectionPath.length > 1) {
-            const downloader = workingConnectionPath.shift()!
-            const uploader = workingConnectionPath[0]
+//         while (workingConnectionPath.length > 1) {
+//             const downloader = workingConnectionPath.shift()!
+//             const uploader = workingConnectionPath[0]
 
-            const downloadProcess = new NetworkProcess(downloader.owner.name, downloader.downlink)
-            const uploadProcess = new NetworkProcess(uploader.owner.name, uploader.uplink)
+//             const downloadProcess = new NetworkProcess(downloader.owner.name, downloader.downlink)
+//             const uploadProcess = new NetworkProcess(uploader.owner.name, uploader.uplink)
 
-            downloadProcess.pair = uploadProcess
-            uploadProcess.pair = downloadProcess
+//             downloadProcess.pair = uploadProcess
+//             uploadProcess.pair = downloadProcess
 
-            result.details.pairs.push({ downloadProcess: downloadProcess, uploadProcess: uploadProcess })
+//             result.details.pairs.push({ downloadProcess: downloadProcess, uploadProcess: uploadProcess })
 
-            if (connectionPath.length > 2) {
-                bounceInfo.chain.push(downloadProcess)
-                downloadProcess.bounceInfo = bounceInfo
+//             if (connectionPath.length > 2) {
+//                 bounceInfo.chain.push(downloadProcess)
+//                 downloadProcess.bounceInfo = bounceInfo
 
-                bounceInfo.chain.push(uploadProcess)
-                uploadProcess.bounceInfo = bounceInfo
-            }
+//                 bounceInfo.chain.push(uploadProcess)
+//                 uploadProcess.bounceInfo = bounceInfo
+//             }
 
-            downloader.downlink.processes.push(downloadProcess)
-            downloader.processes.push(downloadProcess)
+//             // downloader.downlink.processes.push(downloadProcess)
+//             // downloader.processes.push(downloadProcess)
 
-            uploader.uplink.processes.push(uploadProcess)
-            uploader.processes.push(uploadProcess)
+//             // uploader.uplink.processes.push(uploadProcess)
+//             // uploader.processes.push(uploadProcess)
 
-            ResourceManager.addToReallocation(downloader.downlink, uploader.uplink)
-        }
+//             // ResourceManager.addToReallocation(downloader.downlink, uploader.uplink)
+//         }
 
-        return result
-    }
-}
+//         return result
+//     }
+// }
 
 
 function createPermanentProcess() {
@@ -457,7 +413,7 @@ function createPermanentProcess() {
 
 function createFileTransferProcess() {
     const player = new Player('Hanolus')
-    const remoteServer = new Player('Hanolus')
+    const remoteServer = new Player('Remote Hanolus')
 
     const antVirusV1 = new Program('AntivirusV1', 1000, { processor: 500, memory: 100, remoteConnection: false })
 
@@ -468,6 +424,8 @@ function createFileTransferProcess() {
 
     // const result = FileTransferFactory.create(player.gateway, remoteServer.gateway, targetFile)
     // console.log(`createFileTransferProcess -> result`, result)
-
-
 }
+
+
+
+

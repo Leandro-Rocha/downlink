@@ -1,33 +1,24 @@
-import { Interruptions } from "./interruptions"
-import { Process } from "./process"
-import { Observer } from "./signal-handler"
-import { EventEmitter } from "events"
-import { ResourceManager } from "./resource-manager"
 
-export default class Resource extends Observer {
-    type: ResourceTypes
+//TODO revert names
+export enum ResourceTypes {
+    DOWNLINK = 'D',
+    UPLINK = 'U',
+    MEMORY = 'MEMORY',
+    CPU = 'CPU',
+    STORAGE = 'CPU',
+}
+
+export class Resource {
     name: string
-    id: string
+    type: ResourceTypes
     capacity: number
     allocated: number
-    priority?: number
 
-    consumers: Resource[] = []
-
-    constructor(type: ResourceTypes, name: string, capacity: number, priority?: number) {
-        super()
-
-        this.type = type
+    constructor(name: string, type: ResourceTypes, capacity: number) {
         this.name = name
-        this.id = name
+        this.type = type
         this.capacity = capacity
         this.allocated = 0
-
-        this.priority = priority
-    }
-
-    canAllocate(desiredAllocation: number) {
-        return this.freeCapacity() >= desiredAllocation
     }
 
     allocate(desiredAllocation: number) {
@@ -38,60 +29,12 @@ export default class Resource extends Observer {
         this.allocated -= amount
     }
 
+    canAllocate(amount: number): boolean {
+        return amount + this.allocated <= this.capacity
+    }
+
     freeCapacity() {
-        return ((this.capacity * this.getPriority()) - this.allocated)
+        return this.capacity - this.allocated
     }
 
-    getOrientedAllocation(consumer: Resource) {
-        return ResourceManager.resourceMatrix.getOrientedAllocation(`${this.id}-${consumer.id}`)
-    }
-
-    getOrientedAllocationOrFreeCapacity(consumer: Resource) {
-        const orientedAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${this.id}-${consumer.id}`)
-        return orientedAllocation || consumer.freeCapacity()
-    }
-
-    // TODO move to ResourceManager
-    setOrientedAllocation(consumer: Resource, value: number) {
-        ResourceManager.resourceMatrix.setOrientedAllocation(`${this.id}-${consumer.id}`, value)
-    }
-
-    updateFairShare() {
-        const sortedConsumers = [...this.consumers.sort((c1, c2) => this.getOrientedAllocationOrFreeCapacity(c1) - this.getOrientedAllocationOrFreeCapacity(c2))]
-
-        var allocated = 0
-        var allocationCount = 0
-
-        sortedConsumers.forEach(consumer => {
-            const fairShare = (this.capacity - allocated) / ((sortedConsumers.length - allocationCount) || 1)
-
-            const newAllocation = Math.min(fairShare, consumer.getOrientedAllocation(this) || (consumer.freeCapacity()) || (consumer.capacity * consumer.getPriority()))
-
-            allocated += newAllocation
-            allocationCount++
-
-            this.setOrientedAllocation(consumer, newAllocation)
-        })
-    }
-
-    getPriority() {
-        if (this.priority === undefined) return 1
-        return this.priority / 5
-    }
-
-
-    addConsumer(consumer: Resource) {
-        this.consumers.push(consumer)
-    }
-
-    removeConsumer(consumer: Resource) {
-        this.consumers = this.consumers.filter(c => c !== consumer)
-    }
-}
-
-
-export enum ResourceTypes {
-    NETWORK,
-    MEMORY,
-    CPU
 }
