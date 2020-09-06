@@ -1,6 +1,6 @@
 import Resource from "./resource";
 import { Observer } from "./signal-handler";
-import { NetworkProcess } from "../test/game-interfaces";
+import { NetworkProcess, NetworkInterface } from "../test/game-interfaces";
 
 export class ResourceMatrix {
     allocationMatrix: { [key: string]: number } = {}
@@ -47,88 +47,110 @@ export class ResourceMatrix {
 
 export class ResourceManager {
     static resourceList: Resource[] = []
-    static reallocationList: NetworkProcess[] = []
+    static reallocationList: NetworkInterface[] = []
     static resourceMatrix: ResourceMatrix = new ResourceMatrix()
     static observer: Observer = new Observer()
 
-    // static addResources(...resources: Resource[]) {
-    //     if (resources === undefined) return
+    static addToReallocation(...networkInterfaces: NetworkInterface[]) {
+        if (networkInterfaces === undefined) return
 
-    //     ResourceManager.resourceList.push(...resources)
-
-    //     resources.forEach(r1 => r1.consumers.forEach(r2 => {
-    //         this.setAllocationByPair(r1, r2, 0)
-    //     }))
-    // }
+        networkInterfaces.forEach(n => {
+            if (!ResourceManager.reallocationList.includes(n)) {
+                ResourceManager.reallocationList.push(n)
+            }
+        })
+    }
 
     static processReallocationList() {
 
         while (ResourceManager.reallocationList.length > 0) {
-            const resource = ResourceManager.reallocationList.shift()
-            if (resource === undefined) return
+            const networkInterface = ResourceManager.reallocationList.shift()
+            if (networkInterface === undefined) return
 
-            const consumer = resource.pair
+            // Removes all allocations from that all processes belonging to this interface
+            networkInterface.processes.forEach(p => {
+                const currentAllocation = ResourceManager.getAllocationByPair(p, p.pair) || 0
 
-            // Removes all allocations from that consumer / zero allocation
-            const currentAllocation = ResourceManager.getAllocationByPair(resource, consumer) || 0
-
-            resource.allocated -= currentAllocation
-            consumer.allocated -= currentAllocation
+                p.free(currentAllocation)
+                p.pair.free(currentAllocation)
+            })
 
             // Update its fairShare considering consumers free allocations
-            resource.updateFairShare()
+            networkInterface.updateFairShare()
 
-            const desiredAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${resource.pid}-${consumer.pid}`)
+            networkInterface.processes.forEach(process => {
+                const pair = process.pair
 
-            if (consumer.canAllocate(desiredAllocation)) {
+                const desiredAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${process.pid}-${pair.pid}`)
+
+                // Consumer does not have enough capacity, redistribute what it have 
+                if (!pair.canAllocate(desiredAllocation)) {
+                    console.log(`Adding ${pair.pid} to the list as it cannot allocate ${desiredAllocation}. [${pair.getFreeCapacity()}] left`)
+                    ResourceManager.addToReallocation(pair.networkLink)
+                    return
+                }
+
                 // console.log(`${resource.pid}-${consumer.pid}:${desiredAllocation}`)
 
-                resource.allocated += desiredAllocation
-                consumer.allocated += desiredAllocation
+                process.allocate(desiredAllocation)
+                pair.allocate(desiredAllocation)
 
-                const minLink = resource.bounceInfo.chain
-                    .filter(p => p.allocated > 0)
-                    .sort((p1, p2) => p1.allocated - p2.allocated).shift()
-                if (minLink !== undefined) {
-                    if (minLink.allocated !== resource.bounceInfo.sharedAllocation) {
-                        resource.bounceInfo.sharedAllocation = minLink.allocated || Number.MAX_VALUE
-                        ResourceManager.reallocationList.push(...resource.bounceInfo.chain)
-                    }
+                this.setAllocationByPair(process, pair, desiredAllocation)
+                ResourceManager.resourceMatrix.removeOrientedEntry(`${process.pid}-${pair.pid}`)
+                ResourceManager.resourceMatrix.removeOrientedEntry(`${pair.pid}-${process.pid}`)
 
-                }
+                ResourceManager.reallocationList = ResourceManager.reallocationList.filter(p => p !== process.networkLink && p !== pair.networkLink)
 
-                this.setAllocationByPair(resource, consumer, desiredAllocation)
-                ResourceManager.resourceMatrix.removeOrientedEntry(`${resource.pid}-${consumer.pid}`)
-                ResourceManager.resourceMatrix.removeOrientedEntry(`${consumer.pid}-${resource.pid}`)
 
-                ResourceManager.reallocationList = ResourceManager.reallocationList.filter(p => p !== resource && p !== consumer)
 
                 // TODO this is because unused resources
-                if (resource.allocated < resource.getCapacity()) {
-                    ResourceManager.reallocationList.push(consumer)
+                // if (process.allocated < process.getCapacity()) {
+                //     ResourceManager.addToReallocation(pair.networkLink)
+                // }
+
+                if (process.allocated > process.getCapacity()) {
+                    return
                 }
 
-                if (consumer.allocated > consumer.getCapacity()) {
-                    continue
-                }
-
-                if (consumer.allocated === consumer.bounceInfo.sharedAllocation) {
-                    continue
-                }
+                // if (process.bounceInfo !== undefined && process.allocated === process.bounceInfo.sharedAllocation) {
+                //     return
+                // }
 
                 // If consumer still have capacity to allocate, give it a chance to redistribute
-                if (consumer.getFreeCapacity() !== 0) {
-                    console.log(`Adding ${consumer.pid} to the list as it has [${consumer.getFreeCapacity()}] left`)
+                if (pair.getFreeCapacity() !== 0) {
+                    console.log(`Adding ${pair.pid} to the list as it has [${pair.getFreeCapacity()}] left`)
 
-                    ResourceManager.reallocationList.push(consumer)
+                    ResourceManager.addToReallocation(pair.networkLink)
                 }
-            }
-            else {
-                // Consumer does not have enough capacity, redistribute what it have 
-                console.log(`Adding ${consumer.pid} to the list as it cannot allocate ${desiredAllocation}. [${consumer.getFreeCapacity()}] left`)
-                ResourceManager.reallocationList.push(consumer)
-            }
-            // })
+            })
+
+            networkInterface.processes.forEach(process => {
+
+                if (process.bounceInfo !== undefined) {
+
+                    console.log(process.bounceInfo.chain
+                        .filter(p => p.allocated != process.bounceInfo.sharedAllocation)
+                        .map(p => p.pid))
+
+
+
+
+
+                    const minLink = process.bounceInfo.chain
+                        .filter(p => p.allocated > 0)
+                        .sort((p1, p2) => p1.allocated - p2.allocated).shift()
+
+                    if (minLink !== undefined) {
+                        if (minLink.allocated !== process.bounceInfo.sharedAllocation) {
+                            process.bounceInfo.sharedAllocation = minLink.allocated || Number.MAX_VALUE
+                            process.bounceInfo.chain.forEach(p => ResourceManager.addToReallocation(p.networkLink))
+
+                        }
+                    }
+                }
+
+            })
+
         }
     }
 

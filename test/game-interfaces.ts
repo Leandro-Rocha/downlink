@@ -8,9 +8,10 @@ describe('Game Interfaces',
         // it('can create file transfer process', createFileTransferProcess)
     })
 
+//TODO revert names
 enum ResourceTypes {
-    DOWNLINK = 'DOWNLINK',
-    UPLINK = 'UPLINK',
+    DOWNLINK = 'D',
+    UPLINK = 'U',
     MEMORY = 'MEMORY',
     CPU = 'CPU',
     STORAGE = 'CPU',
@@ -34,10 +35,10 @@ enum OperationStatus {
     FAIL = 'FAIL',
 }
 
-class OperationResult {
+class OperationResult<T> {
     private result: OperationStatus = OperationStatus.SUCCESS
     messages: string[] = []
-    details: { [propName: string]: any } = {}
+    details!: T
 
     validate(condition: boolean, message: string) {
         if (!condition) {
@@ -144,15 +145,46 @@ class Memory extends Resource {
     }
 }
 
-class NetworkLink extends Resource {
-    transfers: NetworkProcess[] = []
+export class NetworkInterface extends Resource {
+    counter = 1
+
+    processes: NetworkProcess[] = []
 
     constructor(name: string, type: ResourceTypes, capacity: number) {
         super(name, type, capacity)
     }
 
+    updateFairShare() {
+        const sortedProcesses = [...this.processes]
+            .sort((p1, p2) => p1.pair.getFreeCapacity() - p2.pair.getFreeCapacity())
+
+        var allocated = 0
+        var unused = 0
+        var allocationCount = 0
+
+        sortedProcesses.forEach(process => {
+            const pair = process.pair
+
+            const fairShare = process.getCapacity() + unused
+            const pairAllocation = pair.getOrientedAllocation(process) || pair.getFreeCapacity() + pair.networkLink.getUnusedAllocation() || pair.getCapacity()
+
+            // TODO change to optional chaining
+            const newAllocation = Math.min(fairShare, pairAllocation,
+                // (process.bounceInfo || {}).sharedAllocation || Number.MAX_VALUE
+            )
+
+            allocated += newAllocation
+            allocationCount++
+            unused += fairShare - newAllocation
+
+            process.setOrientedAllocation(pair, newAllocation)
+
+            // console.log(`${process.pid}-${pair.pid}:${newAllocation}`)
+        })
+    }
+
     getUnusedAllocation() {
-        const unused = this.transfers
+        const unused = this.processes
             .filter(t => t.allocated > 0)
             .reduce((acc, t) => acc += t.getCapacity() - t.allocated, 0)
 
@@ -162,16 +194,17 @@ class NetworkLink extends Resource {
 
         return unused < 0 ? 0 : unused
     }
+
 }
 
 
-class Downlink extends NetworkLink {
+class Downlink extends NetworkInterface {
     constructor(name: string, capacity: number) {
         super(name, ResourceTypes.DOWNLINK, capacity)
     }
 }
 
-class Uplink extends NetworkLink {
+class Uplink extends NetworkInterface {
     constructor(name: string, capacity: number) {
         super(name, ResourceTypes.UPLINK, capacity)
     }
@@ -194,19 +227,23 @@ class Process {
 }
 
 export class NetworkProcess extends Process {
-    networkLink: NetworkLink
+    networkLink: NetworkInterface
     pair!: NetworkProcess
     allocated: number
     bounceInfo!: { sharedAllocation: number, chain: NetworkProcess[] }
 
-    constructor(pid: string, networkLink: NetworkLink) {
+    constructor(pid: string, networkLink: NetworkInterface) {
         super(pid)
+
+        this.pid = pid + networkLink.type + networkLink.counter++
+
+
         this.networkLink = networkLink
         this.allocated = 0
     }
 
     getSharedPriority() {
-        return this.networkLink.transfers.reduce((acc, process) => acc += process.priority, 0)
+        return this.networkLink.processes.reduce((acc, process) => acc += process.priority, 0)
     }
 
     getMyPriorityShare(): number {
@@ -223,7 +260,7 @@ export class NetworkProcess extends Process {
 
     getOrientedAllocationOrFreeCapacity(consumer: NetworkProcess) {
         const orientedAllocation = ResourceManager.resourceMatrix.getOrientedAllocation(`${this.pid}-${consumer.pid}`)
-        return orientedAllocation || consumer.networkLink.freeCapacity()
+        return orientedAllocation || consumer.getFreeCapacity()
     }
 
     updateFairShare() {
@@ -245,6 +282,14 @@ export class NetworkProcess extends Process {
         this.setOrientedAllocation(consumer, newAllocation)
     }
 
+    allocate(amount: number) {
+        this.allocated += amount
+    }
+
+    free(amount: number) {
+        this.allocated -= amount
+    }
+
     canAllocate(amount: number): boolean {
         return amount + this.allocated <= this.getCapacity() + this.networkLink.getUnusedAllocation()
     }
@@ -262,13 +307,11 @@ export class NetworkProcess extends Process {
     }
 
     getInterfaceConsumers(): NetworkProcess[] {
-        return this.networkLink.transfers
+        return this.networkLink.processes
     }
 }
 
 class Gateway {
-
-    counter = 1
 
     owner: Player
 
@@ -306,7 +349,7 @@ class Gateway {
         if (validator.isSuccessful()) {
             const process = new Process('123')
             this.processes.push(process)
-            validator.details.process = process
+            // validator.details.process = process
         }
 
         return validator
@@ -323,46 +366,61 @@ export class Player {
     }
 }
 
+type FileTransferDetails = { pairs: { downloadProcess: NetworkProcess, uploadProcess: NetworkProcess }[] }
+
+export enum FileTransferType {
+    DOWNLOAD = 'DOWNLOAD',
+    UPLOAD = 'UPLOAD'
+}
+
 export class FileTransferFactory {
-    static create(file: File, ...bounce: Gateway[]) {
-        const result = new OperationResult()
+
+    static createFileTransfer(transferType: FileTransferType, file: File, ...connectionPath: Gateway[]): OperationResult<FileTransferDetails> {
+        const result = new OperationResult<FileTransferDetails>()
+        result.details = { pairs: [] }
+
+        result.validate(connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
+        if (!result.isSuccessful()) return result
+
+        var workingConnectionPath = [...connectionPath]
+
+        if (transferType === FileTransferType.UPLOAD)
+            workingConnectionPath = workingConnectionPath.reverse()
+
+        const fileOwner = connectionPath[connectionPath.length - 1]
+        result.validate(fileOwner.storage.files.includes(file), `File [${file.name}] does not exists.`)
+        if (!result.isSuccessful()) return result
 
         const bounceInfo: { sharedAllocation: number, chain: NetworkProcess[] } = { sharedAllocation: Number.MAX_VALUE, chain: [] }
 
-        while (bounce.length > 1) {
-            const downloader = bounce.shift()
-            const uploader = bounce[0]
+        while (workingConnectionPath.length > 1) {
+            const downloader = workingConnectionPath.shift()!
+            const uploader = workingConnectionPath[0]
 
-            if (downloader === undefined) return
-
-            console.log(`${downloader.owner.name}...${uploader.owner.name}`)
-
-            result.validate(uploader.storage.files.includes(file), `File ${file.name} does not exists.`)
-
-            const downloadProcess = new NetworkProcess(downloader.owner.name + '_' + downloader.downlink.type + downloader.counter++, downloader.downlink)
-            const uploadProcess = new NetworkProcess(uploader.owner.name + '_' + uploader.uplink.type + uploader.counter++, uploader.uplink)
+            const downloadProcess = new NetworkProcess(downloader.owner.name, downloader.downlink)
+            const uploadProcess = new NetworkProcess(uploader.owner.name, uploader.uplink)
 
             downloadProcess.pair = uploadProcess
-            bounceInfo.chain.push(downloadProcess)
-            downloadProcess.bounceInfo = bounceInfo
-
             uploadProcess.pair = downloadProcess
-            bounceInfo.chain.push(uploadProcess)
-            uploadProcess.bounceInfo = bounceInfo
 
-            downloader.downlink.transfers.push(downloadProcess)
-            downloader.processes.push(downloadProcess)
-            downloader.processes.push(downloadProcess)
-            result.details.downloadProcess = downloadProcess
+            result.details.pairs.push({ downloadProcess: downloadProcess, uploadProcess: uploadProcess })
 
-            uploader.uplink.transfers.push(uploadProcess)
+            if (connectionPath.length > 2) {
+                bounceInfo.chain.push(downloadProcess)
+                downloadProcess.bounceInfo = bounceInfo
+
+                bounceInfo.chain.push(uploadProcess)
+                uploadProcess.bounceInfo = bounceInfo
+            }
+
+            downloader.downlink.processes.push(downloadProcess)
+            downloader.processes.push(downloadProcess)
+
+            uploader.uplink.processes.push(uploadProcess)
             uploader.processes.push(uploadProcess)
-            result.details.uploadProcess = uploadProcess
 
-            ResourceManager.reallocationList.push(...downloader.downlink.transfers, ...uploader.uplink.transfers)
-
+            ResourceManager.addToReallocation(downloader.downlink, uploader.uplink)
         }
-
 
         return result
     }
