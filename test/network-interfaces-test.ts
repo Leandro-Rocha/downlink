@@ -1,7 +1,8 @@
 import 'mocha'
-import { StreamerProcess, NetworkStream } from "../src/network-interfaces"
+import { StreamerProcess, NetworkStream, BounceInfo } from "../src/network-interfaces"
 import { Player } from "./game-interfaces"
 import { expect } from 'chai'
+import { SIGNALS } from '../src/signal'
 
 var A: Player = new Player('A')
 var B: Player = new Player('B')
@@ -31,14 +32,14 @@ describe('File Transfer Allocation',
             // Z.gateway.storage.files.push(targetFile)
         })
 
-        // it('can instantiate a data transfer flow', dataTransferFlow)
-        // it('can allocate single download with same capacities', singleDownloadSameCapacity)
-        // it('can allocate single download bounded by downloader', singleDownloadBoundByDownloader)
-        // it('can allocate single download bounded by uploader', singleDownloadBoundByUploader)
-        // it('can allocate two downloads', twoDownloads)
+        it('can allocate single download with same capacities', singleDownloadSameCapacity)
+        it('can allocate single download bounded by downloader', singleDownloadBoundByDownloader)
+        it('can allocate single download bounded by uploader', singleDownloadBoundByUploader)
+        it('can allocate two downloads', twoDownloads)
         it('can allocate three downloads with reallocation', threeWithReallocation)
-        // it('can allocate one download with bounce', oneDownloadWithBounce)
-        // it('can allocate two download with bounce limited by other download', twoDownloadWithBounce)
+        it('can allocate three downloads with reallocation 2', threeWithReallocation2)
+        it('can allocate one download with bounce', oneDownloadWithBounce)
+        it('can allocate two download with bounce limited by other download', twoDownloadWithBounce)
     })
 
 
@@ -52,10 +53,9 @@ function singleDownloadSameCapacity() {
 
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth)
-        .to.be.equal(AD.allocation)
-        .to.be.equal(XU.allocation)
-        .to.be.equal(1)
+    expect(streamXA.bandWidth).to.be.equal(1)
+    expect(AD.allocation).to.be.equal(1)
+    expect(XU.allocation).to.be.equal(1)
 }
 
 function singleDownloadBoundByDownloader() {
@@ -68,10 +68,9 @@ function singleDownloadBoundByDownloader() {
 
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth)
-        .to.be.equal(AD.allocation)
-        .to.be.equal(XU.allocation)
-        .to.be.equal(0.5)
+    expect(streamXA.bandWidth).to.be.equal(0.5)
+    expect(AD.allocation).to.be.equal(0.5)
+    expect(XU.allocation).to.be.equal(0.5)
 }
 
 function singleDownloadBoundByUploader() {
@@ -84,15 +83,14 @@ function singleDownloadBoundByUploader() {
 
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth)
-        .to.be.equal(AD.allocation)
-        .to.be.equal(XU.allocation)
-        .to.be.equal(0.5)
+    expect(streamXA.bandWidth).to.be.equal(0.5)
+    expect(AD.allocation).to.be.equal(0.5)
+    expect(XU.allocation).to.be.equal(0.5)
 }
 
 function twoDownloads() {
 
-    // Starting download A ==================================
+    // Starting download A =====================================
     const AD = new StreamerProcess('A', A.gateway.downlink)
     const XU1 = new StreamerProcess('X', X.gateway.uplink)
     const streamXA = new NetworkStream(XU1, AD)
@@ -102,7 +100,7 @@ function twoDownloads() {
     expect(AD.allocation).to.be.equal(1)
     expect(XU1.allocation).to.be.equal(1)
 
-    // Starting download B ==================================
+    // Starting download B =====================================
     const BD = new StreamerProcess('B', B.gateway.downlink)
     const XU2 = new StreamerProcess('X', X.gateway.uplink)
     const streamXB = new NetworkStream(XU2, BD)
@@ -119,7 +117,7 @@ function twoDownloads() {
 function threeWithReallocation() {
     B.gateway.downlink.capacity = 0.5
 
-    // Starting download A ==================================
+    // Starting download A =====================================
     const AD1 = new StreamerProcess('A', A.gateway.downlink)
     const XU1 = new StreamerProcess('X', X.gateway.uplink)
     const streamXA = new NetworkStream(XU1, AD1)
@@ -130,7 +128,54 @@ function threeWithReallocation() {
     expect(AD1.allocation).to.be.equal(1)
 
 
-    // Starting first download B ==================================
+    // Starting first download B ===============================
+    const BD1 = new StreamerProcess('B', B.gateway.downlink)
+    const XU2 = new StreamerProcess('X', X.gateway.uplink)
+    const streamXB1 = new NetworkStream(XU2, BD1)
+    streamXB1.updateBandwidth()
+
+    expect(streamXA.bandWidth).to.be.equal(0.5)
+    expect(streamXB1.bandWidth).to.be.equal(0.5)
+    expect(XU1.allocation).to.be.equal(0.5)
+    expect(AD1.allocation).to.be.equal(0.5)
+
+    expect(XU2.allocation).to.be.equal(0.5)
+    expect(BD1.allocation).to.be.equal(0.5)
+
+    // Starting second download B ==============================
+    const BD2 = new StreamerProcess('B', B.gateway.downlink)
+    const XU3 = new StreamerProcess('X', X.gateway.uplink)
+    const streamXB2 = new NetworkStream(XU3, BD2)
+    streamXB2.updateBandwidth()
+
+    expect(streamXA.bandWidth).to.be.approximately(0.5, 0.001)
+    expect(XU1.allocation).to.be.approximately(0.5, 0.001)
+    expect(AD1.allocation).to.be.approximately(0.5, 0.001)
+
+    expect(streamXB1.bandWidth).to.be.equal(0.25)
+    expect(XU2.allocation).to.be.equal(0.25)
+    expect(BD1.allocation).to.be.equal(0.25)
+
+    expect(streamXB2.bandWidth).to.be.equal(0.25)
+    expect(XU3.allocation).to.be.equal(0.25)
+    expect(BD2.allocation).to.be.equal(0.25)
+}
+
+function threeWithReallocation2() {
+    B.gateway.downlink.capacity = 0.5
+
+    // Starting download A =====================================
+    const AD1 = new StreamerProcess('A', A.gateway.downlink)
+    const XU1 = new StreamerProcess('X', X.gateway.uplink)
+    const streamXA = new NetworkStream(XU1, AD1)
+    streamXA.updateBandwidth()
+
+    expect(streamXA.bandWidth).to.be.equal(1)
+    expect(XU1.allocation).to.be.equal(1)
+    expect(AD1.allocation).to.be.equal(1)
+
+
+    // Starting first download B ===============================
     const BD1 = new StreamerProcess('B', B.gateway.downlink)
     const XU2 = new StreamerProcess('X', X.gateway.uplink)
     const streamXB1 = new NetworkStream(XU2, BD1)
@@ -146,23 +191,140 @@ function threeWithReallocation() {
 
     // Starting second download B =============================
     const BD2 = new StreamerProcess('B', B.gateway.downlink)
-    const XU3 = new StreamerProcess('X', X.gateway.uplink)
-    const streamXB2 = new NetworkStream(XU3, BD2)
+    const CU1 = new StreamerProcess('C', C.gateway.uplink)
+    const streamXB2 = new NetworkStream(CU1, BD2)
     streamXB2.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.75)
-    expect(XU1.allocation).to.be.equal(0.75)
-    expect(AD1.allocation).to.be.equal(0.75)
+    expect(streamXA.bandWidth).to.be.approximately(0.75, 0.001)
+    expect(XU1.allocation).to.be.approximately(0.75, 0.001)
+    expect(AD1.allocation).to.be.approximately(0.75, 0.001)
 
     expect(streamXB1.bandWidth).to.be.equal(0.25)
     expect(XU2.allocation).to.be.equal(0.25)
     expect(BD1.allocation).to.be.equal(0.25)
 
     expect(streamXB2.bandWidth).to.be.equal(0.25)
-    expect(XU3.allocation).to.be.equal(0.25)
+    expect(CU1.allocation).to.be.equal(0.25)
     expect(BD2.allocation).to.be.equal(0.25)
 }
 
+function oneDownloadWithBounce() {
+
+    // Starting download X->C ==================================
+    const CD1 = new StreamerProcess('C', C.gateway.downlink)
+    const XU1 = new StreamerProcess('X', X.gateway.uplink)
+    const streamXC = new NetworkStream(XU1, CD1)
+
+    // Starting download C->B ==================================
+    const BD1 = new StreamerProcess('B', B.gateway.downlink)
+    const CU1 = new StreamerProcess('C', C.gateway.uplink)
+    const streamCB = new NetworkStream(CU1, BD1)
+
+    // Starting download B->A ==================================
+    const AD1 = new StreamerProcess('A', A.gateway.downlink)
+    const BU1 = new StreamerProcess('B', B.gateway.uplink)
+    const streamBA = new NetworkStream(BU1, AD1)
+
+    const bounceInfo = new BounceInfo()
+    streamXC.bounceInfo = bounceInfo
+    streamCB.bounceInfo = bounceInfo
+    streamBA.bounceInfo = bounceInfo
+
+    streamXC.setDownstream(streamCB)
+
+    streamCB.setUpstream(streamXC)
+    streamCB.setDownstream(streamBA)
+
+    streamBA.setUpstream(streamCB)
 
 
 
+
+    // streamXC.updateBandwidth()
+    streamCB.updateBandwidth()
+    // streamBA.updateBandwidth()
+
+    expect(streamXC.bandWidth).to.be.equal(1)
+    expect(streamCB.bandWidth).to.be.equal(1)
+    expect(streamBA.bandWidth).to.be.equal(1)
+}
+
+
+function twoDownloadWithBounce() {
+
+    // Starting download X->C ==================================
+    const XU1 = new StreamerProcess('X', X.gateway.uplink)
+    const CD1 = new StreamerProcess('C', C.gateway.downlink)
+    const streamXC = new NetworkStream(XU1, CD1)
+
+    // Starting download C->B ==================================
+    const CU1 = new StreamerProcess('C', C.gateway.uplink)
+    const BD1 = new StreamerProcess('B', B.gateway.downlink)
+    const streamCB = new NetworkStream(CU1, BD1)
+
+    // Starting download B->A ==================================
+    const BU1 = new StreamerProcess('B', B.gateway.uplink)
+    const AD1 = new StreamerProcess('A', A.gateway.downlink)
+    const streamBA = new NetworkStream(BU1, AD1)
+
+    // First bounce ============================================
+    const bounceInfo = new BounceInfo()
+    streamXC.bounceInfo = bounceInfo
+    streamCB.bounceInfo = bounceInfo
+    streamBA.bounceInfo = bounceInfo
+
+    streamXC.setDownstream(streamCB)
+
+    streamCB.setUpstream(streamXC)
+    streamCB.setDownstream(streamBA)
+
+    streamBA.setUpstream(streamCB)
+    // =========================================================
+
+
+    // streamXC.updateBandwidth()
+    streamCB.updateBandwidth()
+    // streamBA.updateBandwidth()
+
+    expect(streamXC.bandWidth).to.be.equal(1)
+    expect(streamCB.bandWidth).to.be.equal(1)
+    expect(streamBA.bandWidth).to.be.equal(1)
+
+
+    // Starting download Y->C ==================================
+    const YU1 = new StreamerProcess('Y', Y.gateway.uplink)
+    const CD2 = new StreamerProcess('C', C.gateway.downlink)
+    const streamYC1 = new NetworkStream(YU1, CD2)
+    streamYC1.updateBandwidth()
+
+    expect(streamXC.bandWidth).to.be.equal(0.5)
+    expect(streamCB.bandWidth).to.be.equal(0.5)
+    expect(streamBA.bandWidth).to.be.equal(0.5)
+    expect(streamYC1.bandWidth).to.be.equal(0.5)
+
+    // Starting download C->Y ==================================
+    const CU2 = new StreamerProcess('C', C.gateway.uplink)
+    const YD1 = new StreamerProcess('Y', Y.gateway.downlink)
+    const streamCY1 = new NetworkStream(CU2, YD1)
+    streamCY1.updateBandwidth()
+
+    expect(streamXC.bandWidth).to.be.equal(0.5)
+    expect(streamCB.bandWidth).to.be.equal(0.5)
+    expect(streamBA.bandWidth).to.be.equal(0.5)
+    expect(streamYC1.bandWidth).to.be.equal(0.5)
+    expect(streamCY1.bandWidth).to.be.equal(0.5)
+
+    // Starting download C->Y ==================================
+    const CU3 = new StreamerProcess('C', C.gateway.uplink)
+    const YD2 = new StreamerProcess('Y', Y.gateway.downlink)
+    const streamCY2 = new NetworkStream(CU3, YD2)
+
+    streamCY2.updateBandwidth()
+
+    expect(streamXC.bandWidth).to.be.approximately(0.333, 0.001)
+    expect(streamCB.bandWidth).to.be.approximately(0.333, 0.001)
+    expect(streamBA.bandWidth).to.be.approximately(0.333, 0.001)
+    expect(streamYC1.bandWidth).to.be.approximately(0.666, 0.001)
+    expect(streamCY1.bandWidth).to.be.approximately(0.333, 0.001)
+    expect(streamCY2.bandWidth).to.be.approximately(0.333, 0.001)
+}

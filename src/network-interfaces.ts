@@ -18,21 +18,40 @@ export interface Streamer extends ISignalEmitter {
     getMaxAllocation(): number
 }
 
-export class NetworkStream implements Stream {
+export class BounceInfo {
+    maxBandwidth: number = Number.MAX_VALUE
+    limiters: Stream[] = []
+
+    //TODO properly inject handlers object
+    handlers: { [signal: string]: { handler: any, callback: Function }[] } = {}
+}
+export interface BounceInfo extends ISignalEmitter { }
+applyMixins(BounceInfo, [SignalEmitter])
+
+interface IBouncer {
+    upstream?: NetworkStream
+    downstream?: NetworkStream
+    bounceInfo: BounceInfo
+}
+
+export class NetworkStream implements Stream, IBouncer {
     bandWidth: number
 
     upStreamer: StreamerProcess
     downStreamer: StreamerProcess
+
     upstream?: NetworkStream
     downstream?: NetworkStream
+    bounceInfo!: BounceInfo
 
     description: string
 
-    constructor(upStreamer: StreamerProcess, downStreamer: StreamerProcess, streamers?: { upstream?: NetworkStream, downstream?: NetworkStream }) {
+
+    constructor(upStreamer: StreamerProcess, downStreamer: StreamerProcess, streams?: { upstream?: NetworkStream, downstream?: NetworkStream }) {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
-        this.upstream = streamers?.upstream
-        this.downstream = streamers?.downstream
+        this.upstream = streams?.upstream
+        this.downstream = streams?.downstream
 
         this.description = `${upStreamer.pid}->${downStreamer.pid}`
 
@@ -40,24 +59,76 @@ export class NetworkStream implements Stream {
 
         this.upStreamer.stream = this
         this.downStreamer.stream = this
-
-        this.upStreamer.registerHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.handleStreamAllocationChanged)
-        this.downStreamer.registerHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.handleStreamAllocationChanged)
     }
 
     updateBandwidth() {
-        const newAllocation = Math.min(this.upStreamer.getMaxAllocation(), this.downStreamer.getMaxAllocation())
+        var newAllocation = Math.min(this.upStreamer.getMaxAllocation(), this.downStreamer.getMaxAllocation())
+        const allocationChanged = this.bandWidth !== newAllocation
+        var bounceBandwidthChanged = false
 
-        this.upStreamer.allocate(newAllocation)
-        this.downStreamer.allocate(newAllocation)
+        if (this.bounceInfo !== undefined) {
+            // This Stream will be limited by the bounce
+            if (this.bounceInfo.maxBandwidth < newAllocation) {
+                newAllocation = this.bounceInfo.maxBandwidth
+                this.bounceInfo.limiters = this.bounceInfo.limiters.filter(s => s != this)
+            }
+            // This Stream is limiting the bounce
+            else if (this.bounceInfo.maxBandwidth === newAllocation && allocationChanged) {
+                this.bounceInfo.limiters.push(this)
+            }
+            // This Stream is limiting the bounce
+            else if (allocationChanged) {
+                this.bounceInfo.maxBandwidth = newAllocation
+                this.bounceInfo.limiters = []
+                this.bounceInfo.limiters.push(this)
+                bounceBandwidthChanged = true
+            }
+        }
 
         this.bandWidth = newAllocation
+
+        const upstreamerAllocationChanged = this.upStreamer.allocate(newAllocation)
+        const downStreamerAllocationChanged = this.downStreamer.allocate(newAllocation)
+
+        if (upstreamerAllocationChanged) {
+            this.upStreamer.sendSignal(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.upStreamer.pid)
+        }
+
+        if (downStreamerAllocationChanged) {
+            this.downStreamer.sendSignal(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.downStreamer.pid)
+        }
+
+        if (bounceBandwidthChanged) {
+            this.bounceInfo.sendSignal(this, SIGNALS.BOUNCE_ALLOCATION_CHANGED)
+        }
     }
 
-    handleStreamAllocationChanged(who: StreamerProcess, ...args: any) {
-        // who === this.upStreamer && console.log(`allocation changed for upStreamer ` + [who.pid])
-        // who === this.downStreamer && console.log(`allocation changed for downStreamer ` + [args])
+    setDownstream(stream: NetworkStream) {
+        this.downstream = stream
+        stream.bounceInfo.registerHandler(this, SIGNALS.BOUNCE_ALLOCATION_CHANGED, this.handleBounceAllocationChanged)
+    }
 
+    setUpstream(stream: NetworkStream) {
+        this.upstream = stream
+        stream.bounceInfo.registerHandler(this, SIGNALS.BOUNCE_ALLOCATION_CHANGED, this.handleBounceAllocationChanged)
+    }
+
+
+    handleBounceAllocationChanged(emitter: NetworkStream, ...args: any) {
+        // console.log(`Bounce allocation changed, bw[${this.bounceInfo.maxBandwidth}] updating upstream [${this.description}]`)
+        this.updateBandwidth()
+
+        // if (emitter.upstream !== undefined) {
+        //     // console.log(`allocation changed for [${emitter.description}] updating upstream [${emitter.upstream.description}]`)
+        //     emitter.upstream.updateBandwidth()
+        // }
+
+        // if (emitter.downstream !== undefined) {
+        //     // console.log(`allocation changed for [${emitter.description}] updating downstream [${emitter.downstream.description}]`)
+        //     emitter.downstream.updateBandwidth()
+        // }
+
+        // who === this.downStreamer && console.log(`allocation changed for downStreamer ` + [args])
     }
 }
 
@@ -72,7 +143,7 @@ export class NetworkInterface extends Resource {
     }
 
     addProcess(process: StreamerProcess) {
-        process.registerHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.handleStreamAllocationChanged)
+        process.registerHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.handleStreamerAllocationChanged)
         this.processes.push(process)
     }
 
@@ -106,11 +177,11 @@ export class NetworkInterface extends Resource {
         return unused < 0 ? 0 : unused
     }
 
-    handleStreamAllocationChanged(emitter: StreamerProcess, ...args: any) {
+    handleStreamerAllocationChanged(emitter: StreamerProcess, ...args: any) {
         const otherProcesses = this.processes.filter(p => p !== emitter)
 
-        if (otherProcesses.length > 0)
-            console.log(`allocation changed for process [${emitter.pid}], changing allocation of ${otherProcesses.map(p => p.stream.description)}`)
+        // if (otherProcesses.length > 0)
+        //     console.log(`allocation changed for process [${emitter.pid}], changing allocation of ${otherProcesses.map(p => p.stream.description)}`)
 
         otherProcesses.forEach(p => p.stream.updateBandwidth())
     }
@@ -182,9 +253,7 @@ export class StreamerProcess extends Process implements Streamer {
             this.isBounded = false
         }
 
-        if (allocationChanged) {
-            this.sendSignal(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.pid)
-        }
+        return allocationChanged
     }
 
     getMaxAllocation(): number {
