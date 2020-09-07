@@ -1,8 +1,9 @@
 import 'mocha'
-import { StreamerProcess, NetworkStream, BounceInfo } from "../src/network-interfaces"
-import { Player } from "./game-interfaces"
 import { expect } from 'chai'
 import { SIGNALS } from '../src/signal'
+import { Player } from '../src/core/player'
+import { StreamerProcess } from '../src/core/process'
+import { NetworkStream, BounceInfo } from '../src/network-interfaces'
 
 var A: Player = new Player('A')
 var B: Player = new Player('B')
@@ -36,6 +37,8 @@ describe('File Transfer Allocation',
         it('can allocate single download bounded by downloader', singleDownloadBoundByDownloader)
         it('can allocate single download bounded by uploader', singleDownloadBoundByUploader)
         it('can allocate two downloads', twoDownloads)
+        it('can allocate two downloads with different priorities', twoDownloadsWithDifferentPriorities)
+        it('can allocate two downloads and then remove one', downloadRemoval)
         it('can allocate three downloads with reallocation', threeWithReallocation)
         it('can allocate three downloads with reallocation 2', threeWithReallocation2)
         it('can allocate one download with bounce', oneDownloadWithBounce)
@@ -230,13 +233,16 @@ function oneDownloadWithBounce() {
     streamCB.bounceInfo = bounceInfo
     streamBA.bounceInfo = bounceInfo
 
-    streamXC.setDownstream(streamCB)
+    bounceInfo.registerHandler(streamXC, SIGNALS.BOUNCE_ALLOCATION_CHANGED, streamXC.handleBounceAllocationChanged)
+    bounceInfo.registerHandler(streamCB, SIGNALS.BOUNCE_ALLOCATION_CHANGED, streamCB.handleBounceAllocationChanged)
+    bounceInfo.registerHandler(streamBA, SIGNALS.BOUNCE_ALLOCATION_CHANGED, streamBA.handleBounceAllocationChanged)
 
-    streamCB.setUpstream(streamXC)
-    streamCB.setDownstream(streamBA)
+    streamXC.downstream = streamCB
 
-    streamBA.setUpstream(streamCB)
+    streamCB.upstream = streamXC
+    streamCB.downstream = streamBA
 
+    streamBA.upstream = streamCB
 
 
 
@@ -273,12 +279,16 @@ function twoDownloadWithBounce() {
     streamCB.bounceInfo = bounceInfo
     streamBA.bounceInfo = bounceInfo
 
-    streamXC.setDownstream(streamCB)
+    bounceInfo.registerHandler(streamXC, SIGNALS.BOUNCE_ALLOCATION_CHANGED, streamXC.handleBounceAllocationChanged)
+    bounceInfo.registerHandler(streamCB, SIGNALS.BOUNCE_ALLOCATION_CHANGED, streamCB.handleBounceAllocationChanged)
+    bounceInfo.registerHandler(streamBA, SIGNALS.BOUNCE_ALLOCATION_CHANGED, streamBA.handleBounceAllocationChanged)
 
-    streamCB.setUpstream(streamXC)
-    streamCB.setDownstream(streamBA)
+    streamXC.downstream = streamCB
 
-    streamBA.setUpstream(streamCB)
+    streamCB.upstream = streamXC
+    streamCB.downstream = streamBA
+
+    streamBA.upstream = streamCB
     // =========================================================
 
 
@@ -327,4 +337,85 @@ function twoDownloadWithBounce() {
     expect(streamYC1.bandWidth).to.be.approximately(0.666, 0.001)
     expect(streamCY1.bandWidth).to.be.approximately(0.333, 0.001)
     expect(streamCY2.bandWidth).to.be.approximately(0.333, 0.001)
+}
+
+function twoDownloadsWithDifferentPriorities() {
+    // Starting download XA ====================================
+    const XU1 = new StreamerProcess('X', X.gateway.uplink)
+    const AD = new StreamerProcess('A', A.gateway.downlink)
+    const streamXA = new NetworkStream(XU1, AD)
+    streamXA.updateBandwidth()
+
+    expect(streamXA.bandWidth).to.be.equal(1)
+    expect(AD.allocation).to.be.equal(1)
+    expect(XU1.allocation).to.be.equal(1)
+
+    // Starting download XB ====================================
+    const XU2 = new StreamerProcess('X', X.gateway.uplink)
+    const BD = new StreamerProcess('B', B.gateway.downlink)
+    const streamXB = new NetworkStream(XU2, BD)
+    XU1.priority = 7
+    XU2.priority = 3
+
+    streamXB.updateBandwidth()
+
+    expect(streamXA.bandWidth).to.be.equal(0.7)
+    expect(XU1.allocation).to.be.equal(0.7)
+    expect(AD.allocation).to.be.equal(0.7)
+
+    expect(streamXB.bandWidth).to.be.equal(0.3)
+    expect(XU2.allocation).to.be.equal(0.3)
+    expect(BD.allocation).to.be.equal(0.3)
+}
+
+function downloadRemoval() {
+    // Starting download XA ====================================
+    const XU1 = new StreamerProcess('X', X.gateway.uplink)
+    const AD = new StreamerProcess('A', A.gateway.downlink)
+    var streamXA = new NetworkStream(XU1, AD)
+    streamXA.updateBandwidth()
+
+    expect(streamXA.bandWidth).to.be.equal(1)
+    expect(AD.allocation).to.be.equal(1)
+    expect(XU1.allocation).to.be.equal(1)
+
+    // Starting download XB ====================================
+    const XU2 = new StreamerProcess('X', X.gateway.uplink)
+    const BD = new StreamerProcess('B', B.gateway.downlink)
+    const streamXB = new NetworkStream(XU2, BD)
+
+    streamXB.updateBandwidth()
+
+    expect(streamXA.bandWidth).to.be.equal(0.5)
+    expect(XU1.allocation).to.be.equal(0.5)
+    expect(AD.allocation).to.be.equal(0.5)
+
+    expect(streamXB.bandWidth).to.be.equal(0.5)
+    expect(XU2.allocation).to.be.equal(0.5)
+    expect(BD.allocation).to.be.equal(0.5)
+
+    // Stopping download XA ====================================
+    X.gateway.uplink.removeProcess(XU1)
+    A.gateway.downlink.removeProcess(AD)
+
+    streamXB.updateBandwidth()
+
+    expect(streamXB.bandWidth).to.be.equal(1)
+    expect(XU2.allocation).to.be.equal(1)
+    expect(BD.allocation).to.be.equal(1)
+
+    // Starting download XC ====================================
+    const XU3 = new StreamerProcess('X', X.gateway.uplink)
+    const CD = new StreamerProcess('C', C.gateway.downlink)
+    const streamXC = new NetworkStream(XU3, CD)
+
+    streamXB.updateBandwidth()
+
+    expect(streamXB.bandWidth).to.be.equal(0.5)
+    expect(XU2.allocation).to.be.equal(0.5)
+    expect(BD.allocation).to.be.equal(0.5)
+
+    expect(streamXC.bandWidth).to.be.equal(0.5)
+    expect(XU1.allocation).to.be.equal(0.5)
+    expect(AD.allocation).to.be.equal(0.5)
 }

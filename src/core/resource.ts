@@ -1,11 +1,10 @@
 
-//TODO revert names
 export enum ResourceTypes {
-    DOWNLINK = 'D',
-    UPLINK = 'U',
+    DOWNLINK = 'DOWNLINK',
+    UPLINK = 'UPLINK',
     MEMORY = 'MEMORY',
     CPU = 'CPU',
-    STORAGE = 'CPU',
+    STORAGE = 'STORAGE',
 }
 
 export class Resource {
@@ -21,8 +20,8 @@ export class Resource {
         this.allocated = 0
     }
 
-    allocate(desiredAllocation: number) {
-        this.allocated += desiredAllocation
+    allocate(amount: number) {
+        this.allocated += amount
     }
 
     free(amount: number) {
@@ -36,5 +35,24 @@ export class Resource {
     freeCapacity() {
         return this.capacity - this.allocated
     }
+}
 
+export class Storage extends Resource {
+    files: File[] = []
+
+    constructor(name: string, capacity: number) {
+        super(name, ResourceTypes.STORAGE, capacity)
+    }
+}
+
+export class Cpu extends Resource {
+    constructor(name: string, capacity: number) {
+        super(name, ResourceTypes.CPU, capacity)
+    }
+}
+
+export class Memory extends Resource {
+    constructor(name: string, capacity: number) {
+        super(name, ResourceTypes.MEMORY, capacity)
+    }
 }

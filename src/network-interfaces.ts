@@ -1,5 +1,7 @@
 import { ISignalEmitter, SignalEmitter, SIGNALS } from "./signal"
-import { Resource, ResourceTypes } from "./resource"
+import { Resource, ResourceTypes } from "./core/resource"
+import { applyMixins, OperationResult } from "./shared"
+import { StreamerProcess } from "./core/process"
 
 
 export interface Stream {
@@ -14,9 +16,29 @@ export interface Stream {
 
 export interface Streamer extends ISignalEmitter {
     stream: Stream
-    allocate(amount: number): void
-    getMaxAllocation(): number
+    setBandwidth(amount: number): void
+    setMaxBandwidth(): number
 }
+
+export enum ConnectionStatus {
+    KNOWN = 'KNOWN',
+    CONNECTED = 'CONNECTED',
+    DISCONNECTED = 'DISCONNECTED',
+}
+
+export enum AccessPrivileges {
+    LOG = 'LOG',
+    FTP = 'FTP',
+    SSH = 'SSH',
+    ROOT = 'ROOT',
+}
+
+export interface RemoteConnection {
+    // gateway?: Gateway
+    status: ConnectionStatus
+    privileges?: AccessPrivileges[]
+}
+
 
 export class BounceInfo {
     maxBandwidth: number = Number.MAX_VALUE
@@ -62,9 +84,10 @@ export class NetworkStream implements Stream, IBouncer {
     }
 
     updateBandwidth() {
-        var newAllocation = Math.min(this.upStreamer.getMaxAllocation(), this.downStreamer.getMaxAllocation())
+        var newAllocation = Math.min(this.upStreamer.setMaxBandwidth(), this.downStreamer.setMaxBandwidth())
         const allocationChanged = this.bandWidth !== newAllocation
         var bounceBandwidthChanged = false
+
 
         if (this.bounceInfo !== undefined) {
             // This Stream will be limited by the bounce
@@ -87,15 +110,15 @@ export class NetworkStream implements Stream, IBouncer {
 
         this.bandWidth = newAllocation
 
-        const upstreamerAllocationChanged = this.upStreamer.allocate(newAllocation)
-        const downStreamerAllocationChanged = this.downStreamer.allocate(newAllocation)
+        const upstreamerAllocationChanged = this.upStreamer.setBandwidth(newAllocation)
+        const downStreamerAllocationChanged = this.downStreamer.setBandwidth(newAllocation)
 
         if (upstreamerAllocationChanged) {
-            this.upStreamer.sendSignal(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.upStreamer.pid)
+            this.upStreamer.sendSignal(this.upStreamer, SIGNALS.STREAM_ALLOCATION_CHANGED, this.upStreamer.pid)
         }
 
         if (downStreamerAllocationChanged) {
-            this.downStreamer.sendSignal(this, SIGNALS.STREAM_ALLOCATION_CHANGED, this.downStreamer.pid)
+            this.downStreamer.sendSignal(this.downStreamer, SIGNALS.STREAM_ALLOCATION_CHANGED, this.downStreamer.pid)
         }
 
         if (bounceBandwidthChanged) {
@@ -103,32 +126,10 @@ export class NetworkStream implements Stream, IBouncer {
         }
     }
 
-    setDownstream(stream: NetworkStream) {
-        this.downstream = stream
-        stream.bounceInfo.registerHandler(this, SIGNALS.BOUNCE_ALLOCATION_CHANGED, this.handleBounceAllocationChanged)
-    }
-
-    setUpstream(stream: NetworkStream) {
-        this.upstream = stream
-        stream.bounceInfo.registerHandler(this, SIGNALS.BOUNCE_ALLOCATION_CHANGED, this.handleBounceAllocationChanged)
-    }
-
-
     handleBounceAllocationChanged(emitter: NetworkStream, ...args: any) {
-        // console.log(`Bounce allocation changed, bw[${this.bounceInfo.maxBandwidth}] updating upstream [${this.description}]`)
+        if (this === emitter) return
+        // console.log(`Bounce allocation changed br[${emitter.description}], bw[${this.bounceInfo.maxBandwidth}] updating stream [${this.description}]`)
         this.updateBandwidth()
-
-        // if (emitter.upstream !== undefined) {
-        //     // console.log(`allocation changed for [${emitter.description}] updating upstream [${emitter.upstream.description}]`)
-        //     emitter.upstream.updateBandwidth()
-        // }
-
-        // if (emitter.downstream !== undefined) {
-        //     // console.log(`allocation changed for [${emitter.description}] updating downstream [${emitter.downstream.description}]`)
-        //     emitter.downstream.updateBandwidth()
-        // }
-
-        // who === this.downStreamer && console.log(`allocation changed for downStreamer ` + [args])
     }
 }
 
@@ -136,7 +137,6 @@ export class NetworkInterface extends Resource {
     counter = 1
 
     private processes: StreamerProcess[] = []
-    unusedCapacityList: { process: StreamerProcess, amount: number }[] = []
 
     constructor(name: string, type: ResourceTypes, capacity: number) {
         super(name, type, capacity)
@@ -147,8 +147,14 @@ export class NetworkInterface extends Resource {
         this.processes.push(process)
     }
 
+    removeProcess(process: StreamerProcess) {
+        process.unregisterHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED)
+        this.processes = this.processes.filter(p => p !== process)
+    }
+
     getProcessMaxAllocation(process: StreamerProcess): number {
         var maxAllocation = this.capacity * (process.priority / this.getPrioritiesSum())
+
         const unusedAllocation = this.processes
             .filter(p => p !== process)
             .filter(p => p.isBounded)
@@ -162,132 +168,90 @@ export class NetworkInterface extends Resource {
         return maxAllocation
     }
 
-    getAvailableAllocation(): number {
-        return this.capacity + this.getUnusedAllocation()
-    }
-
-    getUnusedAllocation() {
-        const unused = this.processes
-            .filter(p => p.isBounded)
-            .filter(p => p.isBounded)
-            .map(p => p.getMaxAllocationShare() - p.allocation)
-            .reduce((acc, unused) => acc += unused, 0)
-
-        if (unused < 0) console.log('Returning less than zero')
-        return unused < 0 ? 0 : unused
-    }
-
-    handleStreamerAllocationChanged(emitter: StreamerProcess, ...args: any) {
+    handleStreamerAllocationChanged(emitter: StreamerProcess) {
         const otherProcesses = this.processes.filter(p => p !== emitter)
+        if (otherProcesses.length === 0) return
 
-        // if (otherProcesses.length > 0)
-        //     console.log(`allocation changed for process [${emitter.pid}], changing allocation of ${otherProcesses.map(p => p.stream.description)}`)
-
+        // console.log(`allocation changed by process [${emitter.pid}], changing allocation of ${otherProcesses.map(p => p.stream.description)}`)
         otherProcesses.forEach(p => p.stream.updateBandwidth())
     }
 
     getPrioritiesSum() {
         return this.processes.reduce((acc, process) => acc += process.priority, 0)
     }
+}
 
-    getUnboundedPrioritiesSum() {
-        return this.processes
-            .filter(p => p.isBounded)
-            .reduce((acc, process) => acc += process.priority, 0)
+export class Downlink extends NetworkInterface {
+    constructor(name: string, capacity: number) {
+        super(name, ResourceTypes.DOWNLINK, capacity)
     }
 }
 
-class Process {
-    pid: string
-    priority: number
-
-    constructor(pid: string) {
-        this.pid = pid
-        this.priority = 5
+export class Uplink extends NetworkInterface {
+    constructor(name: string, capacity: number) {
+        super(name, ResourceTypes.UPLINK, capacity)
     }
 }
 
 
 
 
-export class StreamerProcess extends Process implements Streamer {
-    networkInterface: NetworkInterface
-    stream!: Stream
+type FileTransferDetails = { pairs: { downloadProcess: StreamerProcess, uploadProcess: StreamerProcess }[] }
 
-    private _allocation: number
-    get allocation(): number {
-        return this._allocation
-    }
-
-    /**
-     * Limited to use its full capacity by its pair
-     */
-    isBounded: boolean
-
-    //TODO properly inject handlers object
-    handlers: { [signal: string]: { handler: any, callback: Function }[] } = {}
-
-    constructor(pid: string, networkInterface: NetworkInterface) {
-        super(pid)
-
-        this.pid = pid + networkInterface.type + networkInterface.counter++
-
-        this.networkInterface = networkInterface
-        this.networkInterface.addProcess(this)
-        this._allocation = 0
-        this.isBounded = false
-    }
-
-
-    allocate(amount: number) {
-        const allocationChanged = this._allocation !== amount
-        this._allocation = amount
-
-        const maxAllocation = this.getMaxAllocation()
-        const unused = maxAllocation - amount
-
-        if (unused > 0) {
-            this.isBounded = true
-        }
-        else {
-            this.isBounded = false
-        }
-
-        return allocationChanged
-    }
-
-    getMaxAllocation(): number {
-        // TODO check if running
-        return this.networkInterface.getProcessMaxAllocation(this)
-    }
-
-    getMaxAllocationShare(): number {
-        // TODO check if running
-        return this.networkInterface.capacity * this.getPriorityRatio()
-    }
-
-    getUnusedAllocationShare(): number {
-        // TODO check if running
-        return this.networkInterface.getUnusedAllocation() * this.getUnusedPriorityRatio() || 1
-    }
-
-
-    private getPriorityRatio(): number {
-        return this.priority / this.networkInterface.getPrioritiesSum()
-    }
-
-    private getUnusedPriorityRatio(): number {
-        return this.priority / this.networkInterface.getUnboundedPrioritiesSum()
-    }
+export enum FileTransferType {
+    DOWNLOAD = 'DOWNLOAD',
+    UPLOAD = 'UPLOAD'
 }
 
-export interface StreamerProcess extends Streamer, ISignalEmitter { }
-applyMixins(StreamerProcess, [SignalEmitter])
+// class FileTransferFactory {
 
-function applyMixins(derivedCtor: any, baseCtors: any[]) {
-    baseCtors.forEach(baseCtor => {
-        Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-            derivedCtor.prototype[name] = baseCtor.prototype[name]
-        })
-    })
-}
+//     static createFileTransfer(transferType: FileTransferType, file: File, ...connectionPath: Gateway[]): OperationResult<FileTransferDetails> {
+//         const result = new OperationResult<FileTransferDetails>()
+//         result.details = { pairs: [] }
+
+//         result.validate(connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
+//         if (!result.isSuccessful()) return result
+
+//         var workingConnectionPath = [...connectionPath]
+
+//         if (transferType === FileTransferType.UPLOAD)
+//             workingConnectionPath = workingConnectionPath.reverse()
+
+//         const fileOwner = connectionPath[connectionPath.length - 1]
+//         result.validate(fileOwner.storage.files.includes(file), `File [${file.name}] does not exists.`)
+//         if (!result.isSuccessful()) return result
+
+//         const bounceInfo: { sharedAllocation: number, chain: NetworkProcess[] } = { sharedAllocation: Number.MAX_VALUE, chain: [] }
+
+//         while (workingConnectionPath.length > 1) {
+//             const downloader = workingConnectionPath.shift()!
+//             const uploader = workingConnectionPath[0]
+
+//             const downloadProcess = new NetworkProcess(downloader.owner.name, downloader.downlink)
+//             const uploadProcess = new NetworkProcess(uploader.owner.name, uploader.uplink)
+
+//             downloadProcess.pair = uploadProcess
+//             uploadProcess.pair = downloadProcess
+
+//             result.details.pairs.push({ downloadProcess: downloadProcess, uploadProcess: uploadProcess })
+
+//             if (connectionPath.length > 2) {
+//                 bounceInfo.chain.push(downloadProcess)
+//                 downloadProcess.bounceInfo = bounceInfo
+
+//                 bounceInfo.chain.push(uploadProcess)
+//                 uploadProcess.bounceInfo = bounceInfo
+//             }
+
+//             // downloader.downlink.processes.push(downloadProcess)
+//             // downloader.processes.push(downloadProcess)
+
+//             // uploader.uplink.processes.push(uploadProcess)
+//             // uploader.processes.push(uploadProcess)
+
+//             // ResourceManager.addToReallocation(downloader.downlink, uploader.uplink)
+//         }
+
+//         return result
+//     }
+// }
