@@ -1,7 +1,7 @@
 import { Player } from "./player"
 import { Cpu, Memory, Storage } from "./resource"
 import { Process } from "./process"
-import { Downlink, Uplink, RemoteConnection, ConnectionStatus } from "../network-interfaces"
+import { Downlink, Uplink, RemoteConnection, ConnectionStatus } from "./network-interfaces"
 
 export class Gateway {
 

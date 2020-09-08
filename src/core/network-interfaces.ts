@@ -1,15 +1,15 @@
-import { ISignalEmitter, SignalEmitter, SIGNALS } from "./signal"
-import { Resource, ResourceTypes } from "./core/resource"
-import { applyMixins, OperationResult } from "./shared"
-import { StreamerProcess } from "./core/process"
+import { ISignalEmitter, SignalEmitter, SIGNALS, signalEmitter } from "./signal"
+import { Resource, ResourceTypes } from "./resource"
+import { applyMixins, OperationResult } from "../shared"
+import { StreamerProcess } from "./process"
+import { Gateway } from "./gateway"
+import { File } from "../../test/game-interfaces"
 
 
 export interface Stream {
     bandWidth: number
     upStreamer: Streamer
     downStreamer: Streamer
-    upstream?: Stream
-    downstream?: Stream
     description: string
     updateBandwidth(): void
 }
@@ -39,20 +39,14 @@ export interface RemoteConnection {
     privileges?: AccessPrivileges[]
 }
 
-
+@signalEmitter
 export class BounceInfo {
     maxBandwidth: number = Number.MAX_VALUE
     limiters: Stream[] = []
-
-    //TODO properly inject handlers object
-    handlers: { [signal: string]: { handler: any, callback: Function }[] } = {}
 }
 export interface BounceInfo extends ISignalEmitter { }
-applyMixins(BounceInfo, [SignalEmitter])
 
 interface IBouncer {
-    upstream?: NetworkStream
-    downstream?: NetworkStream
     bounceInfo: BounceInfo
 }
 
@@ -62,18 +56,14 @@ export class NetworkStream implements Stream, IBouncer {
     upStreamer: StreamerProcess
     downStreamer: StreamerProcess
 
-    upstream?: NetworkStream
-    downstream?: NetworkStream
     bounceInfo!: BounceInfo
 
     description: string
 
 
-    constructor(upStreamer: StreamerProcess, downStreamer: StreamerProcess, streams?: { upstream?: NetworkStream, downstream?: NetworkStream }) {
+    constructor(upStreamer: StreamerProcess, downStreamer: StreamerProcess) {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
-        this.upstream = streams?.upstream
-        this.downstream = streams?.downstream
 
         this.description = `${upStreamer.pid}->${downStreamer.pid}`
 
@@ -87,7 +77,6 @@ export class NetworkStream implements Stream, IBouncer {
         var newAllocation = Math.min(this.upStreamer.setMaxBandwidth(), this.downStreamer.setMaxBandwidth())
         const allocationChanged = this.bandWidth !== newAllocation
         var bounceBandwidthChanged = false
-
 
         if (this.bounceInfo !== undefined) {
             // This Stream will be limited by the bounce
@@ -114,11 +103,16 @@ export class NetworkStream implements Stream, IBouncer {
         const downStreamerAllocationChanged = this.downStreamer.setBandwidth(newAllocation)
 
         if (upstreamerAllocationChanged) {
-            this.upStreamer.sendSignal(this.upStreamer, SIGNALS.STREAM_ALLOCATION_CHANGED, this.upStreamer.pid)
+            const now = Date.now()
+            // console.log(`Signal from [${this.upStreamer.pid}_${now}]`)
+
+            this.upStreamer.sendSignal(this.upStreamer, SIGNALS.STREAM_ALLOCATION_CHANGED, now)
         }
 
         if (downStreamerAllocationChanged) {
-            this.downStreamer.sendSignal(this.downStreamer, SIGNALS.STREAM_ALLOCATION_CHANGED, this.downStreamer.pid)
+            const now = Date.now()
+            // console.log(`Signal from [${this.downStreamer.pid}_${now}]`)
+            this.downStreamer.sendSignal(this.downStreamer, SIGNALS.STREAM_ALLOCATION_CHANGED, now)
         }
 
         if (bounceBandwidthChanged) {
@@ -158,6 +152,7 @@ export class NetworkInterface extends Resource {
         const unusedAllocation = this.processes
             .filter(p => p !== process)
             .filter(p => p.isBounded)
+            .filter(p => p.allocation <= p.getMaxAllocationShare())
             .map(p => p.getMaxAllocationShare() - p.allocation)
             .reduce((acc, unused) => acc += unused, 0)
 
@@ -168,11 +163,11 @@ export class NetworkInterface extends Resource {
         return maxAllocation
     }
 
-    handleStreamerAllocationChanged(emitter: StreamerProcess) {
+    handleStreamerAllocationChanged(emitter: StreamerProcess, date: any) {
         const otherProcesses = this.processes.filter(p => p !== emitter)
         if (otherProcesses.length === 0) return
 
-        // console.log(`allocation changed by process [${emitter.pid}], changing allocation of ${otherProcesses.map(p => p.stream.description)}`)
+        // console.log(`allocation changed by process [${emitter.pid}_${date}]:${emitter.allocation}, changing allocation of ${otherProcesses.map(p => p.stream.description)}`)
         otherProcesses.forEach(p => p.stream.updateBandwidth())
     }
 
@@ -196,62 +191,46 @@ export class Uplink extends NetworkInterface {
 
 
 
-type FileTransferDetails = { pairs: { downloadProcess: StreamerProcess, uploadProcess: StreamerProcess }[] }
+type FileTransferDetails = { stream: Stream, uploadProcess: StreamerProcess, downloadProcess: StreamerProcess }[]
 
-export enum FileTransferType {
-    DOWNLOAD = 'DOWNLOAD',
-    UPLOAD = 'UPLOAD'
+export class FileTransferFactory {
+
+    static create(file: File, ...connectionPath: Gateway[]): OperationResult<FileTransferDetails> {
+        const result = new OperationResult<FileTransferDetails>()
+        result.details = []
+
+        result.validate(connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
+        if (!result.isSuccessful()) return result
+
+        var workingConnectionPath = [...connectionPath]
+
+        // const fileOwner = connectionPath[connectionPath.length - 1]
+        // result.validate(fileOwner.storage.files.includes(file), `File [${file.name}] does not exists.`)
+        // if (!result.isSuccessful()) return result
+
+        const bounceInfo = new BounceInfo()
+
+        while (workingConnectionPath.length > 1) {
+            const uploader = workingConnectionPath.shift()!
+            const downloader = workingConnectionPath[0]
+
+            const uploadProcess = new StreamerProcess(uploader.owner.name, uploader.uplink)
+            const downloadProcess = new StreamerProcess(downloader.owner.name, downloader.downlink)
+
+            const stream = new NetworkStream(uploadProcess, downloadProcess)
+
+            result.details.push({ stream, uploadProcess, downloadProcess })
+
+            if (connectionPath.length > 2) {
+                stream.bounceInfo = bounceInfo
+
+                bounceInfo.registerHandler(stream, SIGNALS.BOUNCE_ALLOCATION_CHANGED, stream.handleBounceAllocationChanged)
+            }
+
+            uploader.processes.push(uploadProcess)
+            downloader.processes.push(downloadProcess)
+        }
+
+        return result
+    }
 }
-
-// class FileTransferFactory {
-
-//     static createFileTransfer(transferType: FileTransferType, file: File, ...connectionPath: Gateway[]): OperationResult<FileTransferDetails> {
-//         const result = new OperationResult<FileTransferDetails>()
-//         result.details = { pairs: [] }
-
-//         result.validate(connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
-//         if (!result.isSuccessful()) return result
-
-//         var workingConnectionPath = [...connectionPath]
-
-//         if (transferType === FileTransferType.UPLOAD)
-//             workingConnectionPath = workingConnectionPath.reverse()
-
-//         const fileOwner = connectionPath[connectionPath.length - 1]
-//         result.validate(fileOwner.storage.files.includes(file), `File [${file.name}] does not exists.`)
-//         if (!result.isSuccessful()) return result
-
-//         const bounceInfo: { sharedAllocation: number, chain: NetworkProcess[] } = { sharedAllocation: Number.MAX_VALUE, chain: [] }
-
-//         while (workingConnectionPath.length > 1) {
-//             const downloader = workingConnectionPath.shift()!
-//             const uploader = workingConnectionPath[0]
-
-//             const downloadProcess = new NetworkProcess(downloader.owner.name, downloader.downlink)
-//             const uploadProcess = new NetworkProcess(uploader.owner.name, uploader.uplink)
-
-//             downloadProcess.pair = uploadProcess
-//             uploadProcess.pair = downloadProcess
-
-//             result.details.pairs.push({ downloadProcess: downloadProcess, uploadProcess: uploadProcess })
-
-//             if (connectionPath.length > 2) {
-//                 bounceInfo.chain.push(downloadProcess)
-//                 downloadProcess.bounceInfo = bounceInfo
-
-//                 bounceInfo.chain.push(uploadProcess)
-//                 uploadProcess.bounceInfo = bounceInfo
-//             }
-
-//             // downloader.downlink.processes.push(downloadProcess)
-//             // downloader.processes.push(downloadProcess)
-
-//             // uploader.uplink.processes.push(uploadProcess)
-//             // uploader.processes.push(uploadProcess)
-
-//             // ResourceManager.addToReallocation(downloader.downlink, uploader.uplink)
-//         }
-
-//         return result
-//     }
-// }

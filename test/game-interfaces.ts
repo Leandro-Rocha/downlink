@@ -1,5 +1,4 @@
-import { Resource, ResourceTypes } from '../src/core/resource'
-import { NetworkInterface } from '../src/network-interfaces'
+import { Player } from '../src/core/player'
 
 
 
@@ -9,11 +8,7 @@ interface Storable {
     size: number
 }
 
-interface ExecutableRequirement {
-    processor: number
-    memory: number
-    remoteConnection?: boolean
-}
+
 
 export class File implements Storable {
     name: string
@@ -27,36 +22,33 @@ export class File implements Storable {
 
 
 
+function createPermanentProcess() {
+    // const player = new Player('Hanolus')
+    // const remoteServer = new Player('Hanolus')
 
+    // const tracerV1 = new Executable('TracerV1', 1000, { processor: 100, memory: 100 })
+    // const antVirusV1 = new Executable('AntivirusV1', 1000, { processor: 500, memory: 100, remoteConnection: false })
 
+    // player.gateway.storage.files.push(tracerV1)
+    // player.gateway.storage.files.push()
+    // remoteServer.gateway.storage.files.push(new File('TargetFile', 1000))
 
-// function createPermanentProcess() {
-//     const player = new Player('Hanolus')
-//     const remoteServer = new Player('Hanolus')
+    // Run Tracer - Constant running process
+    // const result = player.gateway.execute(tracerV1)
 
-//     const tracerV1 = new Program('TracerV1', 1000, { processor: 100, memory: 100 })
-//     const antVirusV1 = new Program('AntivirusV1', 1000, { processor: 500, memory: 100, remoteConnection: false })
-
-//     player.gateway.storage.files.push(tracerV1)
-//     player.gateway.storage.files.push()
-//     remoteServer.gateway.storage.files.push(new File('TargetFile', 1000))
-
-//     // Run Tracer - Constant running process
-//     const result = player.gateway.execute(tracerV1)
-
-//     // expect(result.isSuccessful()).to.be.true
-//     // expect(result.messages).to.have.lengthOf(0)
-//     // expect(result.details).to.have.property('process')
+    // expect(result.isSuccessful()).to.be.true
+    // expect(result.messages).to.have.lengthOf(0)
+    // expect(result.details).to.have.property('process')
 
 
 
 
-//     // Run Anti-Virus - Process with work to do
+    // Run Anti-Virus - Process with work to do
 
-//     // Connect to server - Instant action
+    // Connect to server - Instant action
 
-//     // Download file - Multi resource process
-// }
+    // Download file - Multi resource process
+}
 
 // function createFileTransferProcess() {
 //     const player = new Player('Hanolus')

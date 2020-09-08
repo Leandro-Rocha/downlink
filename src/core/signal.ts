@@ -1,10 +1,23 @@
+import { applyMixins } from "../shared"
+
 export enum SIGNALS {
     RESOURCE_ALLOCATION_UPDATED = 'RESOURCE_ALLOCATION_UPDATED',
-    PROCESS_ALLOCATION_UPDATED = 'PROCESS_ALLOCATION_UPDATED',
+
     PROCESS_STARTED = 'PROCESS_STARTED',
     PROCESS_FINISHED = 'PROCESS_FINISHED',
+
     STREAM_ALLOCATION_CHANGED = 'STREAM_ALLOCATION_CHANGED',
     BOUNCE_ALLOCATION_CHANGED = 'BOUNCE_ALLOCATION_CHANGED',
+}
+
+export function signalEmitter<T extends { new(...args: any[]): {} }>(
+    constructor: T
+) {
+    applyMixins(constructor, [SignalEmitter])
+
+    return class extends constructor {
+        handlers = {}
+    }
 }
 
 export interface ISignalEmitter {

@@ -1,7 +1,8 @@
+import { File } from "../../test/game-interfaces"
 
 export enum ResourceTypes {
-    DOWNLINK = 'DOWNLINK',
-    UPLINK = 'UPLINK',
+    DOWNLINK = 'D',
+    UPLINK = 'U',
     MEMORY = 'MEMORY',
     CPU = 'CPU',
     STORAGE = 'STORAGE',
@@ -44,6 +45,22 @@ export class Storage extends Resource {
         super(name, ResourceTypes.STORAGE, capacity)
     }
 }
+
+interface ExecutableRequirement {
+    processor: number
+    memory: number
+    remoteConnection?: boolean
+}
+
+// export class Executable extends File {
+//     requirements: ExecutableRequirement
+
+//     constructor(name: string, size: number, requirements: ExecutableRequirement) {
+//         super(name, size)
+
+//         this.requirements = requirements
+//     }
+// }
 
 export class Cpu extends Resource {
     constructor(name: string, capacity: number) {

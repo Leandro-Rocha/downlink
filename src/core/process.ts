@@ -1,17 +1,36 @@
-import { Streamer, NetworkInterface, Stream } from "../network-interfaces"
-import { ISignalEmitter, SignalEmitter } from "../signal"
-import { applyMixins } from "../shared"
+import { Streamer, NetworkInterface, Stream } from "./network-interfaces"
+import { ISignalEmitter, signalEmitter } from "./signal"
+import { Player } from "./player"
 
-export class Process implements Process {
+export enum Status {
+    NEW = 'NEW',
+    RUNNING = 'RUNNING',
+    FINISHED = 'FINISHED',
+    DEAD = 'DEAD'
+}
+
+function pidGenerator(player: Player) {
+    return `${player.name}_${Date.now()}`
+}
+
+@signalEmitter
+export class Process {
     static MIN_PRIORITY = 0
     static MAX_PRIORITY = 10
 
-    pid: string
+    private _pid: string
     priority: number
+    status: Status
 
     constructor(pid: string) {
-        this.pid = pid
+        this._pid = pid
         this.priority = (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
+
+        this.status = Status.NEW
+    }
+
+    get pid() {
+        return this._pid
     }
 
     lowerPriority() {
@@ -24,6 +43,7 @@ export class Process implements Process {
             this.priority++
     }
 }
+export interface Process extends ISignalEmitter { }
 
 export class StreamerProcess extends Process implements Streamer {
     networkInterface: NetworkInterface
@@ -39,13 +59,10 @@ export class StreamerProcess extends Process implements Streamer {
      */
     isBounded: boolean
 
-    //TODO properly inject handlers object
-    handlers: { [signal: string]: { handler: any, callback: Function }[] } = {}
-
     constructor(pid: string, networkInterface: NetworkInterface) {
-        super(pid)
 
-        this.pid = pid + networkInterface.type + networkInterface.counter++
+        super(pid + networkInterface.type + networkInterface.counter++)
+
 
         this.networkInterface = networkInterface
         this.networkInterface.addProcess(this)
@@ -85,5 +102,3 @@ export class StreamerProcess extends Process implements Streamer {
         return this.priority / this.networkInterface.getPrioritiesSum()
     }
 }
-export interface StreamerProcess extends Streamer, ISignalEmitter { }
-applyMixins(StreamerProcess, [SignalEmitter])
