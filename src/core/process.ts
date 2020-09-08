@@ -1,5 +1,5 @@
 import { Streamer, NetworkInterface, Stream } from "./network-interfaces"
-import { ISignalEmitter, signalEmitter } from "./signal"
+import { ISignalEmitter, signalEmitter, SIGNALS } from "./signal"
 import { Player } from "./player"
 
 export enum Status {
@@ -19,12 +19,12 @@ export class Process {
     static MAX_PRIORITY = 10
 
     private _pid: string
-    priority: number
+    private _priority: number
     status: Status
 
     constructor(pid: string) {
         this._pid = pid
-        this.priority = (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
+        this._priority = (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
 
         this.status = Status.NEW
     }
@@ -33,14 +33,23 @@ export class Process {
         return this._pid
     }
 
+    get priority() {
+        return this._priority
+    }
+
+    set priority(newPriority: number) {
+        this._priority = newPriority
+        this.sendSignal(this, SIGNALS.PROCESS_PRIORITY_CHANGED, newPriority)
+    }
+
     lowerPriority() {
-        if (this.priority > Process.MIN_PRIORITY)
-            this.priority--
+        if (this._priority > Process.MIN_PRIORITY)
+            this._priority--
     }
 
     raisePriority() {
-        if (this.priority < Process.MAX_PRIORITY)
-            this.priority++
+        if (this._priority < Process.MAX_PRIORITY)
+            this._priority++
     }
 }
 export interface Process extends ISignalEmitter { }
@@ -48,10 +57,12 @@ export interface Process extends ISignalEmitter { }
 export class StreamerProcess extends Process implements Streamer {
     networkInterface: NetworkInterface
     stream!: Stream
+    priorityRatio!: number
+    fairBandwidth!: number
 
-    private _allocation: number
-    get allocation(): number {
-        return this._allocation
+    private _bandWidth: number
+    get bandWidth(): number {
+        return this._bandWidth
     }
 
     /**
@@ -60,22 +71,19 @@ export class StreamerProcess extends Process implements Streamer {
     isBounded: boolean
 
     constructor(pid: string, networkInterface: NetworkInterface) {
-
-        super(pid + networkInterface.type + networkInterface.counter++)
-
+        super(pid)
 
         this.networkInterface = networkInterface
-        this.networkInterface.addProcess(this)
-        this._allocation = 0
+        this._bandWidth = 0
         this.isBounded = false
     }
 
 
-    setBandwidth(amount: number) {
-        const allocationChanged = this._allocation !== amount
-        this._allocation = amount
+    updateBandwidth(amount: number) {
+        const bandWidthChanged = this._bandWidth !== amount
+        this._bandWidth = amount
 
-        const maxAllocation = this.setMaxBandwidth()
+        const maxAllocation = this.getMaxBandwidth()
         const unused = maxAllocation - amount
 
         if (unused > 0) {
@@ -85,20 +93,11 @@ export class StreamerProcess extends Process implements Streamer {
             this.isBounded = false
         }
 
-        return allocationChanged
+        return bandWidthChanged
     }
 
-    setMaxBandwidth(): number {
+    getMaxBandwidth(): number {
         // TODO check if running
         return this.networkInterface.getProcessMaxAllocation(this)
-    }
-
-    getMaxAllocationShare(): number {
-        // TODO check if running
-        return this.networkInterface.capacity * this.getPriorityRatio()
-    }
-
-    private getPriorityRatio(): number {
-        return this.priority / this.networkInterface.getPrioritiesSum()
     }
 }

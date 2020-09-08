@@ -1,9 +1,7 @@
 import 'mocha'
 import { expect } from 'chai'
-import { SIGNALS } from '../src/core/signal'
 import { Player } from '../src/core/player'
-import { StreamerProcess } from '../src/core/process'
-import { NetworkStream, BounceInfo, FileTransferFactory } from '../src/core/network-interfaces'
+import { Stream, FileTransferFactory } from '../src/core/network-interfaces'
 import { File } from './game-interfaces'
 
 var A: Player = new Player('A')
@@ -25,13 +23,6 @@ describe('File Transfer Allocation',
             X = new Player('X')
             Y = new Player('Y')
             Z = new Player('Z')
-
-            // A.gateway.storage.files.push(targetFile)
-            // B.gateway.storage.files.push(targetFile)
-            // C.gateway.storage.files.push(targetFile)
-            // X.gateway.storage.files.push(targetFile)
-            // Y.gateway.storage.files.push(targetFile)
-            // Z.gateway.storage.files.push(targetFile)
         })
 
         it('can allocate single download with same capacities', singleDownloadSameCapacity)
@@ -44,371 +35,267 @@ describe('File Transfer Allocation',
         it('can allocate three downloads with reallocation 2', threeWithReallocation2)
         it('can allocate one download with bounce', oneDownloadWithBounce)
         it('can allocate two download with bounce limited by other download', twoDownloadWithBounce)
-        it('performance', performance)
-        it('bug', bug)
+        // it('performance', performance).timeout(20000);
     })
 
+function validateStream(stream: Stream, bandWidth: number) {
+    expect(stream.bandWidth, `Stream ${stream.description} bandwidth should be ${bandWidth} but was ${stream.bandWidth}`)
+        .to.be.approximately(bandWidth, 0.001)
+
+    expect(stream.upStreamer.bandWidth, `UpStreamer bandwidth should be ${bandWidth} but was ${stream.bandWidth}`)
+        .to.be.approximately(bandWidth, 0.001)
+
+    expect(stream.downStreamer.bandWidth, `DownStream bandwidth should be ${bandWidth} but was ${stream.bandWidth}`)
+        .to.be.approximately(bandWidth, 0.001)
+}
 
 
 function singleDownloadSameCapacity() {
-
-    const result = FileTransferFactory.create(targetFile, X.gateway, A.gateway)
-    const { stream: streamXA, uploadProcess: XU, downloadProcess: AD } = result.details[0]
+    const factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    const result = factory.create()
+    const { stream: streamXA } = result.details[0]
 
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(1)
-    expect(XU.allocation).to.be.equal(1)
-    expect(AD.allocation).to.be.equal(1)
+    validateStream(streamXA, 1)
 }
 
 function singleDownloadBoundByDownloader() {
     A.gateway.downlink.capacity = 0.5
 
-    const AD = new StreamerProcess('', A.gateway.downlink)
-    const XU = new StreamerProcess('', X.gateway.uplink)
-
-    const streamXA = new NetworkStream(XU, AD)
+    const factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    const result = factory.create()
+    const { stream: streamXA } = result.details[0]
 
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.5)
-    expect(AD.allocation).to.be.equal(0.5)
-    expect(XU.allocation).to.be.equal(0.5)
+    validateStream(streamXA, 0.5)
 }
 
 function singleDownloadBoundByUploader() {
     X.gateway.uplink.capacity = 0.5
 
-    const AD = new StreamerProcess('', A.gateway.downlink)
-    const XU = new StreamerProcess('', X.gateway.uplink)
-
-    const streamXA = new NetworkStream(XU, AD)
+    const factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    const result = factory.create()
+    const { stream: streamXA } = result.details[0]
 
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.5)
-    expect(AD.allocation).to.be.equal(0.5)
-    expect(XU.allocation).to.be.equal(0.5)
+    validateStream(streamXA, 0.5)
 }
 
 function twoDownloads() {
 
     // Starting download A =====================================
-    var result = FileTransferFactory.create(targetFile, X.gateway, A.gateway)
-    const { stream: streamXA, uploadProcess: XU1, downloadProcess: AD } = result.details[0]
+    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var result = factory.create()
+    const { stream: streamXA } = result.details[0]
 
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(1)
-    expect(AD.allocation).to.be.equal(1)
-    expect(XU1.allocation).to.be.equal(1)
+    validateStream(streamXA, 1)
 
     // Starting download B =====================================
-    var result = FileTransferFactory.create(targetFile, X.gateway, B.gateway)
-    const { stream: streamXB, uploadProcess: XU2, downloadProcess: BD } = result.details[0]
+    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var result = factory.create()
+    const { stream: streamXB } = result.details[0]
+
     streamXB.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.5)
-    expect(streamXB.bandWidth).to.be.equal(0.5)
-    expect(AD.allocation).to.be.equal(0.5)
-    expect(BD.allocation).to.be.equal(0.5)
-    expect(XU1.allocation).to.be.equal(0.5)
-    expect(XU2.allocation).to.be.equal(0.5)
+    validateStream(streamXA, 0.5)
+    validateStream(streamXB, 0.5)
 }
 
 function threeWithReallocation() {
     B.gateway.downlink.capacity = 0.5
 
-    // Starting download A =====================================
-    var result = FileTransferFactory.create(targetFile, X.gateway, A.gateway)
-    const { stream: streamXA, uploadProcess: XU1, downloadProcess: AD1 } = result.details[0]
+    // Starting download X->A =====================================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var result = factory.create()
+    const { stream: streamXA } = result.details[0]
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(1)
-    expect(XU1.allocation).to.be.equal(1)
-    expect(AD1.allocation).to.be.equal(1)
+    validateStream(streamXA, 1)
 
 
-    // Starting first download B ===============================
-    var result = FileTransferFactory.create(targetFile, X.gateway, B.gateway)
-    const { stream: streamXB1, uploadProcess: XU2, downloadProcess: BD1 } = result.details[0]
+    // Starting first download X->B ===============================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var result = factory.create()
+    const { stream: streamXB1 } = result.details[0]
     streamXB1.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.5)
-    expect(XU1.allocation).to.be.equal(0.5)
-    expect(AD1.allocation).to.be.equal(0.5)
+    validateStream(streamXA, 0.5)
+    validateStream(streamXB1, 0.5)
 
-    expect(streamXB1.bandWidth).to.be.equal(0.5)
-    expect(XU2.allocation).to.be.equal(0.5)
-    expect(BD1.allocation).to.be.equal(0.5)
-
-    // Starting second download B ==============================
-    var result = FileTransferFactory.create(targetFile, X.gateway, B.gateway)
+    // Starting second download X->B ==============================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var result = factory.create()
     const { stream: streamXB2, uploadProcess: XU3, downloadProcess: BD2 } = result.details[0]
     streamXB2.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.approximately(0.5, 0.001)
-    expect(XU1.allocation).to.be.approximately(0.5, 0.001)
-    expect(AD1.allocation).to.be.approximately(0.5, 0.001)
-
-    expect(streamXB1.bandWidth).to.be.equal(0.25)
-    expect(XU2.allocation).to.be.equal(0.25)
-    expect(BD1.allocation).to.be.equal(0.25)
-
-    expect(streamXB2.bandWidth).to.be.equal(0.25)
-    expect(XU3.allocation).to.be.equal(0.25)
-    expect(BD2.allocation).to.be.equal(0.25)
+    validateStream(streamXA, 0.5)
+    validateStream(streamXB1, 0.25)
+    validateStream(streamXB2, 0.25)
 }
 
 function threeWithReallocation2() {
     B.gateway.downlink.capacity = 0.5
 
-    // Starting download A =====================================
-    var result = FileTransferFactory.create(targetFile, X.gateway, A.gateway)
-    const { stream: streamXA, uploadProcess: XU1, downloadProcess: AD1 } = result.details[0]
+    // Starting download X->A =====================================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var result = factory.create()
+    const { stream: streamXA } = result.details[0]
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(1)
-    expect(XU1.allocation).to.be.equal(1)
-    expect(AD1.allocation).to.be.equal(1)
+    validateStream(streamXA, 1)
 
-    // Starting first download B ===============================
-    var result = FileTransferFactory.create(targetFile, X.gateway, B.gateway)
-    const { stream: streamXB1, uploadProcess: XU2, downloadProcess: BD1 } = result.details[0]
+    // Starting first download X->B ===============================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var result = factory.create()
+    const { stream: streamXB1 } = result.details[0]
     streamXB1.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.5)
-    expect(XU1.allocation).to.be.equal(0.5)
-    expect(AD1.allocation).to.be.equal(0.5)
+    validateStream(streamXA, 0.5)
+    validateStream(streamXB1, 0.5)
 
-    expect(streamXB1.bandWidth).to.be.equal(0.5)
-    expect(XU2.allocation).to.be.equal(0.5)
-    expect(BD1.allocation).to.be.equal(0.5)
-
-    // Starting second download B =============================
-    var result = FileTransferFactory.create(targetFile, C.gateway, B.gateway)
-    const { stream: streamCB1, uploadProcess: CU1, downloadProcess: BD2 } = result.details[0]
+    // Starting download C->B =====================================================================
+    var factory = new FileTransferFactory(targetFile, C.gateway, B.gateway)
+    var result = factory.create()
+    const { stream: streamCB1 } = result.details[0]
     streamCB1.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.approximately(0.75, 0.001)
-    expect(XU1.allocation).to.be.approximately(0.75, 0.001)
-    expect(AD1.allocation).to.be.approximately(0.75, 0.001)
-
-    expect(streamXB1.bandWidth).to.be.equal(0.25)
-    expect(XU2.allocation).to.be.equal(0.25)
-    expect(BD1.allocation).to.be.equal(0.25)
-
-    expect(streamCB1.bandWidth).to.be.equal(0.25)
-    expect(CU1.allocation).to.be.equal(0.25)
-    expect(BD2.allocation).to.be.equal(0.25)
+    validateStream(streamXA, 0.75)
+    validateStream(streamXB1, 0.25)
+    validateStream(streamCB1, 0.25)
 }
 
 function oneDownloadWithBounce() {
-
-    var result = FileTransferFactory.create(targetFile, X.gateway, C.gateway, B.gateway, A.gateway)
-    const { stream: streamXC, uploadProcess: XU1, downloadProcess: CD1 } = result.details[0]
-    const { stream: streamCB, uploadProcess: CU1, downloadProcess: BD1 } = result.details[1]
-    const { stream: streamBA, uploadProcess: BU1, downloadProcess: AD1 } = result.details[2]
-
+    var factory = new FileTransferFactory(targetFile, X.gateway, C.gateway, B.gateway, A.gateway)
+    var result = factory.create()
+    const { stream: streamXC } = result.details[0]
+    const { stream: streamCB } = result.details[1]
+    const { stream: streamBA } = result.details[2]
     streamXC.updateBandwidth()
 
-    expect(streamXC.bandWidth).to.be.equal(1)
-    expect(XU1.allocation).to.be.equal(1)
-    expect(CD1.allocation).to.be.equal(1)
-
-    expect(streamCB.bandWidth).to.be.equal(1)
-    expect(CU1.allocation).to.be.equal(1)
-    expect(BD1.allocation).to.be.equal(1)
-
-    expect(streamBA.bandWidth).to.be.equal(1)
-    expect(BU1.allocation).to.be.equal(1)
-    expect(AD1.allocation).to.be.equal(1)
+    validateStream(streamXC, 1)
+    validateStream(streamCB, 1)
+    validateStream(streamBA, 1)
 }
 
 
 function twoDownloadWithBounce() {
 
-    var result = FileTransferFactory.create(targetFile, X.gateway, C.gateway, B.gateway, A.gateway)
-    const { stream: streamXC, uploadProcess: XU1, downloadProcess: CD1 } = result.details[0]
-    const { stream: streamCB, uploadProcess: CU1, downloadProcess: BD1 } = result.details[1]
-    const { stream: streamBA, uploadProcess: BU1, downloadProcess: AD1 } = result.details[2]
+    // Starting download X->C->B->A ===============================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, C.gateway, B.gateway, A.gateway)
+    var result = factory.create()
+    const { stream: streamXC } = result.details[0]
+    const { stream: streamCB } = result.details[1]
+    const { stream: streamBA } = result.details[2]
+    streamCB.updateBandwidth()
 
-    streamXC.updateBandwidth()
+    validateStream(streamXC, 1)
+    validateStream(streamCB, 1)
+    validateStream(streamBA, 1)
 
-    expect(streamXC.bandWidth).to.be.equal(1)
-    expect(XU1.allocation).to.be.equal(1)
-    expect(CD1.allocation).to.be.equal(1)
-
-    expect(streamCB.bandWidth).to.be.equal(1)
-    expect(CU1.allocation).to.be.equal(1)
-    expect(BD1.allocation).to.be.equal(1)
-
-    expect(streamBA.bandWidth).to.be.equal(1)
-    expect(BU1.allocation).to.be.equal(1)
-    expect(AD1.allocation).to.be.equal(1)
-
-
-    // Starting download Y->C ==================================
-    var result = FileTransferFactory.create(targetFile, Y.gateway, C.gateway)
-    const { stream: streamYC1, uploadProcess: YU1, downloadProcess: CD2 } = result.details[0]
+    // Starting download Y->C =====================================================================
+    var factory = new FileTransferFactory(targetFile, Y.gateway, C.gateway)
+    var result = factory.create()
+    const { stream: streamYC1 } = result.details[0]
     streamYC1.updateBandwidth()
 
-    expect(streamXC.bandWidth).to.be.equal(0.5)
-    expect(XU1.allocation).to.be.equal(0.5)
-    expect(CD1.allocation).to.be.equal(0.5)
+    validateStream(streamXC, 0.5)
+    validateStream(streamCB, 0.5)
+    validateStream(streamBA, 0.5)
+    validateStream(streamYC1, 0.5)
 
-    expect(streamCB.bandWidth).to.be.equal(0.5)
-    expect(CU1.allocation).to.be.equal(0.5)
-    expect(BD1.allocation).to.be.equal(0.5)
-
-    expect(streamBA.bandWidth).to.be.equal(0.5)
-    expect(BU1.allocation).to.be.equal(0.5)
-    expect(AD1.allocation).to.be.equal(0.5)
-
-    expect(streamYC1.bandWidth).to.be.equal(0.5)
-    expect(YU1.allocation).to.be.equal(0.5)
-    expect(CD2.allocation).to.be.equal(0.5)
-
-    // Starting download C->Y ==================================
-    var result = FileTransferFactory.create(targetFile, C.gateway, Y.gateway)
-    const { stream: streamCY1, uploadProcess: CU2, downloadProcess: YD1 } = result.details[0]
+    // Starting download C->Y =====================================================================
+    var factory = new FileTransferFactory(targetFile, C.gateway, Y.gateway)
+    var result = factory.create()
+    const { stream: streamCY1 } = result.details[0]
     streamCY1.updateBandwidth()
 
-    expect(streamXC.bandWidth).to.be.equal(0.5)
-    expect(XU1.allocation).to.be.equal(0.5)
-    expect(CD1.allocation).to.be.equal(0.5)
+    validateStream(streamXC, 0.5)
+    validateStream(streamCB, 0.5)
+    validateStream(streamBA, 0.5)
+    validateStream(streamYC1, 0.5)
+    validateStream(streamCY1, 0.5)
 
-    expect(streamCB.bandWidth).to.be.equal(0.5)
-    expect(CU1.allocation).to.be.equal(0.5)
-    expect(BD1.allocation).to.be.equal(0.5)
-
-    expect(streamBA.bandWidth).to.be.equal(0.5)
-    expect(BU1.allocation).to.be.equal(0.5)
-    expect(AD1.allocation).to.be.equal(0.5)
-
-    expect(streamYC1.bandWidth).to.be.equal(0.5)
-    expect(YU1.allocation).to.be.equal(0.5)
-    expect(CD2.allocation).to.be.equal(0.5)
-
-    expect(streamCY1.bandWidth).to.be.equal(0.5)
-    expect(CU2.allocation).to.be.equal(0.5)
-    expect(YD1.allocation).to.be.equal(0.5)
-
-    // Starting download C->Y ==================================
-    var result = FileTransferFactory.create(targetFile, C.gateway, Y.gateway)
-    const { stream: streamCY2, uploadProcess: CU3, downloadProcess: YD2 } = result.details[0]
+    // Starting second download C->Y ==============================================================
+    var factory = new FileTransferFactory(targetFile, C.gateway, Y.gateway)
+    var result = factory.create()
+    const { stream: streamCY2 } = result.details[0]
     streamCY2.updateBandwidth()
 
-    expect(streamXC.bandWidth).to.be.approximately(0.333, 0.001)
-    expect(XU1.allocation).to.be.approximately(0.333, 0.001)
-    expect(CD1.allocation).to.be.approximately(0.333, 0.001)
-
-    expect(streamCB.bandWidth).to.be.approximately(0.333, 0.001)
-    expect(CU1.allocation).to.be.approximately(0.333, 0.001)
-    expect(BD1.allocation).to.be.approximately(0.333, 0.001)
-
-    expect(streamBA.bandWidth).to.be.approximately(0.333, 0.001)
-    expect(BU1.allocation).to.be.approximately(0.333, 0.001)
-    expect(AD1.allocation).to.be.approximately(0.333, 0.001)
-
-    expect(streamYC1.bandWidth).to.be.approximately(0.666, 0.001)
-    expect(YU1.allocation).to.be.approximately(0.666, 0.001)
-    expect(CD2.allocation).to.be.approximately(0.666, 0.001)
-
-    expect(streamCY1.bandWidth).to.be.approximately(0.333, 0.001)
-    expect(CU2.allocation).to.be.approximately(0.333, 0.001)
-    expect(YD1.allocation).to.be.approximately(0.333, 0.001)
-
-    expect(streamCY2.bandWidth).to.be.approximately(0.333, 0.001)
-    expect(CU3.allocation).to.be.approximately(0.333, 0.001)
-    expect(YD2.allocation).to.be.approximately(0.333, 0.001)
+    validateStream(streamXC, 0.333)
+    validateStream(streamCB, 0.333)
+    validateStream(streamBA, 0.333)
+    validateStream(streamYC1, 0.666)
+    validateStream(streamCY1, 0.333)
+    validateStream(streamCY2, 0.333)
 }
 
 function twoDownloadsWithDifferentPriorities() {
-    // Starting download XA ====================================
-    const XU1 = new StreamerProcess('X', X.gateway.uplink)
-    const AD = new StreamerProcess('A', A.gateway.downlink)
-    const streamXA = new NetworkStream(XU1, AD)
+    // Starting download X->A =====================================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var result = factory.create()
+    const { stream: streamXA, uploadProcess: XU1 } = result.details[0]
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(1)
-    expect(AD.allocation).to.be.equal(1)
-    expect(XU1.allocation).to.be.equal(1)
+    validateStream(streamXA, 1)
 
-    // Starting download XB ====================================
-    const XU2 = new StreamerProcess('X', X.gateway.uplink)
-    const BD = new StreamerProcess('B', B.gateway.downlink)
-    const streamXB = new NetworkStream(XU2, BD)
+    // Starting download X->B =====================================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var result = factory.create()
+    const { stream: streamXB, uploadProcess: XU2 } = result.details[0]
+
     XU1.priority = 7
     XU2.priority = 3
 
     streamXB.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.7)
-    expect(XU1.allocation).to.be.equal(0.7)
-    expect(AD.allocation).to.be.equal(0.7)
-
-    expect(streamXB.bandWidth).to.be.equal(0.3)
-    expect(XU2.allocation).to.be.equal(0.3)
-    expect(BD.allocation).to.be.equal(0.3)
+    validateStream(streamXA, 0.7)
+    validateStream(streamXB, 0.3)
 }
 
 function downloadRemoval() {
-    // Starting download XA ====================================
-    const XU1 = new StreamerProcess('X', X.gateway.uplink)
-    const AD = new StreamerProcess('A', A.gateway.downlink)
-    var streamXA = new NetworkStream(XU1, AD)
+    // Starting download X->A =====================================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var result = factory.create()
+    const { stream: streamXA, uploadProcess: XU1, downloadProcess: AD } = result.details[0]
     streamXA.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(1)
-    expect(AD.allocation).to.be.equal(1)
-    expect(XU1.allocation).to.be.equal(1)
+    validateStream(streamXA, 1)
 
-    // Starting download XB ====================================
-    const XU2 = new StreamerProcess('X', X.gateway.uplink)
-    const BD = new StreamerProcess('B', B.gateway.downlink)
-    const streamXB = new NetworkStream(XU2, BD)
-
+    // Starting download X->B =====================================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var result = factory.create()
+    const { stream: streamXB } = result.details[0]
     streamXB.updateBandwidth()
 
-    expect(streamXA.bandWidth).to.be.equal(0.5)
-    expect(XU1.allocation).to.be.equal(0.5)
-    expect(AD.allocation).to.be.equal(0.5)
+    validateStream(streamXA, 0.5)
+    validateStream(streamXB, 0.5)
 
-    expect(streamXB.bandWidth).to.be.equal(0.5)
-    expect(XU2.allocation).to.be.equal(0.5)
-    expect(BD.allocation).to.be.equal(0.5)
-
-    // Stopping download XA ====================================
+    // Stopping download X->A =====================================================================
     X.gateway.uplink.removeProcess(XU1)
     A.gateway.downlink.removeProcess(AD)
 
     streamXB.updateBandwidth()
 
-    expect(streamXB.bandWidth).to.be.equal(1)
-    expect(XU2.allocation).to.be.equal(1)
-    expect(BD.allocation).to.be.equal(1)
+    validateStream(streamXB, 1)
 
-    // Starting download XC ====================================
-    const XU3 = new StreamerProcess('X', X.gateway.uplink)
-    const CD = new StreamerProcess('C', C.gateway.downlink)
-    const streamXC = new NetworkStream(XU3, CD)
-
+    // Starting download X->C =====================================================================
+    var factory = new FileTransferFactory(targetFile, X.gateway, C.gateway)
+    var result = factory.create()
+    const { stream: streamXC } = result.details[0]
     streamXB.updateBandwidth()
 
-    expect(streamXB.bandWidth).to.be.equal(0.5)
-    expect(XU2.allocation).to.be.equal(0.5)
-    expect(BD.allocation).to.be.equal(0.5)
-
-    expect(streamXC.bandWidth).to.be.equal(0.5)
-    expect(XU1.allocation).to.be.equal(0.5)
-    expect(AD.allocation).to.be.equal(0.5)
+    validateStream(streamXA, 0.5)
+    validateStream(streamXC, 0.5)
 }
 
-async function performance() {
+function performance() {
     const numUploaders = 100
-    const numDownloaders = 100
+    const numDownloaders = 20
 
     var uploaders = []
     var downloaders = []
@@ -429,10 +316,10 @@ async function performance() {
         const upIndex = randomInteger(0, numUploaders - 1)
         const downIndex = randomInteger(0, numDownloaders - 1)
 
-        const result = FileTransferFactory.create(targetFile, uploaders[upIndex].gateway, downloaders[downIndex].gateway)
+        var factory = new FileTransferFactory(targetFile, uploaders[upIndex].gateway, downloaders[downIndex].gateway)
+        var result = factory.create()
         const { stream } = result.details[0]
         stream.updateBandwidth()
-
     }
 
     // for (let i = 0; i < numUploaders; i++) {
@@ -447,56 +334,4 @@ async function performance() {
     //         stream.updateBandwidth()
     //     }
     // }
-}
-
-function bug() {
-
-    const _A = new Player('A')
-    const _B = new Player('B')
-    const _C = new Player('C')
-    const _D = new Player('D')
-
-    // 0: U1 - D1
-    var result = FileTransferFactory.create(targetFile, _D.gateway, _B.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-
-    // 1: U0 - D0
-    var result = FileTransferFactory.create(targetFile, _C.gateway, _A.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-    // 2: U0 - D1
-    var result = FileTransferFactory.create(targetFile, _C.gateway, _B.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-    // 3: U0 - D1
-    var result = FileTransferFactory.create(targetFile, _C.gateway, _B.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-    // 4: U0 - D0
-    var result = FileTransferFactory.create(targetFile, _C.gateway, _A.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-    // 5: U1 - D1
-    var result = FileTransferFactory.create(targetFile, _D.gateway, _B.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-
-    // 6: U0 - D0
-    var result = FileTransferFactory.create(targetFile, _C.gateway, _A.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-    // 7: U1 - D0
-    var result = FileTransferFactory.create(targetFile, _D.gateway, _A.gateway)
-    var { stream } = result.details[0]
-    stream.updateBandwidth()
-
-
 }
