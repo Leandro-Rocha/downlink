@@ -27,3 +27,10 @@ export function applyMixins(derivedCtor: any, baseCtors: any[]) {
         })
     })
 }
+
+export function generateIp() {
+    return (Math.floor(Math.random() * 255) + 1)
+        + "." + (Math.floor(Math.random() * 255))
+        + "." + (Math.floor(Math.random() * 255))
+        + "." + (Math.floor(Math.random() * 255))
+}

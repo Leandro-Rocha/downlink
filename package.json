@@ -2,9 +2,9 @@
   "name": "downlink",
   "version": "0.0.1",
   "description": "",
-  "main": "game.js",
+  "main": "app.ts",
   "scripts": {
-    "start": "ts-node-dev --transpile-only ./test/test.ts",
+    "start": "nodemon --watch 'src/' --exec 'ts-node app.ts' -e ts",
     "test": "mocha -r ts-node/register 'test/**/*.ts'",
     "coverage": "nyc --reporter=lcov --reporter=text mocha -r ts-node/register 'test/**/*.ts'"
   },
@@ -12,17 +12,28 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.2.12",
+    "@types/console-stamp": "^0.2.32",
+    "@types/express": "^4.17.8",
+    "@types/faker": "^5.1.0",
     "@types/mocha": "^8.0.3",
-    "@types/node": "^14.6.2",
-    "@types/sinon": "^9.0.5",
+    "@types/mustache": "^4.0.1",
+    "@types/node": "^14.11.1",
+    "@types/node-persist": "^3.1.0",
+    "@types/socket.io": "^2.1.11",
+    "@types/socket.io-client": "^1.4.33",
+    "@types/uuid": "^8.3.0",
     "chai": "^4.2.0",
     "mocha": "^8.1.3",
+    "nodemon": "^2.0.4",
     "nyc": "^15.1.0",
-    "sinon": "^9.0.3",
-    "ts-node-dev": "^1.0.0-pre.61",
-    "typescript": "^4.0.2"
+    "ts-node-dev": "^1.0.0-pre.62",
+    "typescript": "^4.0.3"
   },
   "dependencies": {
-    "console-stamp": "^0.2.9"
+    "console-stamp": "^0.2.9",
+    "date-fns": "^2.16.1",
+    "express": "^4.17.1",
+    "faker": "^5.1.0",
+    "socket.io": "^2.3.0"
   }
 }

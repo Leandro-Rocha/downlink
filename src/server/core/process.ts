@@ -1,32 +1,34 @@
-import { Streamer, NetworkInterface, Stream } from "./network-interfaces"
+import { Player } from "./owner"
 import { ISignalEmitter, signalEmitter, SIGNALS } from "./signal"
-import { Player } from "./player"
+import { Types } from '../../common/types'
+import { ProcessStatus } from "../../common/constants"
+import faker from 'faker'
 
-export enum Status {
-    NEW = 'NEW',
-    RUNNING = 'RUNNING',
-    FINISHED = 'FINISHED',
-    DEAD = 'DEAD'
-}
 
 function pidGenerator(player: Player) {
-    return `${player.name}_${Date.now()}`
+    return `${player.userName}_${Date.now()}`
 }
 
 @signalEmitter
-export class Process {
+export class Process implements Types.Process {
     static MIN_PRIORITY = 0
     static MAX_PRIORITY = 10
 
     private _pid: string
     private _priority: number
-    status: Status
+    status: ProcessStatus
+    description: string = ''
+
+    user: Types.User
 
     constructor(pid: string) {
         this._pid = pid
         this._priority = (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
 
-        this.status = Status.NEW
+        this.status = ProcessStatus.NEW
+
+        // TODO:
+        this.user = { userName: 'root', password: faker.internet.password() }
     }
 
     get pid() {
@@ -51,12 +53,16 @@ export class Process {
         if (this._priority < Process.MAX_PRIORITY)
             this._priority++
     }
+
+    toFrontEnd(): any {
+        return { pid: this._pid, priority: this._priority }
+    }
 }
 export interface Process extends ISignalEmitter { }
 
-export class StreamerProcess extends Process implements Streamer {
-    networkInterface: NetworkInterface
-    stream!: Stream
+export class StreamerProcess extends Process implements Types.IStreamerProcess {
+    networkInterface: Types.INetworkInterface
+    stream!: Types.Stream
     priorityRatio!: number
     fairBandwidth!: number
 
@@ -70,7 +76,7 @@ export class StreamerProcess extends Process implements Streamer {
      */
     isBounded: boolean
 
-    constructor(pid: string, networkInterface: NetworkInterface) {
+    constructor(pid: string, networkInterface: Types.INetworkInterface) {
         super(pid)
 
         this.networkInterface = networkInterface

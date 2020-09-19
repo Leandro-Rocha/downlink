@@ -2,6 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Chrome",
+            "port": 9222,
+            "request": "launch",
+            "type": "pwa-chrome",
+            "url": "http://localhost:3000/index.html",
+            "webRoot": "${workspaceFolder}/public/"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Mocha Tests",
@@ -15,6 +23,26 @@
                 "${workspaceFolder}/test/**/*.ts"
             ],
             "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "nodemon",
+            "program": "${workspaceFolder}/node_modules/nodemon/bin/nodemon",
+            "args": [
+                "--watch",
+                ".",
+                "--exec",
+                "ts-node app.ts",
+                "-e",
+                "ts",
+                "--trace-warnings"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/**"
+            ]
         }
     ]
 }

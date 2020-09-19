@@ -1,6 +1,3 @@
-import { Player } from '../src/core/player'
-
-
 
 
 interface Storable {

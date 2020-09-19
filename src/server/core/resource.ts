@@ -1,12 +1,5 @@
-import { File } from "../../test/game-interfaces"
-
-export enum ResourceTypes {
-    DOWNLINK = 'D',
-    UPLINK = 'U',
-    MEMORY = 'MEMORY',
-    CPU = 'CPU',
-    STORAGE = 'STORAGE',
-}
+import { File } from "../../../test/game-interfaces"
+import { ResourceTypes } from "../../common/constants"
 
 export class Resource {
     name: string
@@ -62,7 +55,7 @@ interface ExecutableRequirement {
 //     }
 // }
 
-export class Cpu extends Resource {
+export class CPU extends Resource {
     constructor(name: string, capacity: number) {
         super(name, ResourceTypes.CPU, capacity)
     }

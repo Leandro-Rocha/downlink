@@ -1,31 +1,11 @@
-import { ISignalEmitter, SignalEmitter, SIGNALS, signalEmitter } from "./signal"
-import { Resource, ResourceTypes } from "./resource"
-import { applyMixins, OperationResult } from "../shared"
+import { ISignalEmitter, SIGNALS, signalEmitter, SignalEmitter } from "./signal"
+import { OperationResult } from "../../shared"
+import { File } from "../../../test/game-interfaces"
+import { ConnectionStatus, ResourceTypes } from "../../common/constants"
+import { Types } from "../../common/types"
 import { StreamerProcess } from "./process"
-import { Gateway } from "./gateway"
-import { File } from "../../test/game-interfaces"
 
 
-export interface Stream {
-    bandWidth: number
-    upStreamer: Streamer
-    downStreamer: Streamer
-    description: string
-    updateBandwidth(): void
-}
-
-export interface Streamer extends ISignalEmitter {
-    stream: Stream
-    bandWidth: number
-    updateBandwidth(amount: number): void
-    getMaxBandwidth(): number
-}
-
-export enum ConnectionStatus {
-    KNOWN = 'KNOWN',
-    CONNECTED = 'CONNECTED',
-    DISCONNECTED = 'DISCONNECTED',
-}
 
 export enum AccessPrivileges {
     LOG = 'LOG',
@@ -34,16 +14,11 @@ export enum AccessPrivileges {
     ROOT = 'ROOT',
 }
 
-export interface RemoteConnection {
-    // gateway?: Gateway
-    status: ConnectionStatus
-    privileges?: AccessPrivileges[]
-}
 
 @signalEmitter
 export class BounceInfo {
     maxBandwidth: number = Number.MAX_VALUE
-    limiters: Stream[] = []
+    limiters: Types.Stream[] = []
 }
 export interface BounceInfo extends ISignalEmitter { }
 
@@ -51,18 +26,18 @@ interface IBouncer {
     bounceInfo: BounceInfo
 }
 
-export class NetworkStream implements Stream, IBouncer {
+export class NetworkStream implements Types.Stream, IBouncer {
     bandWidth: number
 
-    upStreamer: StreamerProcess
-    downStreamer: StreamerProcess
+    upStreamer: Types.IStreamerProcess
+    downStreamer: Types.IStreamerProcess
 
     bounceInfo!: BounceInfo
 
     description: string
 
 
-    constructor(upStreamer: StreamerProcess, downStreamer: StreamerProcess) {
+    constructor(upStreamer: Types.IStreamerProcess, downStreamer: Types.IStreamerProcess) {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
 
@@ -124,19 +99,26 @@ export class NetworkStream implements Stream, IBouncer {
     }
 }
 
-export class NetworkInterface extends Resource {
-    counter = 1
+export class NetworkInterface implements Types.INetworkInterface {
 
-    private processes: StreamerProcess[] = []
-    prioritiesSum: number
+    name: string
+    type: ResourceTypes
+    capacity: number
+    allocated: number
+
+    private processes: Types.IStreamerProcess[] = []
+    prioritiesSum: number = 0
 
     constructor(name: string, type: ResourceTypes, capacity: number) {
-        super(name, type, capacity)
+        this.name = name
+        this.type = type
+        this.capacity = capacity
 
-        this.prioritiesSum = 0
+        this.allocated = 0
     }
 
-    addProcess(process: StreamerProcess) {
+
+    addProcess(process: Types.IStreamerProcess) {
         this.processes.push(process)
 
         this.updatePriorities()
@@ -145,15 +127,15 @@ export class NetworkInterface extends Resource {
         process.registerHandler(this, SIGNALS.PROCESS_PRIORITY_CHANGED, this.handleProcessPriorityChanged)
     }
 
-    removeProcess(process: StreamerProcess) {
+    removeProcess(process: Types.IStreamerProcess) {
         this.processes = this.processes.filter(p => p !== process)
 
         this.updatePriorities()
 
-        process.unregisterHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED)
+        process.unregisterHandlerSignal(this, SIGNALS.STREAM_ALLOCATION_CHANGED)
     }
 
-    getProcessMaxAllocation(process: StreamerProcess): number {
+    getProcessMaxAllocation(process: Types.IStreamerProcess): number {
         var maxAllocation = process.fairBandwidth
 
         const unusedAllocation = this.processes
@@ -170,7 +152,7 @@ export class NetworkInterface extends Resource {
         return maxAllocation
     }
 
-    handleStreamerAllocationChanged(emitter: StreamerProcess, date: any) {
+    handleStreamerAllocationChanged(emitter: Types.IStreamerProcess, date: any) {
         const otherProcesses = this.processes.filter(p => p !== emitter)
         if (otherProcesses.length === 0) return
 
@@ -204,18 +186,40 @@ export class Uplink extends NetworkInterface {
     }
 }
 
+export interface RemoteConnection extends SignalEmitter { }
+
+@signalEmitter
+export class RemoteConnection implements Types.RemoteConnection {
+    status: ConnectionStatus
+    gateway?: Types.Gateway | undefined
+    loggedAs?: string | undefined
+
+    constructor(config?: Partial<Types.RemoteConnection>) {
+        this.status = config?.status || ConnectionStatus.DISCONNECTED
+        this.gateway = config?.gateway
+        this.loggedAs = config?.loggedAs
+    }
+
+    connect(remoteGateway: Types.Gateway) {
+        //TODO: Sanity
+        this.gateway = remoteGateway
+        this.status = ConnectionStatus.CONNECTED
+        this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
+    }
+}
 
 
 
-type FileTransferDetails = { stream: Stream, uploadProcess: StreamerProcess, downloadProcess: StreamerProcess }[]
+
+type FileTransferDetails = { stream: Types.Stream, uploadProcess: Types.IStreamerProcess, downloadProcess: Types.IStreamerProcess }[]
 
 export class FileTransferFactory {
 
     private file: File
-    private connectionPath: Gateway[]
+    private connectionPath: Types.Gateway[]
     private result: OperationResult<FileTransferDetails>
 
-    constructor(file: File, ...connectionPath: Gateway[]) {
+    constructor(file: File, ...connectionPath: Types.Gateway[]) {
         this.file = file
         this.connectionPath = connectionPath
         this.result = new OperationResult<FileTransferDetails>()
@@ -242,15 +246,15 @@ export class FileTransferFactory {
             const downloader = workingConnectionPath[0]
 
             // TODO automate PID generation
-            const uploadProcess = new StreamerProcess(uploader.owner.name + uploader.uplink.type + uploader.uplink.counter++, uploader.uplink)
-            const downloadProcess = new StreamerProcess(downloader.owner.name + downloader.downlink.type + downloader.downlink.counter++, downloader.downlink)
+            const uploadProcess = new StreamerProcess(uploader.hostname + 'U', uploader.uplink!)
+            const downloadProcess = new StreamerProcess(downloader.hostname + 'D', downloader.downlink!)
             const stream = new NetworkStream(uploadProcess, downloadProcess)
 
             uploadProcess.stream = stream
             downloadProcess.stream = stream
 
-            uploader.uplink.addProcess(uploadProcess)
-            downloader.downlink.addProcess(downloadProcess)
+            uploader.uplink!.addProcess(uploadProcess)
+            downloader.downlink!.addProcess(downloadProcess)
 
             this.result.details.push({ stream, uploadProcess, downloadProcess })
 
@@ -260,8 +264,8 @@ export class FileTransferFactory {
                 bounceInfo.registerHandler(stream, SIGNALS.BOUNCE_ALLOCATION_CHANGED, stream.handleBounceAllocationChanged)
             }
 
-            uploader.processes.push(uploadProcess)
-            downloader.processes.push(downloadProcess)
+            uploader.processes!.push(uploadProcess)
+            downloader.processes!.push(downloadProcess)
         }
 
         return this.result

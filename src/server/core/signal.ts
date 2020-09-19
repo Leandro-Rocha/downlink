@@ -1,4 +1,4 @@
-import { applyMixins } from "../shared"
+import { applyMixins } from "../../shared"
 
 export enum SIGNALS {
     RESOURCE_ALLOCATION_UPDATED = 'RESOURCE_ALLOCATION_UPDATED',
@@ -9,6 +9,9 @@ export enum SIGNALS {
 
     STREAM_ALLOCATION_CHANGED = 'STREAM_ALLOCATION_CHANGED',
     BOUNCE_ALLOCATION_CHANGED = 'BOUNCE_ALLOCATION_CHANGED',
+
+    LOG_CHANGED = 'LOG_CHANGED',
+    REMOTE_CONNECTION_CHANGED = 'REMOTE_CONNECTION_CHANGED',
 }
 
 export function signalEmitter<T extends { new(...args: any[]): {} }>(
@@ -23,7 +26,7 @@ export function signalEmitter<T extends { new(...args: any[]): {} }>(
 
 export interface ISignalEmitter {
     registerHandler(handler: any, signal: SIGNALS, callback: Function): void
-    unregisterHandler(handler: any, signal: SIGNALS): void
+    unregisterHandlerSignal(handler: any, signal: SIGNALS): void
     sendSignal(who: any, what: SIGNALS, ...data: any): void
 }
 
@@ -46,7 +49,7 @@ export class SignalEmitter implements ISignalEmitter {
         this.handlers[signal].push({ handler: handler, callback: cb })
     }
 
-    unregisterHandler(handler: any, signal: SIGNALS) {
+    unregisterHandlerSignal(handler: any, signal: SIGNALS) {
         if (this.handlers[signal] === undefined) return
 
         for (var i = 0; i < this.handlers[signal].length; i++) {
@@ -54,6 +57,19 @@ export class SignalEmitter implements ISignalEmitter {
             if (entry.handler == handler) {
                 this.handlers[signal].splice(i, 1)
                 return
+            }
+        }
+    }
+
+    unregisterHandler(handler: any) {
+        if (this.handlers === undefined) return
+
+        for (const signal of Object.keys(this.handlers)) {
+            for (var i = 0; i < this.handlers[signal].length; i++) {
+                var entry = this.handlers[signal][i]
+                if (entry.handler == handler) {
+                    this.handlers[signal].splice(i, 1)
+                }
             }
         }
     }

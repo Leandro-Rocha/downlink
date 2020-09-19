@@ -1,15 +1,16 @@
 import 'mocha'
 import { expect } from 'chai'
-import { Player } from '../src/core/player'
-import { Stream, FileTransferFactory } from '../src/core/network-interfaces'
 import { File } from './game-interfaces'
+import { Types } from '../src/common/types'
+import { Downlink, FileTransferFactory, Uplink } from '../src/server/core/network-interfaces'
+import { Gateway } from '../src/server/core/gateway'
 
-var A: Player = new Player('A')
-var B: Player = new Player('B')
-var C: Player = new Player('C')
-var X: Player = new Player('X')
-var Y: Player = new Player('Y')
-var Z: Player = new Player('Z')
+var A: Gateway = new Gateway({ hostname: 'A' })
+var B: Gateway = new Gateway({ hostname: 'B' })
+var C: Gateway = new Gateway({ hostname: 'C' })
+var X: Gateway = new Gateway({ hostname: 'X' })
+var Y: Gateway = new Gateway({ hostname: 'Y' })
+var Z: Gateway = new Gateway({ hostname: 'Z' })
 const targetFile = new File('TargetFile', 1000)
 
 describe('File Transfer Allocation',
@@ -17,12 +18,12 @@ describe('File Transfer Allocation',
 
         beforeEach(function () {
 
-            A = new Player('A')
-            B = new Player('B')
-            C = new Player('C')
-            X = new Player('X')
-            Y = new Player('Y')
-            Z = new Player('Z')
+            A = new Gateway({ hostname: 'A', uplink: new Uplink('AU', 1), downlink: new Downlink('AD', 1) })
+            B = new Gateway({ hostname: 'B', uplink: new Uplink('BU', 1), downlink: new Downlink('BD', 1) })
+            C = new Gateway({ hostname: 'C', uplink: new Uplink('CU', 1), downlink: new Downlink('CD', 1) })
+            X = new Gateway({ hostname: 'X', uplink: new Uplink('XU', 1), downlink: new Downlink('XD', 1) })
+            Y = new Gateway({ hostname: 'Y', uplink: new Uplink('YU', 1), downlink: new Downlink('YD', 1) })
+            Z = new Gateway({ hostname: 'Z', uplink: new Uplink('ZU', 1), downlink: new Downlink('ZD', 1) })
         })
 
         it('can allocate single download with same capacities', singleDownloadSameCapacity)
@@ -38,7 +39,7 @@ describe('File Transfer Allocation',
         // it('performance', performance).timeout(20000);
     })
 
-function validateStream(stream: Stream, bandWidth: number) {
+function validateStream(stream: Types.Stream, bandWidth: number) {
     expect(stream.bandWidth, `Stream ${stream.description} bandwidth should be ${bandWidth} but was ${stream.bandWidth}`)
         .to.be.approximately(bandWidth, 0.001)
 
@@ -51,7 +52,7 @@ function validateStream(stream: Stream, bandWidth: number) {
 
 
 function singleDownloadSameCapacity() {
-    const factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    const factory = new FileTransferFactory(targetFile, X, A)
     const result = factory.create()
     const { stream: streamXA } = result.details[0]
 
@@ -61,9 +62,9 @@ function singleDownloadSameCapacity() {
 }
 
 function singleDownloadBoundByDownloader() {
-    A.gateway.downlink.capacity = 0.5
+    A.downlink.capacity = 0.5
 
-    const factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    const factory = new FileTransferFactory(targetFile, X, A)
     const result = factory.create()
     const { stream: streamXA } = result.details[0]
 
@@ -73,9 +74,9 @@ function singleDownloadBoundByDownloader() {
 }
 
 function singleDownloadBoundByUploader() {
-    X.gateway.uplink.capacity = 0.5
+    X.uplink.capacity = 0.5
 
-    const factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    const factory = new FileTransferFactory(targetFile, X, A)
     const result = factory.create()
     const { stream: streamXA } = result.details[0]
 
@@ -87,7 +88,7 @@ function singleDownloadBoundByUploader() {
 function twoDownloads() {
 
     // Starting download A =====================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var factory = new FileTransferFactory(targetFile, X, A)
     var result = factory.create()
     const { stream: streamXA } = result.details[0]
 
@@ -96,7 +97,7 @@ function twoDownloads() {
     validateStream(streamXA, 1)
 
     // Starting download B =====================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var factory = new FileTransferFactory(targetFile, X, B)
     var result = factory.create()
     const { stream: streamXB } = result.details[0]
 
@@ -107,10 +108,10 @@ function twoDownloads() {
 }
 
 function threeWithReallocation() {
-    B.gateway.downlink.capacity = 0.5
+    B.downlink.capacity = 0.5
 
     // Starting download X->A =====================================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var factory = new FileTransferFactory(targetFile, X, A)
     var result = factory.create()
     const { stream: streamXA } = result.details[0]
     streamXA.updateBandwidth()
@@ -119,7 +120,7 @@ function threeWithReallocation() {
 
 
     // Starting first download X->B ===============================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var factory = new FileTransferFactory(targetFile, X, B)
     var result = factory.create()
     const { stream: streamXB1 } = result.details[0]
     streamXB1.updateBandwidth()
@@ -128,7 +129,7 @@ function threeWithReallocation() {
     validateStream(streamXB1, 0.5)
 
     // Starting second download X->B ==============================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var factory = new FileTransferFactory(targetFile, X, B)
     var result = factory.create()
     const { stream: streamXB2, uploadProcess: XU3, downloadProcess: BD2 } = result.details[0]
     streamXB2.updateBandwidth()
@@ -139,10 +140,10 @@ function threeWithReallocation() {
 }
 
 function threeWithReallocation2() {
-    B.gateway.downlink.capacity = 0.5
+    B.downlink.capacity = 0.5
 
     // Starting download X->A =====================================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var factory = new FileTransferFactory(targetFile, X, A)
     var result = factory.create()
     const { stream: streamXA } = result.details[0]
     streamXA.updateBandwidth()
@@ -150,7 +151,7 @@ function threeWithReallocation2() {
     validateStream(streamXA, 1)
 
     // Starting first download X->B ===============================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var factory = new FileTransferFactory(targetFile, X, B)
     var result = factory.create()
     const { stream: streamXB1 } = result.details[0]
     streamXB1.updateBandwidth()
@@ -159,7 +160,7 @@ function threeWithReallocation2() {
     validateStream(streamXB1, 0.5)
 
     // Starting download C->B =====================================================================
-    var factory = new FileTransferFactory(targetFile, C.gateway, B.gateway)
+    var factory = new FileTransferFactory(targetFile, C, B)
     var result = factory.create()
     const { stream: streamCB1 } = result.details[0]
     streamCB1.updateBandwidth()
@@ -170,7 +171,7 @@ function threeWithReallocation2() {
 }
 
 function oneDownloadWithBounce() {
-    var factory = new FileTransferFactory(targetFile, X.gateway, C.gateway, B.gateway, A.gateway)
+    var factory = new FileTransferFactory(targetFile, X, C, B, A)
     var result = factory.create()
     const { stream: streamXC } = result.details[0]
     const { stream: streamCB } = result.details[1]
@@ -186,7 +187,7 @@ function oneDownloadWithBounce() {
 function twoDownloadWithBounce() {
 
     // Starting download X->C->B->A ===============================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, C.gateway, B.gateway, A.gateway)
+    var factory = new FileTransferFactory(targetFile, X, C, B, A)
     var result = factory.create()
     const { stream: streamXC } = result.details[0]
     const { stream: streamCB } = result.details[1]
@@ -198,7 +199,7 @@ function twoDownloadWithBounce() {
     validateStream(streamBA, 1)
 
     // Starting download Y->C =====================================================================
-    var factory = new FileTransferFactory(targetFile, Y.gateway, C.gateway)
+    var factory = new FileTransferFactory(targetFile, Y, C)
     var result = factory.create()
     const { stream: streamYC1 } = result.details[0]
     streamYC1.updateBandwidth()
@@ -209,7 +210,7 @@ function twoDownloadWithBounce() {
     validateStream(streamYC1, 0.5)
 
     // Starting download C->Y =====================================================================
-    var factory = new FileTransferFactory(targetFile, C.gateway, Y.gateway)
+    var factory = new FileTransferFactory(targetFile, C, Y)
     var result = factory.create()
     const { stream: streamCY1 } = result.details[0]
     streamCY1.updateBandwidth()
@@ -221,7 +222,7 @@ function twoDownloadWithBounce() {
     validateStream(streamCY1, 0.5)
 
     // Starting second download C->Y ==============================================================
-    var factory = new FileTransferFactory(targetFile, C.gateway, Y.gateway)
+    var factory = new FileTransferFactory(targetFile, C, Y)
     var result = factory.create()
     const { stream: streamCY2 } = result.details[0]
     streamCY2.updateBandwidth()
@@ -236,7 +237,7 @@ function twoDownloadWithBounce() {
 
 function twoDownloadsWithDifferentPriorities() {
     // Starting download X->A =====================================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var factory = new FileTransferFactory(targetFile, X, A)
     var result = factory.create()
     const { stream: streamXA, uploadProcess: XU1 } = result.details[0]
     streamXA.updateBandwidth()
@@ -244,7 +245,7 @@ function twoDownloadsWithDifferentPriorities() {
     validateStream(streamXA, 1)
 
     // Starting download X->B =====================================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var factory = new FileTransferFactory(targetFile, X, B)
     var result = factory.create()
     const { stream: streamXB, uploadProcess: XU2 } = result.details[0]
 
@@ -259,7 +260,7 @@ function twoDownloadsWithDifferentPriorities() {
 
 function downloadRemoval() {
     // Starting download X->A =====================================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, A.gateway)
+    var factory = new FileTransferFactory(targetFile, X, A)
     var result = factory.create()
     const { stream: streamXA, uploadProcess: XU1, downloadProcess: AD } = result.details[0]
     streamXA.updateBandwidth()
@@ -267,7 +268,7 @@ function downloadRemoval() {
     validateStream(streamXA, 1)
 
     // Starting download X->B =====================================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, B.gateway)
+    var factory = new FileTransferFactory(targetFile, X, B)
     var result = factory.create()
     const { stream: streamXB } = result.details[0]
     streamXB.updateBandwidth()
@@ -276,15 +277,15 @@ function downloadRemoval() {
     validateStream(streamXB, 0.5)
 
     // Stopping download X->A =====================================================================
-    X.gateway.uplink.removeProcess(XU1)
-    A.gateway.downlink.removeProcess(AD)
+    X.uplink.removeProcess(XU1)
+    A.downlink.removeProcess(AD)
 
     streamXB.updateBandwidth()
 
     validateStream(streamXB, 1)
 
     // Starting download X->C =====================================================================
-    var factory = new FileTransferFactory(targetFile, X.gateway, C.gateway)
+    var factory = new FileTransferFactory(targetFile, X, C)
     var result = factory.create()
     const { stream: streamXC } = result.details[0]
     streamXB.updateBandwidth()
@@ -294,33 +295,33 @@ function downloadRemoval() {
 }
 
 function performance() {
-    const numUploaders = 100
-    const numDownloaders = 20
+    //     const numUploaders = 100
+    //     const numDownloaders = 20
 
-    var uploaders = []
-    var downloaders = []
+    //     var uploaders = []
+    //     var downloaders = []
 
-    for (let i = 0; i < numUploaders; i++) {
-        uploaders.push(new Player(`U${i}`))
-    }
+    //     for (let i = 0; i < numUploaders; i++) {
+    //         uploaders.push(new Player(`U${i}`))
+    //     }
 
-    for (let i = 0; i < numDownloaders; i++) {
-        downloaders.push(new Player(`U${i}`))
-    }
+    //     for (let i = 0; i < numDownloaders; i++) {
+    //         downloaders.push(new Player(`U${i}`))
+    //     }
 
-    function randomInteger(min: number, max: number) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+    //     function randomInteger(min: number, max: number) {
+    //         return Math.floor(Math.random() * (max - min + 1)) + min;
+    //     }
 
-    for (let i = 0; i < 2000; i++) {
-        const upIndex = randomInteger(0, numUploaders - 1)
-        const downIndex = randomInteger(0, numDownloaders - 1)
+    //     for (let i = 0; i < 2000; i++) {
+    //         const upIndex = randomInteger(0, numUploaders - 1)
+    //         const downIndex = randomInteger(0, numDownloaders - 1)
 
-        var factory = new FileTransferFactory(targetFile, uploaders[upIndex].gateway, downloaders[downIndex].gateway)
-        var result = factory.create()
-        const { stream } = result.details[0]
-        stream.updateBandwidth()
-    }
+    //         var factory = new FileTransferFactory(targetFile, uploaders[upIndex], downloaders[downIndex])
+    //         var result = factory.create()
+    //         const { stream } = result.details[0]
+    //         stream.updateBandwidth()
+    //     }
 
     // for (let i = 0; i < numUploaders; i++) {
     //     console.log(`Uploader:${i}`)
@@ -329,7 +330,7 @@ function performance() {
     //         const uploader = uploaders[i]
     //         const downloader = downloaders[j]
 
-    //         const result = FileTransferFactory.create(targetFile, uploader.gateway, downloader.gateway)
+    //         const result = FileTransferFactory.create(targetFile, uploader, downloader)
     //         const { stream } = result.details[0]
     //         stream.updateBandwidth()
     //     }
