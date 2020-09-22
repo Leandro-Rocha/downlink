@@ -1,14 +1,18 @@
 import { Presentable, Types } from "../../../common/types"
 import { Gateway } from "../gateway"
+import faker from "faker";
+import { OperationResult } from "../../../shared";
 
 
-class User implements Types.User {
+export class User implements Types.User {
     userName: string
     password: string
+    partial: boolean
 
-    constructor(config: Types.User) {
-        this.userName = config.userName
-        this.password = config.password
+    constructor(config?: Partial<Types.User>) {
+        this.userName = config?.userName || faker.internet.userName()
+        this.password = config?.password !== undefined ? config.password : faker.internet.password()
+        this.partial = config?.partial || false
     }
 }
 
@@ -25,7 +29,7 @@ export class HackedDbEntry implements Types.HackedDbEntry, Presentable<Types.Hac
     }
 
     toClient(): Partial<Types.HackedDbEntry> {
-        return <Partial<HackedDbEntry>>{
+        return {
             ip: this.ip,
             users: this.users
         }
@@ -43,29 +47,40 @@ export class HackedDB implements Types.HackedDB, Presentable<Types.HackedDB> {
         return this.entries.find(e => e.id === id)
     }
 
-    addEntry(gateway: Gateway, user: Types.User) {
-        var entry = this.getEntryById(gateway.id)
+    addEntry(remoteGateway: Gateway, paramUser: Types.User) {
+        const result = new OperationResult<{ entry: Types.HackedDbEntry }>()
+        const existingUser = remoteGateway.getUser(paramUser.userName)
 
-        if (!entry) {
-            entry = new HackedDbEntry({
-                id: gateway.id,
-                ip: gateway.ip,
+        result.validate(existingUser !== undefined, `User [${paramUser.userName}] does not exists on [${remoteGateway.ip}]`)
+        if (!result.isSuccessful()) return result
+
+        var newEntry = this.getEntryById(remoteGateway.id)
+
+        if (!newEntry) {
+            newEntry = new HackedDbEntry({
+                id: remoteGateway.id,
+                ip: remoteGateway.ip,
             })
 
-            this.entries.push(entry)
+            this.entries.push(newEntry)
         }
 
-        var dbUser = entry.users.find(u => u.userName === user.userName)
+        var dbUser = newEntry.users.find(u => u.userName === paramUser.userName)
 
         if (dbUser) {
-            dbUser.password = user.password
+            dbUser.password = paramUser.password
         }
         else {
-            dbUser = new User({ userName: user.userName, password: user.password })
-            entry.users.push(dbUser)
+            dbUser = new User({
+                userName: paramUser.userName,
+                password: paramUser.password,
+                partial: paramUser.partial
+            })
+            newEntry.users.push(dbUser)
         }
 
-        return entry
+        result.details = { entry: newEntry }
+        return result
     }
 
     toClient(): Partial<Types.HackedDB> {

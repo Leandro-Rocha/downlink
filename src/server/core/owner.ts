@@ -103,7 +103,7 @@ export class Player {
 
         this.gateway.remoteLogin(user.userName)
 
-        this.hackedDB.addEntry(this.gateway.outboundConnection.gateway!, { userName, password })
+        this.hackedDB.addEntry(this.gateway.outboundConnection.gateway!, { userName, password, partial: false })
     }
 
     onExecuteSoftware(id: string, ...args: any[]) {

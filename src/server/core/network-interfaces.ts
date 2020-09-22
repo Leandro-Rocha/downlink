@@ -5,6 +5,7 @@ import { Types } from "../../common/types"
 import { StreamerProcess } from "./process"
 import { Gateway } from "./gateway"
 import { File } from "./resource"
+import { getCurrentPlayer } from "./game-state"
 
 
 
@@ -215,6 +216,11 @@ export class RemoteConnection implements Types.RemoteConnection {
 
         this.status = ConnectionStatus.LOGGED
         this.loggedAs = asUser
+
+        const player = getCurrentPlayer()
+        player.gateway.log.addEntry(`localhost logged in to [${player.gateway.outboundConnection.gateway?.ip}] as [${asUser}]`)
+        player.gateway.outboundConnection.gateway?.log.addEntry(`[${player.gateway.ip}] logged in as [${asUser}]`)
+
         this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
     }
 

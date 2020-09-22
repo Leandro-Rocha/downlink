@@ -1,6 +1,7 @@
 import { Types } from '../../common/types'
-import { PasswordCrackerProcess, Process, WorkerProcess } from './process';
+import { Process } from './process';
 import { SignalEmitter, signalEmitter, SIGNALS } from './signal';
+import { PasswordCrackerProcess } from './software/password-cracker';
 
 
 export interface TaskManager extends SignalEmitter { }

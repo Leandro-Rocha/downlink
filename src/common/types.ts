@@ -50,7 +50,8 @@ export namespace Types {
     }
 
     export interface PasswordCrackerProcess extends WorkerProcess {
-        targetUser: Types.User
+        password: string
+        userToHack: Types.User
     }
 
     export interface TaskManager extends Presentable<TaskManager> {
@@ -61,6 +62,7 @@ export namespace Types {
     export interface User {
         userName: string
         password: string
+        partial: boolean
     }
 
     export interface Log {

@@ -4,9 +4,10 @@ import { Downlink, RemoteConnection, Uplink } from "./network-interfaces"
 import { Log } from './log'
 import { Memory, Storage, CPU } from './resource'
 import { OperationResult } from '../../shared'
-import { Software } from './process'
 import { TaskManager } from './task-manager'
 import { Player } from './owner'
+import { Software } from './software/software'
+import { User } from './player/hacked-db'
 
 
 export class Gateway implements Types.Gateway {
@@ -42,11 +43,15 @@ export class Gateway implements Types.Gateway {
         this.uplink = config?.uplink || new Uplink('BR Robóticos', 14400)
 
         this.taskManager = config?.taskManager || new TaskManager()
-        this.users = config?.users || [{ userName: 'root', password: faker.internet.password() }]
+        this.users = config?.users || [new User({ userName: 'root' })]
         this.log = config?.log || new Log()
 
         this.outboundConnection = config?.outboundConnection || new RemoteConnection()
         this.inboundConnections = config?.inboundConnections || []
+    }
+
+    getUser(userName: string) {
+        return this.users.find(u => u.userName === userName)
     }
 
     toClient(): Partial<Types.Gateway> {
@@ -79,9 +84,6 @@ export class Gateway implements Types.Gateway {
 
     remoteLogin(asUser: string) {
         this.outboundConnection.login(asUser)
-
-        this.log.addEntry(`localhost logged in to [${this.outboundConnection.gateway?.ip}] as [${asUser}]`)
-        this.outboundConnection.gateway?.log.addEntry(`[${this.ip}] logged in as [${asUser}]`)
     }
 
     executeSoftware(player: Player, id: string, ...args: any[]) {
