@@ -1,9 +1,9 @@
 import 'mocha'
 import { expect } from 'chai'
-import { File } from './game-interfaces'
 import { Types } from '../src/common/types'
 import { Downlink, FileTransferFactory, Uplink } from '../src/server/core/network-interfaces'
 import { Gateway } from '../src/server/core/gateway'
+import { File } from '../src/server/core/resource'
 
 var A: Gateway = new Gateway({ hostname: 'A' })
 var B: Gateway = new Gateway({ hostname: 'B' })
@@ -11,7 +11,7 @@ var C: Gateway = new Gateway({ hostname: 'C' })
 var X: Gateway = new Gateway({ hostname: 'X' })
 var Y: Gateway = new Gateway({ hostname: 'Y' })
 var Z: Gateway = new Gateway({ hostname: 'Z' })
-const targetFile = new File('TargetFile', 1000)
+const targetFile = new File()
 
 describe('File Transfer Allocation',
     () => {
@@ -249,8 +249,8 @@ function twoDownloadsWithDifferentPriorities() {
     var result = factory.create()
     const { stream: streamXB, uploadProcess: XU2 } = result.details[0]
 
-    XU1.priority = 7
-    XU2.priority = 3
+    XU1.setPriority(7)
+    XU2.setPriority(3)
 
     streamXB.updateBandwidth()
 

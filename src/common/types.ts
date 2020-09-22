@@ -1,9 +1,10 @@
 import { ISignalEmitter, SignalEmitter } from "../server/core/signal";
-import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants";
+import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
 
 export interface GameState {
-    localGateway: Client.Gateway
-    remoteGateway?: Client.Gateway
+    localGateway: Partial<Types.Gateway>
+    remoteGateway?: Partial<Types.Gateway>
+    hackedDB: Partial<Types.HackedDB>
 }
 
 export interface Owner {
@@ -11,7 +12,7 @@ export interface Owner {
 }
 
 export namespace Types {
-    export interface Gateway {
+    export interface Gateway extends Presentable<Gateway> {
         id: string
         ip: string
         hostname: string
@@ -22,7 +23,8 @@ export namespace Types {
         downlink: INetworkInterface
         uplink: INetworkInterface
 
-        processes: Process[]
+        taskManager: TaskManager
+
         users: User[]
         log: Log
 
@@ -30,16 +32,30 @@ export namespace Types {
         inboundConnections: RemoteConnection[]
     }
 
-    export interface Storage {
+    export interface Storage extends Resource, Presentable<Storage> {
         files: File[]
     }
 
-    export interface Process {
-        pid: string
-        user: User
-        priority: number
+    export interface Process extends Presentable<Process> {
+        readonly pid: string
+        readonly priority: number
+        userName: string
         status: ProcessStatus
         description: string
+    }
+
+    export interface WorkerProcess extends Process {
+        totalWork: number
+        workDone: number
+    }
+
+    export interface PasswordCrackerProcess extends WorkerProcess {
+        targetUser: Types.User
+    }
+
+    export interface TaskManager extends Presentable<TaskManager> {
+        permanentProcesses: Process[]
+        workerProcesses: PasswordCrackerProcess[]
     }
 
     export interface User {
@@ -49,7 +65,6 @@ export namespace Types {
 
     export interface Log {
         entries: LogEntry[]
-        addEntry(message: string): void
     }
 
     export interface Resource {
@@ -62,22 +77,28 @@ export namespace Types {
     export interface INetworkInterface extends Resource {
         prioritiesSum: number
 
-        addProcess(process: IStreamerProcess): void
-        removeProcess(process: IStreamerProcess): void
-        getProcessMaxAllocation(process: IStreamerProcess): number
-        handleStreamerAllocationChanged(emitter: IStreamerProcess, date: any): void
+        addProcess(process: StreamerProcess): void
+        removeProcess(process: StreamerProcess): void
+        getProcessMaxAllocation(process: StreamerProcess): number
+        handleStreamerAllocationChanged(emitter: StreamerProcess, date: any): void
         handleProcessPriorityChanged(): void
     }
-    export interface RemoteConnection {
+
+    export interface RemoteConnection extends Presentable<RemoteConnection> {
         status: ConnectionStatus
         gateway?: Types.Gateway
         loggedAs?: string
     }
 
 
-    export interface File {
+    export interface File extends Presentable<File> {
+        id: string
         name: string
         size: number
+    }
+
+    export interface Software extends File {
+        version: number
     }
 
     export interface LogEntry {
@@ -100,22 +121,24 @@ export namespace Types {
         getMaxBandwidth(): number
     }
 
-    export interface IStreamerProcess extends Types.Process, Streamer, ISignalEmitter {
+    export interface StreamerProcess extends Types.Process, Streamer, ISignalEmitter {
         networkInterface: INetworkInterface
         stream: Stream
         priorityRatio: number
         fairBandwidth: number
         isBounded: boolean
     }
-}
 
-
-export namespace Client {
-    export interface Gateway extends Partial<Types.Gateway> {
+    export interface HackedDbEntry {
         ip: string
-        hostname: string
+        users: User[]
+    }
+
+    export interface HackedDB {
+        entries: HackedDbEntry[]
     }
 }
 
-
-
+export interface Presentable<T> {
+    toClient(): Partial<T>
+}

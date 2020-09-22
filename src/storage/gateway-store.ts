@@ -1,23 +1,15 @@
-import storage from 'node-persist'
-import { Types } from '../common/types'
+import { Gateway } from "../server/core/gateway"
 
 export class GatewayStore {
-    private static _storage = storage.create({ dir: './node-persist/gateway' })
     private static ready = false
-    private static gatewayMap = new Map<string, Types.Gateway>()
-
-
-    private static async getStorage() {
-        if (!GatewayStore.ready) await GatewayStore._storage.init()
-        return GatewayStore._storage
-    }
+    private static gatewayMap = new Map<string, Gateway>()
 
     static getGatewayByIp(ip: string) {
         return GatewayStore.getAll().find(g => g.ip === ip)
     }
 
     static getGatewayListByIp(...ips: string[]) {
-        const result: Types.Gateway[] = []
+        const result: Gateway[] = []
 
         for (const ip of ips) {
             const gateway = [...GatewayStore.gatewayMap.values()].find(g => g.ip === ip)
@@ -29,7 +21,7 @@ export class GatewayStore {
     }
 
     static getGatewayList(...ids: string[]) {
-        const result: Types.Gateway[] = []
+        const result: Gateway[] = []
 
         for (const id of ids) {
             const gateway = GatewayStore.getGateway(id)
@@ -40,7 +32,7 @@ export class GatewayStore {
         return result
     }
 
-    static getGateway(id: string): Types.Gateway | undefined {
+    static getGateway(id: string): Gateway | undefined {
         return GatewayStore.gatewayMap.get(id)
     }
 
@@ -48,12 +40,12 @@ export class GatewayStore {
         return [...GatewayStore.gatewayMap.values()]
     }
 
-    static saveGateway(gateway: Types.Gateway) {
+    static saveGateway(gateway: Gateway) {
         GatewayStore.gatewayMap.set(gateway.id, gateway)
         // await (await GatewayStore.getStorage()).setItem(gateway.id, gateway)
     }
 
     static clear() {
-        GatewayStore.gatewayMap = new Map<string, Types.Gateway>()
+        GatewayStore.gatewayMap = new Map<string, Gateway>()
     }
 }

@@ -3,7 +3,10 @@ import { applyMixins } from "../../shared"
 export enum SIGNALS {
     RESOURCE_ALLOCATION_UPDATED = 'RESOURCE_ALLOCATION_UPDATED',
 
+    TASK_SCHEDULED = 'TASK_SCHEDULED',
+    TASK_UNSCHEDULED = 'TASK_UNSCHEDULED',
     PROCESS_STARTED = 'PROCESS_STARTED',
+    PROCESS_UPDATED = 'PROCESS_UPDATED',
     PROCESS_FINISHED = 'PROCESS_FINISHED',
     PROCESS_PRIORITY_CHANGED = 'PROCESS_PRIORITY_CHANGED',
 
@@ -26,7 +29,7 @@ export function signalEmitter<T extends { new(...args: any[]): {} }>(
 
 export interface ISignalEmitter {
     registerHandler(handler: any, signal: SIGNALS, callback: Function): void
-    unregisterHandlerSignal(handler: any, signal: SIGNALS): void
+    unregisterSignalHandler(handler: any, signal: SIGNALS): void
     sendSignal(who: any, what: SIGNALS, ...data: any): void
 }
 
@@ -49,7 +52,7 @@ export class SignalEmitter implements ISignalEmitter {
         this.handlers[signal].push({ handler: handler, callback: cb })
     }
 
-    unregisterHandlerSignal(handler: any, signal: SIGNALS) {
+    unregisterSignalHandler(handler: any, signal: SIGNALS) {
         if (this.handlers[signal] === undefined) return
 
         for (var i = 0; i < this.handlers[signal].length; i++) {
@@ -79,7 +82,7 @@ export class SignalEmitter implements ISignalEmitter {
 
         for (var i = 0; i < this.handlers[signal].length; i++) {
             var o = this.handlers[signal][i]
-            o.callback.bind(o.handler)(emitter, data)
+            o.callback.bind(o.handler)(emitter, ...data)
         }
     }
 }

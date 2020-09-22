@@ -1,10 +1,11 @@
-import { AccessPrivileges, ConnectionStatus, PlayerActions } from "../../common/constants"
-import { Types, Owner } from "../../common/types"
 import io from 'socket.io'
+import { AccessPrivileges, ConnectionStatus, PlayerActions } from "../../common/constants"
+import { Owner, Types } from "../../common/types"
 import { Gateway } from "./gateway"
-import { updateGameState } from "../../client/client"
-import { createClientState } from "./game-state"
 import { GatewayStore } from "../../storage/gateway-store"
+import { HackedDB, HackedDbEntry } from './player/hacked-db'
+import { createNamespace } from 'cls-hooked'
+import { createPlayerContext } from './game-state'
 
 
 export class NPC implements Owner {
@@ -14,6 +15,7 @@ export class NPC implements Owner {
         this.name = name
     }
 }
+
 
 export class Player {
     name: string
@@ -25,12 +27,16 @@ export class Player {
     stateChanged: boolean = false
 
     privilegesMap: Map<string, AccessPrivileges[]> = new Map()
+    hackedDB: HackedDB
 
-    constructor(name: string, userName: string) {
+    constructor(name: string, userName: string, hackedDB?: HackedDB) {
         this.name = name
         this.userName = userName
+        this.hackedDB = hackedDB || new HackedDB()
 
-        //TODO:
+
+
+        //TODO: implement better way to handle multiple updates in a short interval
         // setInterval(() => {
         //     if (this.stateChanged)
         //         updateGameState(createClientState(this)!), 500
@@ -39,17 +45,29 @@ export class Player {
     }
 
     handlePlayerAction(action: PlayerActions, ...args: any[]) {
-        const connection = this.gateway.outboundConnection
 
-        if (action === PlayerActions.CONNECT_TO_GATEWAY) {
-            const [ip] = [...args]
-            this.onConnectToGateway(ip)
-        }
+        const context = createPlayerContext()
+        context.run(() => {
+            context.set('player', this)
+            const connection = this.gateway.outboundConnection
 
-        else if (connection.status === ConnectionStatus.CONNECTED) {
-            const [userName, password] = [...args]
-            this.onRemoteLogin(userName, password)
-        }
+            if (action === PlayerActions.CONNECT_TO_GATEWAY) {
+                const [ip] = [...args]
+                this.onConnectToGateway(ip)
+            }
+
+            if (action === PlayerActions.LOGIN) {
+                if (connection.status === ConnectionStatus.CONNECTED) {
+                    const [userName, password] = [...args]
+                    this.onRemoteLogin(userName, password)
+                }
+            }
+
+            if (action === PlayerActions.EXECUTE_SOFTWARE) {
+                const [id, ...params] = [...args]
+                this.onExecuteSoftware(id, ...params)
+            }
+        })
     }
 
     onConnectToGateway(ip: string) {
@@ -78,15 +96,19 @@ export class Player {
 
         // TODO: move error to gateway and add observer to player
         if (user.password !== password) {
-            console.debug(`input password[${password}] for user[${userName}]doesn't match [${user.password}]`)
+            console.debug(`input password[${password}] for user[${userName}] doesn't match [${user.password}]`)
             // emitError(`invalid credentials`)
             return
         }
 
         this.gateway.remoteLogin(user.userName)
 
-        // this.socket.emit(socketEvents.UPDATE_STATE, createClientState(this.player))
+        this.hackedDB.addEntry(this.gateway.outboundConnection.gateway!, { userName, password })
+    }
 
+    onExecuteSoftware(id: string, ...args: any[]) {
+        // TODO: move error to gateway and add observer to player
+        this.gateway.executeSoftware(this, id, ...args)
     }
 
 }

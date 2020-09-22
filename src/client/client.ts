@@ -56,7 +56,7 @@ function updateLocalGateway() {
     localGatewayDiv.classList.remove('hidden')
 
     const ip = (<HTMLSpanElement>document.querySelector('#localIp'))
-    ip.textContent = gameState.localGateway.ip
+    ip.textContent = gameState.localGateway.ip!
 
     const localLog = (<HTMLInputElement>document.querySelector('#localLog'))
     localLog.value = ''
@@ -64,10 +64,57 @@ function updateLocalGateway() {
         gameState.localGateway.log.entries.forEach(entry => localLog.value += `${entry.message}\n`)
     }
 
+
+    if (gameState.localGateway.storage !== undefined) {
+        const localFiles = (<HTMLUListElement>document.querySelector('#localFiles'))
+        localFiles.childNodes.forEach(c => c.remove())
+
+        gameState.localGateway.storage.files.forEach(f => {
+            const fileElement = document.createElement('li')
+            fileElement.innerHTML = `<button>${f.name}</button>`
+
+
+            fileElement.addEventListener('click', () => {
+                //TODO: hardcoded username input
+                const userName = (<HTMLInputElement>document.querySelector('#userNameInput')).value
+                socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, f.id, gameState.remoteGateway?.ip, userName)
+            })
+            localFiles.appendChild(fileElement)
+        })
+    }
+
+    if (gameState.localGateway.taskManager !== undefined) {
+        const taskManagerTable = (<HTMLTableElement>document.querySelector('#localTaskManager'))
+        taskManagerTable.querySelectorAll('tr').forEach(c => c.remove())
+        taskManagerTable.innerHTML = '<thead><td>PID</td><td>progress</td></thead>'
+
+        gameState.localGateway.taskManager.workerProcesses.forEach(p => {
+            const processRow = document.createElement('tr')
+            const pidElement = processRow.appendChild(document.createElement('td'))
+            const progressElement = processRow.appendChild(document.createElement('td'))
+
+            pidElement.textContent = p.pid
+
+            var workDone = (<Types.WorkerProcess>p).workDone
+            var totalWork = (<Types.WorkerProcess>p).totalWork
+
+            setInterval(() => {
+                workDone += 1000 / 30
+                progressElement.textContent = `${Math.round(workDone / totalWork * 100)}%`
+            }, 1000 / 30)
+
+            taskManagerTable.appendChild(processRow)
+        })
+    }
+
+
+
+
+
 }
 
 function updateRemoteGateway() {
-    if (gameState?.remoteGateway == undefined) {
+    if (gameState?.remoteGateway === undefined) {
         remoteGatewayDiv.classList.add('hidden')
         return
     }
@@ -75,19 +122,32 @@ function updateRemoteGateway() {
     remoteGatewayDiv.classList.remove('hidden')
 
     const ip = (<HTMLSpanElement>document.querySelector('#remoteIp'))
-    ip.textContent = gameState.remoteGateway.ip
+    ip.textContent = gameState.remoteGateway.ip!
 
     const owner = (<HTMLSpanElement>document.querySelector('#remoteOwner'))
-    owner.textContent = gameState.remoteGateway.hostname
+    owner.textContent = gameState.remoteGateway.hostname!
 
     const remoteLog = (<HTMLInputElement>document.querySelector('#remoteLog'))
     if (gameState.remoteGateway.log !== undefined) {
         remoteLog.classList.remove('hidden')
         remoteLog.value = ''
-        gameState.remoteGateway.log.entries.forEach(entry => remoteLog.value += `${entry.message}\n`)
+        gameState.remoteGateway.log.entries.forEach(entry => remoteLog.value += `${entry.message} \n`)
     } else {
         remoteLog.classList.add('hidden')
     }
+
+    const userName = (<HTMLInputElement>document.querySelector('#userNameInput'))
+    const password = (<HTMLInputElement>document.querySelector('#passwordInput'))
+    const hackedDbEntry = gameState.hackedDB.entries?.find(e => e.ip === gameState.remoteGateway!.ip)
+    if (hackedDbEntry !== undefined) {
+        userName.value = hackedDbEntry.users[0].userName
+        password.value = hackedDbEntry.users[0].password
+    }
+    else {
+        userName.value = ''
+        password.value = ''
+    }
+
 }
 
 export function godMode(newState: any) {

@@ -1,9 +1,10 @@
 import { ISignalEmitter, SIGNALS, signalEmitter, SignalEmitter } from "./signal"
 import { OperationResult } from "../../shared"
-import { File } from "../../../test/game-interfaces"
 import { ConnectionStatus, ResourceTypes } from "../../common/constants"
 import { Types } from "../../common/types"
 import { StreamerProcess } from "./process"
+import { Gateway } from "./gateway"
+import { File } from "./resource"
 
 
 
@@ -29,15 +30,15 @@ interface IBouncer {
 export class NetworkStream implements Types.Stream, IBouncer {
     bandWidth: number
 
-    upStreamer: Types.IStreamerProcess
-    downStreamer: Types.IStreamerProcess
+    upStreamer: Types.StreamerProcess
+    downStreamer: Types.StreamerProcess
 
     bounceInfo!: BounceInfo
 
     description: string
 
 
-    constructor(upStreamer: Types.IStreamerProcess, downStreamer: Types.IStreamerProcess) {
+    constructor(upStreamer: Types.StreamerProcess, downStreamer: Types.StreamerProcess) {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
 
@@ -106,7 +107,7 @@ export class NetworkInterface implements Types.INetworkInterface {
     capacity: number
     allocated: number
 
-    private processes: Types.IStreamerProcess[] = []
+    private processes: Types.StreamerProcess[] = []
     prioritiesSum: number = 0
 
     constructor(name: string, type: ResourceTypes, capacity: number) {
@@ -118,7 +119,7 @@ export class NetworkInterface implements Types.INetworkInterface {
     }
 
 
-    addProcess(process: Types.IStreamerProcess) {
+    addProcess(process: Types.StreamerProcess) {
         this.processes.push(process)
 
         this.updatePriorities()
@@ -127,15 +128,15 @@ export class NetworkInterface implements Types.INetworkInterface {
         process.registerHandler(this, SIGNALS.PROCESS_PRIORITY_CHANGED, this.handleProcessPriorityChanged)
     }
 
-    removeProcess(process: Types.IStreamerProcess) {
+    removeProcess(process: Types.StreamerProcess) {
         this.processes = this.processes.filter(p => p !== process)
 
         this.updatePriorities()
 
-        process.unregisterHandlerSignal(this, SIGNALS.STREAM_ALLOCATION_CHANGED)
+        process.unregisterSignalHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED)
     }
 
-    getProcessMaxAllocation(process: Types.IStreamerProcess): number {
+    getProcessMaxAllocation(process: Types.StreamerProcess): number {
         var maxAllocation = process.fairBandwidth
 
         const unusedAllocation = this.processes
@@ -152,7 +153,7 @@ export class NetworkInterface implements Types.INetworkInterface {
         return maxAllocation
     }
 
-    handleStreamerAllocationChanged(emitter: Types.IStreamerProcess, date: any) {
+    handleStreamerAllocationChanged(emitter: Types.StreamerProcess, date: any) {
         const otherProcesses = this.processes.filter(p => p !== emitter)
         if (otherProcesses.length === 0) return
 
@@ -191,35 +192,51 @@ export interface RemoteConnection extends SignalEmitter { }
 @signalEmitter
 export class RemoteConnection implements Types.RemoteConnection {
     status: ConnectionStatus
-    gateway?: Types.Gateway | undefined
-    loggedAs?: string | undefined
+    gateway?: Gateway
+    loggedAs?: string
 
-    constructor(config?: Partial<Types.RemoteConnection>) {
+    constructor(config?: Partial<RemoteConnection>) {
         this.status = config?.status || ConnectionStatus.DISCONNECTED
         this.gateway = config?.gateway
         this.loggedAs = config?.loggedAs
     }
 
-    connect(remoteGateway: Types.Gateway) {
+
+    connect(remoteGateway: Gateway) {
         //TODO: Sanity
         this.gateway = remoteGateway
         this.status = ConnectionStatus.CONNECTED
         this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
+    }
+
+    login(asUser: string) {
+        //TODO: sanity
+        if (this.gateway == undefined) return
+
+        this.status = ConnectionStatus.LOGGED
+        this.loggedAs = asUser
+        this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
+    }
+
+    toClient(): Partial<Types.RemoteConnection> {
+        return <Partial<Types.RemoteConnection>>{
+            status: this.status
+        }
     }
 }
 
 
 
 
-type FileTransferDetails = { stream: Types.Stream, uploadProcess: Types.IStreamerProcess, downloadProcess: Types.IStreamerProcess }[]
+type FileTransferDetails = { stream: Types.Stream, uploadProcess: StreamerProcess, downloadProcess: StreamerProcess }[]
 
 export class FileTransferFactory {
 
     private file: File
-    private connectionPath: Types.Gateway[]
+    private connectionPath: Gateway[]
     private result: OperationResult<FileTransferDetails>
 
-    constructor(file: File, ...connectionPath: Types.Gateway[]) {
+    constructor(file: File, ...connectionPath: Gateway[]) {
         this.file = file
         this.connectionPath = connectionPath
         this.result = new OperationResult<FileTransferDetails>()
@@ -246,15 +263,15 @@ export class FileTransferFactory {
             const downloader = workingConnectionPath[0]
 
             // TODO automate PID generation
-            const uploadProcess = new StreamerProcess(uploader.hostname + 'U', uploader.uplink!)
-            const downloadProcess = new StreamerProcess(downloader.hostname + 'D', downloader.downlink!)
+            const uploadProcess = new StreamerProcess(uploader.uplink)
+            const downloadProcess = new StreamerProcess(downloader.downlink)
             const stream = new NetworkStream(uploadProcess, downloadProcess)
 
             uploadProcess.stream = stream
             downloadProcess.stream = stream
 
-            uploader.uplink!.addProcess(uploadProcess)
-            downloader.downlink!.addProcess(downloadProcess)
+            uploader.uplink.addProcess(uploadProcess)
+            downloader.downlink.addProcess(downloadProcess)
 
             this.result.details.push({ stream, uploadProcess, downloadProcess })
 
@@ -264,8 +281,8 @@ export class FileTransferFactory {
                 bounceInfo.registerHandler(stream, SIGNALS.BOUNCE_ALLOCATION_CHANGED, stream.handleBounceAllocationChanged)
             }
 
-            uploader.processes!.push(uploadProcess)
-            downloader.processes!.push(downloadProcess)
+            uploader.taskManager.startProcess(uploadProcess)
+            downloader.taskManager.startProcess(downloadProcess)
         }
 
         return this.result

@@ -4,9 +4,12 @@ import { ConnectionStatus, PlayerActions, socketEvents } from '../../common/cons
 import { PlayerStore } from '../../storage/player-store'
 import { GatewayStore } from '../../storage/gateway-store'
 import { Player } from './owner'
-import { createClientState } from './game-state'
+import { createClientState, createPlayerContext } from './game-state'
 import { Gateway } from './gateway'
 import { SIGNALS } from './signal'
+import { Process } from './process'
+import { TaskManager } from './task-manager'
+import { createNamespace } from 'cls-hooked'
 
 export function createSocketHandler(config: { httpServer: http.Server }) {
     return new SocketHandler(config.httpServer)
@@ -53,13 +56,16 @@ function onPlayerConnect(socket: io.Socket, userName: string) {
     setPlayerEvents(socket, player)
     registerPlayerSignals(socket, player)
 
-    socket.emit(socketEvents.UPDATE_STATE, createClientState(player))
+    sendClientState(socket, player)
 }
 
 function setPlayerEvents(socket: io.Socket, player: Player) {
     socket.on('disconnect', (socket: io.Socket) => onPlayerDisconnect(socket, player))
 
-    socket.on(socketEvents.PLAYER_ACTION, (action: PlayerActions, ...args: any[]) => player.handlePlayerAction(action, ...args))
+    socket.on(socketEvents.PLAYER_ACTION, (action: PlayerActions, ...args: any[]) => {
+        player.handlePlayerAction(action, ...args)
+
+    })
 
     console.info(`Player[${player.userName}] socket is registered to[${socket.eventNames()}]`)
 }
@@ -68,6 +74,27 @@ function setPlayerEvents(socket: io.Socket, player: Player) {
 function registerPlayerSignals(socket: io.Socket, player: Player) {
     player.gateway.log.registerHandler(player, SIGNALS.LOG_CHANGED, () => sendClientState(socket, player))
     player.gateway.outboundConnection.registerHandler(player, SIGNALS.REMOTE_CONNECTION_CHANGED, () => sendClientState(socket, player))
+
+    player.gateway.taskManager.workerProcesses.forEach(p => {
+        p.checkStatus()
+
+        p.registerHandler(player, SIGNALS.PROCESS_STARTED, () => sendClientState(socket, player))
+        p.registerHandler(player, SIGNALS.PROCESS_FINISHED, () => sendClientState(socket, player))
+        p.registerHandler(player, SIGNALS.PROCESS_UPDATED, () => sendClientState(socket, player))
+    })
+
+    player.gateway.taskManager.registerHandler(player, SIGNALS.TASK_SCHEDULED, (taskManager: TaskManager, process: Process) => {
+        process.registerHandler(player, SIGNALS.PROCESS_STARTED, () => sendClientState(socket, player))
+        process.registerHandler(player, SIGNALS.PROCESS_FINISHED, () => sendClientState(socket, player))
+        process.registerHandler(player, SIGNALS.PROCESS_UPDATED, () => sendClientState(socket, player))
+    })
+
+    player.gateway.taskManager.registerHandler(player, SIGNALS.TASK_UNSCHEDULED, (taskManager: TaskManager, process: Process) => {
+        process.unregisterSignalHandler(player, SIGNALS.PROCESS_STARTED)
+        process.unregisterSignalHandler(player, SIGNALS.PROCESS_FINISHED)
+        process.unregisterSignalHandler(player, SIGNALS.PROCESS_UPDATED)
+        sendClientState(socket, player)
+    })
 }
 
 function onPlayerDisconnect(socket: io.Socket, player: Player) {
@@ -79,6 +106,7 @@ function onPlayerDisconnect(socket: io.Socket, player: Player) {
 function unregisterPlayerSignals(player: Player) {
     player.gateway.log.unregisterHandler(player)
     player.gateway.outboundConnection.unregisterHandler(player)
+    player.gateway.taskManager.unregisterHandler(player)
 }
 
 

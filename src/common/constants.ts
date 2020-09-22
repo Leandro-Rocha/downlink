@@ -1,3 +1,5 @@
+export const ROOT = 'root'
+
 export enum socketEvents {
     GOD_MODE = 'GOD_MODE',
     CONNECT = 'connect',
@@ -15,6 +17,7 @@ export enum socketEvents {
 export enum PlayerActions {
     CONNECT_TO_GATEWAY = 'CONNECT_TO_GATEWAY',
     LOGIN = 'LOGIN',
+    EXECUTE_SOFTWARE = 'EXECUTE_SOFTWARE',
 }
 
 export enum ConnectionStatus {

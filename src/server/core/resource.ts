@@ -1,5 +1,6 @@
-import { File } from "../../../test/game-interfaces"
+import faker from 'faker'
 import { ResourceTypes } from "../../common/constants"
+import { Types } from "../../common/types"
 
 export class Resource {
     name: string
@@ -7,11 +8,11 @@ export class Resource {
     capacity: number
     allocated: number
 
-    constructor(name: string, type: ResourceTypes, capacity: number) {
-        this.name = name
-        this.type = type
-        this.capacity = capacity
-        this.allocated = 0
+    constructor(config?: Partial<Types.Resource>) {
+        this.name = config?.name || 'UNDEFINED_RESOURCE'
+        this.type = config?.type || ResourceTypes.CPU
+        this.capacity = config?.capacity || 0
+        this.allocated = config?.allocated || 0
     }
 
     allocate(amount: number) {
@@ -31,11 +32,40 @@ export class Resource {
     }
 }
 
-export class Storage extends Resource {
+
+export class File implements Types.File {
+    id: string
+    name: string
+    size: number
+
+    constructor(config?: Partial<Types.File>) {
+        this.id = config?.id || faker.random.uuid()
+        this.name = config?.name || faker.system.fileName()
+        this.size = config?.size || 0
+    }
+
+    toClient(): Partial<Types.File> {
+        return <Partial<Types.File>>{
+            id: this.id,
+            name: this.name,
+            size: this.size
+        }
+    }
+}
+
+export class Storage extends Resource implements Types.Storage {
     files: File[] = []
 
-    constructor(name: string, capacity: number) {
-        super(name, ResourceTypes.STORAGE, capacity)
+    constructor(config?: Partial<Types.Storage>) {
+        super({ ...config, type: ResourceTypes.STORAGE })
+
+        this.files = config?.files || []
+    }
+
+    toClient(): Partial<Types.Storage> {
+        return <Partial<Types.Storage>>{
+            files: this.files.map(f => f.toClient())
+        }
     }
 }
 
@@ -57,12 +87,12 @@ interface ExecutableRequirement {
 
 export class CPU extends Resource {
     constructor(name: string, capacity: number) {
-        super(name, ResourceTypes.CPU, capacity)
+        super({ name, capacity, type: ResourceTypes.CPU })
     }
 }
 
 export class Memory extends Resource {
     constructor(name: string, capacity: number) {
-        super(name, ResourceTypes.MEMORY, capacity)
+        super({ name, capacity, type: ResourceTypes.MEMORY })
     }
 }

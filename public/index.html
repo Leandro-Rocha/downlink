@@ -72,7 +72,7 @@
             border: solid gray;
             float: left;
             width: 48%;
-            height: 500px;
+            height: 650px;
         }
 
         #remoteLogDiv {
@@ -81,7 +81,7 @@
 
         .log {
             width: 98%;
-            height: 90%;
+            height: 50%;
         }
 
         .hidden {
@@ -111,6 +111,18 @@
         <button id="connectToGatewayBtn">Connect</button>
         <br>
         <textarea id="localLog" class="log"></textarea>
+        <ul id="localFiles"> </ul>
+        <table id="localTaskManager">
+            <thead>
+                <td>PID</td>
+                <td>progress</td>
+            </thead>
+            <tr>
+                <td>123</td>
+                <td>5%</td>
+            </tr>
+        </table>
+
     </div>
 
     <div id="remoteGateway" class="hidden">
