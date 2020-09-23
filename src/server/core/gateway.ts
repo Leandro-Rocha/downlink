@@ -8,8 +8,13 @@ import { TaskManager } from './task-manager'
 import { Player } from './owner'
 import { Software } from './software/software'
 import { User } from './player/hacked-db'
+import { getCurrentPlayer } from './game-state'
+import { ConnectionStatus } from '../../common/constants'
+import { ISignalEmitter, signalEmitter, SIGNALS } from './signal'
 
+export interface Gateway extends ISignalEmitter { }
 
+@signalEmitter
 export class Gateway implements Types.Gateway {
 
     id: string
@@ -26,7 +31,7 @@ export class Gateway implements Types.Gateway {
     users: Types.User[]
     log: Log
 
-    outboundConnection: RemoteConnection
+    outboundConnection?: RemoteConnection
     inboundConnections: RemoteConnection[]
 
     //TODO: avoid collisions for id and ip
@@ -46,7 +51,7 @@ export class Gateway implements Types.Gateway {
         this.users = config?.users || [new User({ userName: 'root' })]
         this.log = config?.log || new Log()
 
-        this.outboundConnection = config?.outboundConnection || new RemoteConnection()
+        this.outboundConnection = config?.outboundConnection
         this.inboundConnections = config?.inboundConnections || []
     }
 
@@ -61,7 +66,7 @@ export class Gateway implements Types.Gateway {
 
             storage: this.storage,
 
-            outboundConnection: this.outboundConnection.toClient(),
+            outboundConnection: this.outboundConnection?.toClient(),
             taskManager: this.taskManager.toClient()
         }
 
@@ -74,16 +79,63 @@ export class Gateway implements Types.Gateway {
 
     connectTo(remoteGateway: Gateway) {
 
+        if (this.outboundConnection !== undefined) {
+            this.disconnect()
+        }
+
+        this.log.addEntry(`[localhost] connected to [${remoteGateway.ip}]`)
+        remoteGateway.log.addEntry(`connection established from [${this.ip}]`)
+
+        this.outboundConnection = new RemoteConnection({ gateway: remoteGateway })
+        this.sendSignal(this, SIGNALS.NEW_REMOTE_CONNECTION, this.outboundConnection)
+
         this.outboundConnection.connect(remoteGateway)
 
-        this.log.addEntry(`localhost connected to [${remoteGateway.ip}]`)
-        remoteGateway.log.addEntry(`connection from [${this.ip}]`)
-
-        console.debug(`[${this.hostname}] connected to [${remoteGateway.ip}] - [${remoteGateway.hostname}]`)
+        console.log(`[${this.id}]-[${this.hostname}] connected to [${remoteGateway.id}]-[${remoteGateway.ip}] - [${remoteGateway.hostname}]`)
     }
 
-    remoteLogin(asUser: string) {
-        this.outboundConnection.login(asUser)
+    disconnect() {
+        // TODO: implement
+        console.log(`Disconnecting`)
+
+        const remoteGateway = this.outboundConnection?.gateway!
+
+        this.log.addEntry(`[localhost] disconnected from [${remoteGateway.ip}]`)
+        remoteGateway.log.addEntry(`connection from [${this.ip}] closed`)
+
+        this.outboundConnection?.disconnect()
+
+        //TODO: unregister all handlers
+        this.outboundConnection = undefined
+    }
+
+    login(userName: string, password: string) {
+        const result = new OperationResult()
+        const player = getCurrentPlayer()
+
+        console.log(`Login attempt from [${player.userName}] - userName[${userName}], password: [${password}] on gateway [${this.id}]`)
+
+        result.assert(player.gateway.outboundConnection !== undefined, `Not connected to remote gateway`)
+        if (player.gateway.outboundConnection === undefined) return result
+
+        result.assert(player.gateway.outboundConnection.status !== ConnectionStatus.DISCONNECTED, `Not connected to remote gateway`)
+        if (!result.isSuccessful()) return result
+
+        const user = this.users.find(u => u.userName === userName)
+        result.assert(user !== undefined, `User [${userName}] not found on [${this.ip}]`)
+        if (user === undefined) return result
+
+        result.assert(user.password === password, `Invalid password for user [${userName}]`)
+        if (!result.isSuccessful()) return result
+
+        player.hackedDB.addEntry(this, { userName, password, partial: false })
+
+        player.gateway.log.addEntry(`[localhost] logged in to [${this.ip}] as [${userName}]`)
+        this.log.addEntry(`[${player.gateway.ip}] logged in as [${userName}]`)
+
+        player.gateway.outboundConnection.login(userName)
+
+
     }
 
     executeSoftware(player: Player, id: string, ...args: any[]) {
@@ -91,12 +143,12 @@ export class Gateway implements Types.Gateway {
 
         const file = this.storage.files.find(f => f.id === id)
 
-        validator.validate(file !== undefined, `File [${file}] not found.`)
+        validator.assert(file !== undefined, `File [${file}] not found.`)
         if (!file) return validator
 
         const software = file as Software
 
-        validator.validate(software.spawnProcess !== undefined, `File [${file.name}] is not a software.`)
+        validator.assert(software.spawnProcess !== undefined, `File [${file.name}] is not a software.`)
         if (!software.spawnProcess) return validator
 
         const result = software.spawnProcess(...args)

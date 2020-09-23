@@ -1,4 +1,4 @@
-import { ISignalEmitter, SignalEmitter } from "../server/core/signal";
+import { ISignalEmitter } from "../server/core/signal";
 import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
 
 export interface GameState {
@@ -28,7 +28,7 @@ export namespace Types {
         users: User[]
         log: Log
 
-        outboundConnection: RemoteConnection
+        outboundConnection?: RemoteConnection
         inboundConnections: RemoteConnection[]
     }
 
@@ -88,7 +88,7 @@ export namespace Types {
 
     export interface RemoteConnection extends Presentable<RemoteConnection> {
         status: ConnectionStatus
-        gateway?: Types.Gateway
+        ip: string
         loggedAs?: string
     }
 

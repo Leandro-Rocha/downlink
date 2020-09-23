@@ -192,14 +192,17 @@ export interface RemoteConnection extends SignalEmitter { }
 
 @signalEmitter
 export class RemoteConnection implements Types.RemoteConnection {
+    ip: string
     status: ConnectionStatus
-    gateway?: Gateway
     loggedAs?: string
 
-    constructor(config?: Partial<RemoteConnection>) {
-        this.status = config?.status || ConnectionStatus.DISCONNECTED
-        this.gateway = config?.gateway
-        this.loggedAs = config?.loggedAs
+    gateway: Gateway
+
+    constructor(config: Partial<Types.RemoteConnection> & { gateway: Gateway }) {
+        this.gateway = config.gateway
+        this.ip = config.gateway.ip
+        this.status = config.status || ConnectionStatus.DISCONNECTED
+        this.loggedAs = config.loggedAs
     }
 
 
@@ -210,17 +213,15 @@ export class RemoteConnection implements Types.RemoteConnection {
         this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
     }
 
-    login(asUser: string) {
-        //TODO: sanity
-        if (this.gateway == undefined) return
+    disconnect() {
+        //TODO: Sanity
+        this.status = ConnectionStatus.DISCONNECTED
+        this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
+    }
 
+    login(userName: string) {
+        this.loggedAs = userName
         this.status = ConnectionStatus.LOGGED
-        this.loggedAs = asUser
-
-        const player = getCurrentPlayer()
-        player.gateway.log.addEntry(`localhost logged in to [${player.gateway.outboundConnection.gateway?.ip}] as [${asUser}]`)
-        player.gateway.outboundConnection.gateway?.log.addEntry(`[${player.gateway.ip}] logged in as [${asUser}]`)
-
         this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
     }
 
@@ -254,7 +255,7 @@ export class FileTransferFactory {
         // result.validate(fileOwner.storage.files.includes(file), `File [${file.name}] does not exists.`)
         // if (!result.isSuccessful()) return result
 
-        this.result.validate(this.connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
+        this.result.assert(this.connectionPath.length > 1, `2 or more Gateways are required for a file transfer.`)
         if (!this.result.isSuccessful()) return this.result
     }
 

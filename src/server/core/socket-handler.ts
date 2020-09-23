@@ -10,6 +10,7 @@ import { SIGNALS } from './signal'
 import { Process } from './process'
 import { TaskManager } from './task-manager'
 import { createNamespace } from 'cls-hooked'
+import { RemoteConnection } from './network-interfaces'
 
 export function createSocketHandler(config: { httpServer: http.Server }) {
     return new SocketHandler(config.httpServer)
@@ -27,7 +28,7 @@ class SocketHandler {
         this.io = io(this.httpServer)
 
         this.io.on('connection', (socket) => {
-            console.debug('New connection: ' + socket.id)
+            console.log('New connection: ' + socket.id)
 
             socket.once(socketEvents.PLAYER_CONNECT, (userName) => onPlayerConnect(socket, userName))
             socket.on(socketEvents.REGISTER_USER, (userName) => onRegisterUser(userName))
@@ -37,9 +38,9 @@ class SocketHandler {
     }
 
     end() {
-        console.debug('Closing sockets')
+        console.log('Closing sockets')
         this.io.close()
-        console.debug('Closing sockets: done')
+        console.log('Closing sockets: done')
     }
 }
 
@@ -48,7 +49,7 @@ function onPlayerConnect(socket: io.Socket, userName: string) {
     const player = PlayerStore.getPlayerByUsername(userName)
 
     if (player === undefined) {
-        console.debug(`Player not found`)
+        console.log(`Player not found`)
         socket.emit(socketEvents.ERROR, `Player not found`)
         return
     }
@@ -67,13 +68,17 @@ function setPlayerEvents(socket: io.Socket, player: Player) {
 
     })
 
-    console.info(`Player[${player.userName}] socket is registered to[${socket.eventNames()}]`)
+    console.info(`Player[${player.userName}] socket is registered to [${socket.eventNames()}]`)
 }
 
 
 function registerPlayerSignals(socket: io.Socket, player: Player) {
+
+    player.gateway.registerHandler(player, SIGNALS.NEW_REMOTE_CONNECTION, (gateway: Gateway, outboundConnection: RemoteConnection) =>
+        outboundConnection.registerHandler(player, SIGNALS.REMOTE_CONNECTION_CHANGED, () => sendClientState(socket, player)))
+
     player.gateway.log.registerHandler(player, SIGNALS.LOG_CHANGED, () => sendClientState(socket, player))
-    player.gateway.outboundConnection.registerHandler(player, SIGNALS.REMOTE_CONNECTION_CHANGED, () => sendClientState(socket, player))
+    player.gateway.outboundConnection?.registerHandler(player, SIGNALS.REMOTE_CONNECTION_CHANGED, () => sendClientState(socket, player))
 
     player.gateway.taskManager.workerProcesses.forEach(p => {
         p.checkStatus()
@@ -90,22 +95,20 @@ function registerPlayerSignals(socket: io.Socket, player: Player) {
     })
 
     player.gateway.taskManager.registerHandler(player, SIGNALS.TASK_UNSCHEDULED, (taskManager: TaskManager, process: Process) => {
-        process.unregisterSignalHandler(player, SIGNALS.PROCESS_STARTED)
-        process.unregisterSignalHandler(player, SIGNALS.PROCESS_FINISHED)
-        process.unregisterSignalHandler(player, SIGNALS.PROCESS_UPDATED)
+        process.unregisterHandler(player)
         sendClientState(socket, player)
     })
 }
 
 function onPlayerDisconnect(socket: io.Socket, player: Player) {
-    console.debug(`[${player.userName}] disconnected: [${socket}]`)
+    console.info(`[${player.userName}] disconnected: [${socket}]`)
 
     unregisterPlayerSignals(player)
 }
 
 function unregisterPlayerSignals(player: Player) {
     player.gateway.log.unregisterHandler(player)
-    player.gateway.outboundConnection.unregisterHandler(player)
+    player.gateway.outboundConnection?.unregisterHandler(player)
     player.gateway.taskManager.unregisterHandler(player)
 }
 
@@ -129,7 +132,7 @@ function onRegisterUser(userName: string) {
 
     GatewayStore.saveGateway(newPlayer.gateway)
     PlayerStore.savePlayer(newPlayer)
-    console.debug(`New player registered: ${userName}`)
+    console.info(`New player registered: ${userName}`)
 }
 
 

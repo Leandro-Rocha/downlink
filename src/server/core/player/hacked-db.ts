@@ -51,7 +51,7 @@ export class HackedDB implements Types.HackedDB, Presentable<Types.HackedDB> {
         const result = new OperationResult<{ entry: Types.HackedDbEntry }>()
         const existingUser = remoteGateway.getUser(paramUser.userName)
 
-        result.validate(existingUser !== undefined, `User [${paramUser.userName}] does not exists on [${remoteGateway.ip}]`)
+        result.assert(existingUser !== undefined, `User [${paramUser.userName}] does not exists on [${remoteGateway.ip}]`)
         if (!result.isSuccessful()) return result
 
         var newEntry = this.getEntryById(remoteGateway.id)

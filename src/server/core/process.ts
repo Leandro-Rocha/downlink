@@ -42,7 +42,7 @@ export abstract class Process implements Types.Process, Presentable<Process> {
     setPriority(newPriority: number) {
         const result = new OperationResult()
 
-        result.validate(newPriority <= Process.MAX_PRIORITY && newPriority >= Process.MIN_PRIORITY, `Invalid priority [${newPriority}]`)
+        result.assert(newPriority <= Process.MAX_PRIORITY && newPriority >= Process.MIN_PRIORITY, `Invalid priority [${newPriority}]`)
         if (!result.isSuccessful()) return result
 
         this._priority = newPriority
@@ -50,13 +50,13 @@ export abstract class Process implements Types.Process, Presentable<Process> {
     }
 
     start() {
-        console.debug(`Process [${this.pid}] started`)
+        console.log(`Process [${this.pid}] started`)
         this.status = ProcessStatus.RUNNING
         this.sendSignal(this, SIGNALS.PROCESS_STARTED)
     }
 
     finish() {
-        console.debug(`Process [${this.pid}] finished`)
+        console.log(`Process [${this.pid}] finished`)
         this.status = ProcessStatus.FINISHED
         this.sendSignal(this, SIGNALS.PROCESS_FINISHED)
     }

@@ -57,10 +57,8 @@ export class Player {
             }
 
             if (action === PlayerActions.LOGIN) {
-                if (connection.status === ConnectionStatus.CONNECTED) {
-                    const [userName, password] = [...args]
-                    this.onRemoteLogin(userName, password)
-                }
+                const [userName, password] = [...args]
+                this.onRemoteLogin(userName, password)
             }
 
             if (action === PlayerActions.EXECUTE_SOFTWARE) {
@@ -83,27 +81,7 @@ export class Player {
     }
 
     onRemoteLogin(userName: string, password: string) {
-        console.log(`Login attempt - userName[${userName}], password: [${password}]`)
-
-        const user = this.gateway.outboundConnection.gateway?.users.find(u => u.userName === userName)
-
-        // TODO: move error to gateway and add observer to player
-        if (user === undefined) {
-            console.debug(`user[${userName}]not found`)
-            // emitError(`invalid credentials`)
-            return
-        }
-
-        // TODO: move error to gateway and add observer to player
-        if (user.password !== password) {
-            console.debug(`input password[${password}] for user[${userName}] doesn't match [${user.password}]`)
-            // emitError(`invalid credentials`)
-            return
-        }
-
-        this.gateway.remoteLogin(user.userName)
-
-        this.hackedDB.addEntry(this.gateway.outboundConnection.gateway!, { userName, password, partial: false })
+        this.gateway.outboundConnection?.gateway.login(userName, password)
     }
 
     onExecuteSoftware(id: string, ...args: any[]) {

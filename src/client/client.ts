@@ -61,7 +61,7 @@ function updateLocalGateway() {
     const localLog = (<HTMLInputElement>document.querySelector('#localLog'))
     localLog.value = ''
     if (gameState.localGateway.log !== undefined) {
-        gameState.localGateway.log.entries.forEach(entry => localLog.value += `${entry.message}\n`)
+        gameState.localGateway.log.entries.forEach(entry => localLog.value += `${entry.timestamp} - ${entry.message}\n`)
     }
 
 

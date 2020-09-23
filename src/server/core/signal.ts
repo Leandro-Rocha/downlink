@@ -14,6 +14,7 @@ export enum SIGNALS {
     BOUNCE_ALLOCATION_CHANGED = 'BOUNCE_ALLOCATION_CHANGED',
 
     LOG_CHANGED = 'LOG_CHANGED',
+    NEW_REMOTE_CONNECTION = 'NEW_REMOTE_CONNECTION',
     REMOTE_CONNECTION_CHANGED = 'REMOTE_CONNECTION_CHANGED',
 }
 
@@ -29,7 +30,16 @@ export function signalEmitter<T extends { new(...args: any[]): {} }>(
 
 export interface ISignalEmitter {
     registerHandler(handler: any, signal: SIGNALS, callback: Function): void
+
+    /**
+      * Removes handler from specified signal
+      */
     unregisterSignalHandler(handler: any, signal: SIGNALS): void
+
+    /**
+     * Removes handler from all signals
+     */
+    unregisterHandler(handler: any): void
     sendSignal(who: any, what: SIGNALS, ...data: any): void
 }
 
@@ -45,6 +55,7 @@ export class SignalEmitter implements ISignalEmitter {
         for (var i = 0; i < this.handlers[signal].length; i++) {
             var entry = this.handlers[signal][i]
             if (entry.handler == handler && entry.callback == cb) {
+                console.error(`Duplicate registration from [${handler}] to signal [${signal}]`)
                 return
             }
         }

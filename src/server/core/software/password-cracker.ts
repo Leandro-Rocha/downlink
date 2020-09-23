@@ -28,13 +28,13 @@ export class PasswordCracker extends Software {
         const targetUserName = userName || ROOT
         const player: Player = getCurrentPlayer()
 
-        const remoteGateway = player.gateway.outboundConnection.gateway!
+        const remoteGateway = player.gateway.outboundConnection?.gateway!
         const targetUser = remoteGateway.users.find(u => u.userName === targetUserName)!
 
-        result.validate(targetUser !== undefined, `User [${userName}] does not exists in this gateway.`)
+        result.assert(targetUser !== undefined, `User [${userName}] does not exists in this gateway.`)
         if (!result.isSuccessful()) return result
 
-        result.validate(!targetUser.partial, `Password for user [${userName}] is already known.`)
+        result.assert(!targetUser.partial, `Password for user [${userName}] is already known.`)
         if (!result.isSuccessful()) return result
 
         const addEntryResult = player.hackedDB.addEntry(remoteGateway, { userName: targetUserName, password: '', partial: true })

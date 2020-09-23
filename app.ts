@@ -29,5 +29,5 @@ generatePlayers()
 
 
 server.listen(port, () => {
-    console.log(`Server up on http:\\\\localhost:${port}`)
+    console.info(`Server up on http:\\\\localhost:${port}`)
 })

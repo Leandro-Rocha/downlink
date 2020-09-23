@@ -8,12 +8,12 @@ export namespace Worker {
     var lastUpdate = Date.now()
 
     export function addProcess(process: WorkerProcess) {
-        console.debug(`Adding [${process.pid}] to worker list`)
+        console.log(`Adding [${process.pid}] to worker list`)
         processes.push(process)
     }
 
     export function removeProcess(process: WorkerProcess) {
-        console.debug(`Removing [${process.pid}] to worker list`)
+        console.log(`Removing [${process.pid}] to worker list`)
         processes.splice(processes.indexOf(process), 1)
     }
 

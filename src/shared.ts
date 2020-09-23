@@ -8,7 +8,7 @@ export class OperationResult<T> {
     messages: string[] = []
     details!: T
 
-    validate(condition: boolean, message: string) {
+    assert(condition: boolean, message: string) {
         if (!condition) {
             this.result = OperationStatus.FAIL
             this.messages.push(message)
