@@ -1,4 +1,3 @@
-import { ISignalEmitter } from "../server/core/signal";
 import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
 
 export interface GameState {
@@ -123,7 +122,7 @@ export namespace Types {
         getMaxBandwidth(): number
     }
 
-    export interface StreamerProcess extends Types.Process, Streamer, ISignalEmitter {
+    export interface StreamerProcess extends Types.Process, Streamer {
         networkInterface: INetworkInterface
         stream: Stream
         priorityRatio: number

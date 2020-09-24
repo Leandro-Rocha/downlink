@@ -1,6 +1,7 @@
 import { PlayerActions, socketEvents } from '../common/constants.js'
 import { GameState, Types } from '../common/types.js'
 import { socket } from './socket.js'
+import { FileManagerWindow } from './window.js'
 
 document.querySelector('#resetDataBtn')?.addEventListener('click', resetData)
 document.querySelector('#connectToGatewayBtn')?.addEventListener('click', connectToGateway)
@@ -13,6 +14,9 @@ const remoteGatewayDiv = (<HTMLDivElement>document.querySelector('#remoteGateway
 const localGatewayDiv = (<HTMLDivElement>document.querySelector('#localGateway'))
 const remoteSshTab = (<HTMLInputElement>document.querySelector('#remote_ssh'))
 const remoteLogTab = (<HTMLInputElement>document.querySelector('#remoteLogDiv'))
+
+const fileManager = new FileManagerWindow({ id: 'file-manager', title: 'File Manager' })
+const taskManager = new FileManagerWindow({ id: 'task-manager', title: 'Task Manager' })
 
 var gameState: GameState
 
@@ -66,21 +70,7 @@ function updateLocalGateway() {
 
 
     if (gameState.localGateway.storage !== undefined) {
-        const localFiles = (<HTMLUListElement>document.querySelector('#localFiles'))
-        localFiles.childNodes.forEach(c => c.remove())
-
-        gameState.localGateway.storage.files.forEach(f => {
-            const fileElement = document.createElement('li')
-            fileElement.innerHTML = `<button>${f.name}</button>`
-
-
-            fileElement.addEventListener('click', () => {
-                //TODO: hardcoded username input
-                const userName = (<HTMLInputElement>document.querySelector('#userNameInput')).value
-                socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, f.id, gameState.remoteGateway?.ip, userName)
-            })
-            localFiles.appendChild(fileElement)
-        })
+        fileManager.updateContent(gameState.localGateway.storage)
     }
 
     if (gameState.localGateway.taskManager !== undefined) {

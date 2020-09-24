@@ -86,7 +86,7 @@ export class Player {
 
     onExecuteSoftware(id: string, ...args: any[]) {
         // TODO: move error to gateway and add observer to player
-        this.gateway.executeSoftware(this, id, ...args)
+        this.gateway.executeSoftware(id, ...args)
     }
 
 }

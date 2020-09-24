@@ -31,15 +31,15 @@ interface IBouncer {
 export class NetworkStream implements Types.Stream, IBouncer {
     bandWidth: number
 
-    upStreamer: Types.StreamerProcess
-    downStreamer: Types.StreamerProcess
+    upStreamer: StreamerProcess
+    downStreamer: StreamerProcess
 
     bounceInfo!: BounceInfo
 
     description: string
 
 
-    constructor(upStreamer: Types.StreamerProcess, downStreamer: Types.StreamerProcess) {
+    constructor(upStreamer: StreamerProcess, downStreamer: StreamerProcess) {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
 
@@ -120,7 +120,7 @@ export class NetworkInterface implements Types.INetworkInterface {
     }
 
 
-    addProcess(process: Types.StreamerProcess) {
+    addProcess(process: StreamerProcess) {
         this.processes.push(process)
 
         this.updatePriorities()
@@ -129,7 +129,7 @@ export class NetworkInterface implements Types.INetworkInterface {
         process.registerHandler(this, SIGNALS.PROCESS_PRIORITY_CHANGED, this.handleProcessPriorityChanged)
     }
 
-    removeProcess(process: Types.StreamerProcess) {
+    removeProcess(process: StreamerProcess) {
         this.processes = this.processes.filter(p => p !== process)
 
         this.updatePriorities()

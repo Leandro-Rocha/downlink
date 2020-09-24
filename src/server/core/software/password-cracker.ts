@@ -29,8 +29,10 @@ export class PasswordCracker extends Software {
         const player: Player = getCurrentPlayer()
 
         const remoteGateway = player.gateway.outboundConnection?.gateway!
-        const targetUser = remoteGateway.users.find(u => u.userName === targetUserName)!
+        result.assert(remoteGateway !== undefined, `Not connected to a remote gateway.`)
+        if (!result.isSuccessful()) return result
 
+        const targetUser = remoteGateway.users.find(u => u.userName === targetUserName)!
         result.assert(targetUser !== undefined, `User [${userName}] does not exists in this gateway.`)
         if (!result.isSuccessful()) return result
 

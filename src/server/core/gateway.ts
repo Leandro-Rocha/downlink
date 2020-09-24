@@ -138,7 +138,7 @@ export class Gateway implements Types.Gateway {
 
     }
 
-    executeSoftware(player: Player, id: string, ...args: any[]) {
+    executeSoftware(id: string, ...args: any[]) {
         const validator = new OperationResult()
 
         const file = this.storage.files.find(f => f.id === id)

@@ -72,6 +72,8 @@ export abstract class Process implements Types.Process, Presentable<Process> {
     }
 }
 
+export interface StreamerProcess extends ISignalEmitter { }
+
 // TODO: refactor download logic
 @signalEmitter
 export class StreamerProcess extends Process implements Types.StreamerProcess {
