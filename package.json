@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "start": "nodemon --watch 'src/' --exec 'ts-node app.ts' -e ts",
+    "start": "nodemon --watch 'src/server/' --watch 'src/common/' --exec 'ts-node app.ts' -e ts",
     "test": "mocha -r ts-node/register 'test/**/*.ts'",
     "coverage": "nyc --reporter=lcov --reporter=text mocha -r ts-node/register 'test/**/*.ts'"
   },

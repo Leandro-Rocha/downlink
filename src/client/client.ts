@@ -18,6 +18,9 @@ const remoteLogTab = (<HTMLInputElement>document.querySelector('#remoteLogDiv'))
 const fileManager = new FileManagerWindow({ id: 'file-manager', title: 'File Manager' })
 const taskManager = new FileManagerWindow({ id: 'task-manager', title: 'Task Manager' })
 
+fileManager.test = 'olá mundo!!'
+console.log(`fileManager.test`, fileManager.test)
+
 var gameState: GameState
 
 export function playerConnected() {
@@ -67,7 +70,6 @@ function updateLocalGateway() {
     if (gameState.localGateway.log !== undefined) {
         gameState.localGateway.log.entries.forEach(entry => localLog.value += `${entry.timestamp} - ${entry.message}\n`)
     }
-
 
     if (gameState.localGateway.storage !== undefined) {
         fileManager.updateContent(gameState.localGateway.storage)

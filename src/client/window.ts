@@ -32,13 +32,6 @@ var mouseY: number
 var draggingWindow: HTMLElement | null
 var draggingWindowObject: Window<never>
 
-function move(e: MouseEvent) {
-    if (!draggingWindow) return
-
-    draggingWindow.style.left = e.pageX - mouseX + 'px'
-    draggingWindow.style.top = e.pageY - mouseY + 'px'
-}
-
 type WindowConfig = {
     id: string
     title: string
@@ -56,16 +49,31 @@ abstract class Window<T> {
     x: string
     y: string
 
+    test: string
+
     constructor(config: WindowConfig) {
         this.id = config.id
         this.title = config.title
-        this.x = config.x || getWindowData(this.id).x || '100px'
-        this.y = config.y || getWindowData(this.id).y || '100px'
+        this.x = config.x || getWindowData(this.id)?.x || '100px'
+        this.y = config.y || getWindowData(this.id)?.y || '100px'
 
         const newWindow = createWindow(this)
         this.windowElement = newWindow.windowElement
         this.headerElement = newWindow.headerElement
         this.contentElement = newWindow.contentElement
+
+        this.test = 'oi'
+
+        var _test: string
+        Object.defineProperty(this, 'test', {
+            get() {
+                return _test
+            },
+            set(newValue) {
+                console.log(`new value of test is [${newValue}]`)
+                _test = newValue
+            }
+        })
     }
 
 
@@ -125,9 +133,7 @@ export function createWindow(window: Window<never>): CreateWindowResult {
     windowDiv.style.left = window.x
     windowDiv.style.top = window.y
 
-
-
-    //  Bring clicked window to top level
+    //  Brings clicked window to top level
     windowDiv.style.zIndex = document.querySelectorAll('.window').length.toString()
     windowDiv.addEventListener("mousedown", function (e) {
         e.preventDefault()
@@ -152,12 +158,35 @@ export function createWindow(window: Window<never>): CreateWindowResult {
         document.addEventListener("mousemove", move, false);
     }, false)
 
-    headerDiv.addEventListener("mouseup", function () {
-        draggingWindowObject.x = draggingWindow?.style.left || '100px'
-        draggingWindowObject.y = draggingWindow?.style.top || '100px'
+    document.addEventListener("mouseup", function () {
+        const x = Math.max(styleToNumber(draggingWindow!.style.left)!, 0)
+        const y = Math.max(styleToNumber(draggingWindow!.style.top)!, 0)
+
+        draggingWindowObject.x = numberToString(x, { suffix: 'px' })
+        draggingWindowObject.y = numberToString(y, { suffix: 'px' })
+
         draggingWindowObject.savePosition()
         document.removeEventListener("mousemove", move, false);
     }, false)
 
     return { windowElement: windowDiv, headerElement: headerDiv, contentElement: contentDiv }
+}
+
+function move(e: MouseEvent) {
+    if (!draggingWindow) return
+
+    const posX = (e.pageX - mouseX) >= 0 ? (e.pageX - mouseX) : 0
+    const posY = (e.pageY - mouseY) >= 0 ? (e.pageY - mouseY) : 0
+
+    draggingWindow.style.left = posX + 'px'
+    draggingWindow.style.top = posY + 'px'
+}
+
+function styleToNumber(value: string) {
+    const match = value.match(/\d*/)
+    if (match) return Number(match[0])
+}
+
+function numberToString(value: number, options?: { prefix?: string, suffix?: string }) {
+    return `${options?.prefix || ''}${value}${options?.suffix || ''}`
 }
