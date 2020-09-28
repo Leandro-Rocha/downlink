@@ -1,7 +1,7 @@
 import { PlayerActions, socketEvents } from '../common/constants.js'
 import { GameState, Types } from '../common/types.js'
 import { socket } from './socket.js'
-import { FileManagerWindow } from './window.js'
+import { FileManagerWindow, TaskManagerWindow } from './window.js'
 
 document.querySelector('#resetDataBtn')?.addEventListener('click', resetData)
 document.querySelector('#connectToGatewayBtn')?.addEventListener('click', connectToGateway)
@@ -16,10 +16,7 @@ const remoteSshTab = (<HTMLInputElement>document.querySelector('#remote_ssh'))
 const remoteLogTab = (<HTMLInputElement>document.querySelector('#remoteLogDiv'))
 
 const fileManager = new FileManagerWindow({ id: 'file-manager', title: 'File Manager' })
-const taskManager = new FileManagerWindow({ id: 'task-manager', title: 'Task Manager' })
-
-fileManager.test = 'olá mundo!!'
-console.log(`fileManager.test`, fileManager.test)
+const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager' })
 
 var gameState: GameState
 
@@ -76,32 +73,8 @@ function updateLocalGateway() {
     }
 
     if (gameState.localGateway.taskManager !== undefined) {
-        const taskManagerTable = (<HTMLTableElement>document.querySelector('#localTaskManager'))
-        taskManagerTable.querySelectorAll('tr').forEach(c => c.remove())
-        taskManagerTable.innerHTML = '<thead><td>PID</td><td>progress</td></thead>'
-
-        gameState.localGateway.taskManager.workerProcesses.forEach(p => {
-            const processRow = document.createElement('tr')
-            const pidElement = processRow.appendChild(document.createElement('td'))
-            const progressElement = processRow.appendChild(document.createElement('td'))
-
-            pidElement.textContent = p.pid
-
-            var workDone = (<Types.WorkerProcess>p).workDone
-            var totalWork = (<Types.WorkerProcess>p).totalWork
-
-            setInterval(() => {
-                workDone += 1000 / 30
-                progressElement.textContent = `${Math.round(workDone / totalWork * 100)}%`
-            }, 1000 / 30)
-
-            taskManagerTable.appendChild(processRow)
-        })
+        taskManager.updateContent(gameState.localGateway.taskManager)
     }
-
-
-
-
 
 }
 

@@ -31,12 +31,13 @@
             "program": "${workspaceFolder}/node_modules/nodemon/bin/nodemon",
             "args": [
                 "--watch",
-                ".",
+                "src/server/",
+                "--watch",
+                "src/common/",
                 "--exec",
                 "ts-node app.ts",
                 "-e",
-                "ts",
-                "--trace-warnings"
+                "ts"
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "resolveSourceMapLocations": [
