@@ -206,7 +206,7 @@ export class TaskManagerWindow extends Window<Types.TaskManager> {
         taskManagerTable.querySelectorAll('tr').forEach(c => c.remove())
         taskManagerTable.innerHTML = '<thead><td>PID</td><td>progress</td></thead>'
 
-        content.workerProcesses.forEach(p => {
+        content.processes.forEach(p => {
             const processRow = document.createElement('tr')
             const pidElement = processRow.appendChild(document.createElement('td'))
             const progressElement = processRow.appendChild(document.createElement('td'))

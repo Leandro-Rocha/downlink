@@ -1,13 +1,7 @@
 import { ISignalEmitter, signalEmitter, SIGNALS } from "./signal"
 import { Presentable, Types } from '../../common/types'
-import { ProcessStatus, ROOT } from "../../common/constants"
+import { ProcessStatus, ROOT, SoftwareTypes } from "../../common/constants"
 import { OperationResult } from "../../shared"
-import { File } from "./resource"
-import { Player } from "./owner"
-import { getCurrentPlayer as getCurrentPlayer } from "./game-state"
-
-import faker from 'faker'
-
 
 function pidGenerator(userName: string) {
     return `${userName}_${Date.now()}`
@@ -20,15 +14,16 @@ export abstract class Process implements Types.Process, Presentable<Process> {
     static MAX_PRIORITY = 10
 
     readonly pid: string
+    abstract type: SoftwareTypes
     userName: string
     status: ProcessStatus
     description: string
+
     _priority: number
 
-    type: any
 
     constructor(config?: Partial<Types.Process>) {
-        this.userName = config?.userName || 'root'
+        this.userName = config?.userName || ROOT
         this.pid = config?.pid || pidGenerator(this.userName)
         this._priority = config?.priority || (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
         this.status = config?.status || ProcessStatus.NEW
@@ -77,6 +72,8 @@ export interface StreamerProcess extends ISignalEmitter { }
 // TODO: refactor download logic
 @signalEmitter
 export class StreamerProcess extends Process implements Types.StreamerProcess {
+    type: SoftwareTypes = SoftwareTypes.TRANSFER
+
     networkInterface: Types.INetworkInterface
     stream!: Types.Stream
     priorityRatio!: number

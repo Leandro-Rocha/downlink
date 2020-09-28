@@ -1,30 +1,39 @@
+import { SoftwareTypes } from '../../common/constants';
 import { Types } from '../../common/types'
-import { Process } from './process';
+import { Process, WorkerProcess } from './process';
 import { SignalEmitter, signalEmitter, SIGNALS } from './signal';
 import { PasswordCrackerProcess } from './software/password-cracker';
+import { SoftwareTypeMap } from './software/software';
 
+export function createProcess<K extends keyof SoftwareTypeMap>(type: K, config: any): SoftwareTypeMap[K] {
+    if (type === SoftwareTypes.CRACKER) {
+        return new PasswordCrackerProcess(config)
+    }
+
+    return new PasswordCrackerProcess(config) //TODO:
+}
 
 export interface TaskManager extends SignalEmitter { }
 @signalEmitter
 export class TaskManager implements Types.TaskManager {
 
-    permanentProcesses: Process[]
-    workerProcesses: PasswordCrackerProcess[]
+    daemons: Process[]
+    processes: WorkerProcess[]
 
     constructor(config?: Partial<Types.TaskManager>) {
-        this.permanentProcesses = []//TODO:implement
+        this.daemons = []//TODO:implement
 
-        this.workerProcesses = config?.workerProcesses?.map(p => new PasswordCrackerProcess(p)) || []
+        this.processes = config?.processes?.map(p => createProcess(p.type, p)) || []
     }
 
 
     startProcess(process: Process) {
 
-        if (process instanceof PasswordCrackerProcess) {
-            this.workerProcesses.push(process)
+        if (process instanceof WorkerProcess) {
+            this.processes.push(process)
         }
         else {
-            this.permanentProcesses.push(process)
+            this.daemons.push(process)
         }
 
         this.sendSignal(this, SIGNALS.TASK_SCHEDULED, process)
@@ -34,11 +43,11 @@ export class TaskManager implements Types.TaskManager {
     }
 
     endProcess(process: Process) {
-        if (process instanceof PasswordCrackerProcess) {
-            this.workerProcesses.splice(this.workerProcesses.indexOf(process), 1)
+        if (process instanceof WorkerProcess) {
+            this.processes.splice(this.processes.indexOf(process), 1)
         }
         else {
-            this.permanentProcesses.splice(this.permanentProcesses.indexOf(process), 1)
+            this.daemons.splice(this.daemons.indexOf(process), 1)
         }
 
         this.sendSignal(this, SIGNALS.TASK_UNSCHEDULED, process)
@@ -46,8 +55,8 @@ export class TaskManager implements Types.TaskManager {
 
     toClient(): Partial<Types.TaskManager> {
         return <Partial<Types.TaskManager>>{
-            permanentProcesses: [],
-            workerProcesses: this.workerProcesses.map(p => p.toClient())
+            daemons: [],
+            processes: this.processes.map(p => p.toClient())
         }
     }
 }

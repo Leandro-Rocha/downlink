@@ -1,4 +1,4 @@
-import { ROOT } from "../../../common/constants"
+import { ROOT, SoftwareTypes } from "../../../common/constants"
 import { Types } from "../../../common/types"
 import { OperationResult } from "../../../shared"
 import { getCurrentPlayer } from "../game-state"
@@ -7,7 +7,6 @@ import { WorkerProcess } from "../process"
 import { signalEmitter, SIGNALS } from "../signal"
 import { Software, SpawnProcessResult } from "./software"
 import faker from "faker";
-import { HackedDbEntry } from "../player/hacked-db"
 
 export class PasswordCracker extends Software {
     version: number
@@ -65,6 +64,8 @@ export class PasswordCracker extends Software {
 
 @signalEmitter
 export class PasswordCrackerProcess extends WorkerProcess {
+    type: SoftwareTypes = SoftwareTypes.CRACKER
+
     password: string
     userToHack: Types.User
     private interval!: NodeJS.Timeout

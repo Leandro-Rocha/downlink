@@ -80,7 +80,7 @@ function registerPlayerSignals(socket: io.Socket, player: Player) {
     player.gateway.log.registerHandler(player, SIGNALS.LOG_CHANGED, () => sendClientState(socket, player))
     player.gateway.outboundConnection?.registerHandler(player, SIGNALS.REMOTE_CONNECTION_CHANGED, () => sendClientState(socket, player))
 
-    player.gateway.taskManager.workerProcesses.forEach(p => {
+    player.gateway.taskManager.processes.forEach(p => {
         p.checkStatus()
 
         p.registerHandler(player, SIGNALS.PROCESS_STARTED, () => sendClientState(socket, player))

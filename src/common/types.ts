@@ -1,4 +1,4 @@
-import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
+import { ConnectionStatus, ProcessStatus, ResourceTypes, SoftwareTypes } from "./constants"
 
 export interface GameState {
     localGateway: Partial<Types.Gateway>
@@ -41,6 +41,7 @@ export namespace Types {
         userName: string
         status: ProcessStatus
         description: string
+        type: SoftwareTypes
     }
 
     export interface WorkerProcess extends Process {
@@ -54,8 +55,8 @@ export namespace Types {
     }
 
     export interface TaskManager extends Presentable<TaskManager> {
-        permanentProcesses: Process[]
-        workerProcesses: PasswordCrackerProcess[]
+        daemons: Process[]
+        processes: WorkerProcess[]
     }
 
     export interface User {

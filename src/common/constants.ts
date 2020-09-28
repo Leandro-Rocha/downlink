@@ -48,3 +48,8 @@ export enum ResourceTypes {
     CPU = 'CPU',
     STORAGE = 'STORAGE',
 }
+
+export enum SoftwareTypes {
+    TRANSFER = 'TRANSFER',
+    CRACKER = 'CRACKER',
+}
