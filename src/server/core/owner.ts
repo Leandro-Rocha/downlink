@@ -1,6 +1,6 @@
 import io from 'socket.io'
 import { AccessPrivileges, ConnectionStatus, PlayerActions } from "../../common/constants"
-import { Owner, Types } from "../../common/types"
+import { Owner, Gui } from "../../common/types"
 import { Gateway } from "./gateway"
 import { GatewayStore } from "../../storage/gateway-store"
 import { HackedDB, HackedDbEntry } from './player/hacked-db'

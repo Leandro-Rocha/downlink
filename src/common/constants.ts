@@ -1,4 +1,4 @@
-import { Types } from "./types";
+import { Gui } from "./types";
 
 export const ROOT = 'root'
 

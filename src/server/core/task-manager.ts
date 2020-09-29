@@ -1,11 +1,10 @@
-import { SoftwareTypes } from '../../common/constants';
-import { Types } from '../../common/types'
+import { EntityType, Presentable, Gui } from '../../common/types'
 import { Process, WorkerProcess } from './process';
 import { SignalEmitter, signalEmitter, SIGNALS } from './signal';
 import { PasswordCrackerProcess } from './software/password-cracker';
 
-export function createProcess(type: SoftwareTypes, data: any) {
-    if (type === SoftwareTypes.CRACKER) {
+export function createProcess(type: EntityType, data: any) {
+    if (type === EntityType.PROCESS_CRACKER) {
         return new PasswordCrackerProcess(data)
     }
 
@@ -14,15 +13,15 @@ export function createProcess(type: SoftwareTypes, data: any) {
 
 export interface TaskManager extends SignalEmitter { }
 @signalEmitter
-export class TaskManager implements Types.TaskManager {
+export class TaskManager implements Presentable<Gui.TaskManager> {
 
     daemons: Process[]
     processes: WorkerProcess[]
 
-    constructor(config?: Partial<Types.TaskManager>) {
-        this.daemons = config?.daemons?.map(p => createProcess(p.type, p)) || [] //TODO:implement
+    constructor(config?: Partial<Gui.TaskManager>) {
+        this.daemons = config?.daemons?.map(p => createProcess(p.entityType, p)) || [] //TODO:implement
 
-        this.processes = config?.processes?.map(p => createProcess(p.type, p)) || []
+        this.processes = config?.processes?.map(p => createProcess(p.entityType, p)) || []
     }
 
 
@@ -52,8 +51,8 @@ export class TaskManager implements Types.TaskManager {
         this.sendSignal(this, SIGNALS.TASK_UNSCHEDULED, process)
     }
 
-    toClient(): Partial<Types.TaskManager> {
-        return <Partial<Types.TaskManager>>{
+    toClient(): Partial<Gui.TaskManager> {
+        return <Partial<Gui.TaskManager>>{
             daemons: [],
             processes: this.processes.map(p => p.toClient())
         }

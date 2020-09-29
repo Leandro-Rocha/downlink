@@ -1,9 +1,9 @@
-import { Types } from "../../common/types.js"
+import { Gui } from "../../common/types.js"
 import { Window, WindowConfig } from "../window.js"
 import { GuiElement, syncGuiAndData } from "./gui-base.js"
 
 
-export class TaskManagerWindow extends Window<Types.TaskManager> {
+export class TaskManagerWindow extends Window<Gui.TaskManager> {
 
     processes: WorkerProcessGuiElement[] = []
     taskManagerTable: HTMLTableElement
@@ -18,21 +18,21 @@ export class TaskManagerWindow extends Window<Types.TaskManager> {
         this.taskManagerTable.innerHTML = '<thead><td>PID</td><td>progress</td></thead>'
     }
 
-    updateContent(data: Types.TaskManager): void {
+    updateContent(data: Gui.TaskManager): void {
         syncGuiAndData(this.taskManagerTable, data.processes, this.processes)
     }
 }
 
-export class WorkerProcessGuiElement extends GuiElement<Types.WorkerProcess>{
+export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
     element: HTMLElement
 
-    constructor(data: Types.WorkerProcess) {
+    constructor(data: Gui.WorkerProcess) {
         super(data)
 
         this.element = document.createElement('tr')
     }
 
-    updateContent(data?: Types.WorkerProcess): void {
+    updateContent(data?: Gui.WorkerProcess): void {
         if (data !== undefined) {
             this.data = data
         }
@@ -40,7 +40,7 @@ export class WorkerProcessGuiElement extends GuiElement<Types.WorkerProcess>{
         const pidElement = this.element.appendChild(document.createElement('td'))
         const progressElement = this.element.appendChild(document.createElement('td'))
 
-        pidElement.textContent = this.data.id
+        pidElement.textContent = this.data.gameId
 
         var workDone = this.data.workDone!
         var totalWork = this.data.totalWork

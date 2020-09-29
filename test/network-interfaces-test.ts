@@ -1,6 +1,6 @@
 import 'mocha'
 import { expect } from 'chai'
-import { Types } from '../src/common/types'
+import { Gui } from '../src/common/types'
 import { Downlink, FileTransferFactory, Uplink } from '../src/server/core/network-interfaces'
 import { Gateway } from '../src/server/core/gateway'
 import { File } from '../src/server/core/resource'
@@ -39,7 +39,7 @@ describe('File Transfer Allocation',
         // it('performance', performance).timeout(20000);
     })
 
-function validateStream(stream: Types.Stream, bandWidth: number) {
+function validateStream(stream: Gui.Stream, bandWidth: number) {
     expect(stream.bandWidth, `Stream ${stream.description} bandwidth should be ${bandWidth} but was ${stream.bandWidth}`)
         .to.be.approximately(bandWidth, 0.001)
 

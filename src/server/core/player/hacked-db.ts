@@ -1,15 +1,15 @@
-import { Presentable, Types } from "../../../common/types"
+import { Presentable, Gui } from "../../../common/types"
 import { Gateway } from "../gateway"
 import faker from "faker";
 import { OperationResult } from "../../../shared";
 
 
-export class User implements Types.User {
+export class User implements Gui.User {
     userName: string
     password: string
     partial: boolean
 
-    constructor(config?: Partial<Types.User>) {
+    constructor(config?: Partial<Gui.User>) {
         this.userName = config?.userName || faker.internet.userName()
         this.password = config?.password !== undefined ? config.password : faker.internet.password()
         this.partial = config?.partial || false
@@ -17,18 +17,18 @@ export class User implements Types.User {
 }
 
 
-export class HackedDbEntry implements Types.HackedDbEntry, Presentable<Types.HackedDbEntry> {
-    id: string
+export class HackedDbEntry implements Gui.HackedDbEntry, Presentable<Gui.HackedDbEntry> {
+    guiId: string
     ip: string
     users: User[]
 
     constructor(config: Partial<HackedDbEntry>) {
-        this.id = config.id || ''
+        this.guiId = config.guiId || ''
         this.ip = config.ip || ''
         this.users = config.users || []
     }
 
-    toClient(): Partial<Types.HackedDbEntry> {
+    toClient(): Partial<Gui.HackedDbEntry> {
         return {
             ip: this.ip,
             users: this.users
@@ -36,29 +36,29 @@ export class HackedDbEntry implements Types.HackedDbEntry, Presentable<Types.Hac
     }
 }
 
-export class HackedDB implements Types.HackedDB, Presentable<Types.HackedDB> {
+export class HackedDB implements Gui.HackedDB, Presentable<Gui.HackedDB> {
     entries: HackedDbEntry[]
 
-    constructor(config?: Partial<Types.HackedDB>) {
+    constructor(config?: Partial<Gui.HackedDB>) {
         this.entries = config?.entries?.map(e => new HackedDbEntry(e)) || []
     }
 
     getEntryById(id: string) {
-        return this.entries.find(e => e.id === id)
+        return this.entries.find(e => e.guiId === id)
     }
 
-    addEntry(remoteGateway: Gateway, paramUser: Types.User) {
-        const result = new OperationResult<{ entry: Types.HackedDbEntry }>()
+    addEntry(remoteGateway: Gateway, paramUser: Gui.User) {
+        const result = new OperationResult<{ entry: Gui.HackedDbEntry }>()
         const existingUser = remoteGateway.getUser(paramUser.userName)
 
         result.assert(existingUser !== undefined, `User [${paramUser.userName}] does not exists on [${remoteGateway.ip}]`)
         if (!result.isSuccessful()) return result
 
-        var newEntry = this.getEntryById(remoteGateway.id)
+        var newEntry = this.getEntryById(remoteGateway.guiId)
 
         if (!newEntry) {
             newEntry = new HackedDbEntry({
-                id: remoteGateway.id,
+                guiId: remoteGateway.guiId,
                 ip: remoteGateway.ip,
             })
 
@@ -83,8 +83,8 @@ export class HackedDB implements Types.HackedDB, Presentable<Types.HackedDB> {
         return result
     }
 
-    toClient(): Partial<Types.HackedDB> {
-        return <Partial<Types.HackedDB>>{
+    toClient(): Partial<Gui.HackedDB> {
+        return <Partial<Gui.HackedDB>>{
             entries: this.entries.map(e => e.toClient())
         }
     }

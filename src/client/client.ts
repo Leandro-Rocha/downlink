@@ -1,5 +1,5 @@
 import { PlayerActions, socketEvents } from '../common/constants.js'
-import { GameState, Types } from '../common/types.js'
+import { GameState, Gui } from '../common/types.js'
 import { FileManagerWindow } from './gui/gui-file-manager.js'
 import { TaskManagerWindow } from './gui/gui-task-manager.js'
 import { socket } from './socket.js'

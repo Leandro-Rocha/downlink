@@ -1,8 +1,7 @@
-import { SoftwareTypes } from "../../common/constants.js"
-import { Types } from "../../common/types.js"
+import { EntityType, GameEntity } from "../../common/types.js"
 import { WorkerProcessGuiElement } from "./gui-task-manager.js"
 
-export abstract class GuiElement<T extends Types.GuiElementId> {
+export abstract class GuiElement<T extends GameEntity> {
     data: T
     abstract element: HTMLElement
 
@@ -18,14 +17,14 @@ export abstract class GuiElement<T extends Types.GuiElementId> {
 }
 
 
-export function syncGuiAndData(parent: HTMLElement, data: Types.GuiElementId[], gui: GuiElement<Types.GuiElementId>[]) {
+export function syncGuiAndData(parent: HTMLElement, data: GameEntity[], gui: GuiElement<GameEntity>[]) {
 
     const dataNewElements = [...data]
     const guiElementsToRemove = [...gui]
 
     data.forEach(dataElem => {
         gui?.forEach(guiElem => {
-            if (dataElem.id === guiElem.data.id) {
+            if (dataElem.gameId === guiElem.data.gameId) {
                 dataNewElements.remove(dataElem)
                 guiElementsToRemove.remove(guiElem)
                 guiElem.data = dataElem
@@ -34,7 +33,7 @@ export function syncGuiAndData(parent: HTMLElement, data: Types.GuiElementId[], 
     })
 
     dataNewElements.forEach(dataElem => {
-        const newElement = createClientElement(dataElem.type, dataElem)
+        const newElement = createClientElement(dataElem.entityType, dataElem)
         gui.push(newElement)
         newElement.updateContent()
         parent.appendChild(newElement.element)
@@ -46,8 +45,8 @@ export function syncGuiAndData(parent: HTMLElement, data: Types.GuiElementId[], 
     })
 }
 
-function createClientElement(type: SoftwareTypes, data: any): GuiElement<Types.GuiElementId> {
-    if (type === SoftwareTypes.CRACKER) {
+function createClientElement(type: EntityType, data: any): GuiElement<GameEntity> {
+    if (type === EntityType.PROCESS_CRACKER) {
         return new WorkerProcessGuiElement(data)
     }
 

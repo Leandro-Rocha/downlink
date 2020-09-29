@@ -1,5 +1,5 @@
 import faker from 'faker'
-import { Types } from "../../common/types"
+import { EntityType, GameEntity, Presentable, Gui } from "../../common/types"
 import { Downlink, RemoteConnection, Uplink } from "./network-interfaces"
 import { Log } from './log'
 import { Memory, Storage, CPU } from './resource'
@@ -14,20 +14,22 @@ import { ISignalEmitter, signalEmitter, SIGNALS } from './signal'
 export interface Gateway extends ISignalEmitter { }
 
 @signalEmitter
-export class Gateway implements Types.Gateway {
+export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
-    id: string
+    gameId: string
+    entityType: EntityType = EntityType.GATEWAY
+
     ip: string
     hostname: string
 
-    storage: Types.Storage
-    memory: Types.Resource
-    cpu: Types.Resource
-    downlink: Types.INetworkInterface
-    uplink: Types.INetworkInterface
+    storage: Storage
+    memory: Gui.Resource
+    cpu: Gui.Resource
+    downlink: Gui.INetworkInterface
+    uplink: Gui.INetworkInterface
 
     taskManager: TaskManager
-    users: Types.User[]
+    users: Gui.User[]
     log: Log
 
     outboundConnection?: RemoteConnection
@@ -35,7 +37,8 @@ export class Gateway implements Types.Gateway {
 
     //TODO: avoid collisions for id and ip
     constructor(config?: Partial<Gateway>) {
-        this.id = config?.id || faker.random.uuid()
+        this.gameId = config?.gameId || faker.random.uuid()
+
         this.ip = config?.ip || faker.internet.ip()
         this.hostname = config?.hostname || faker.internet.userName()
 
@@ -54,12 +57,11 @@ export class Gateway implements Types.Gateway {
         this.inboundConnections = config?.inboundConnections || []
     }
 
-    getUser(userName: string) {
-        return this.users.find(u => u.userName === userName)
-    }
+    toClient(): GameEntity & Gui.Gateway {
+        return {
+            guiId: this.ip,
+            entityType: this.entityType,
 
-    toClient(): Partial<Types.Gateway> {
-        return <Partial<Types.Gateway>>{
             ip: this.ip,
             hostname: this.hostname,
 
@@ -73,8 +75,14 @@ export class Gateway implements Types.Gateway {
         // clientGateway.storage = { files: [...serverGateway.storage.files] }
 
         // clientGateway.taskManager = serverGateway.taskManager.toClient()
-
     }
+
+
+    getUser(userName: string) {
+        return this.users.find(u => u.userName === userName)
+    }
+
+
 
     connectTo(remoteGateway: Gateway) {
 
@@ -90,7 +98,7 @@ export class Gateway implements Types.Gateway {
 
         this.outboundConnection.connect(remoteGateway)
 
-        console.log(`[${this.id}]-[${this.hostname}] connected to [${remoteGateway.id}]-[${remoteGateway.ip}] - [${remoteGateway.hostname}]`)
+        console.log(`[${this.gameId}]-[${this.hostname}] connected to [${remoteGateway.gameId}]-[${remoteGateway.ip}] - [${remoteGateway.hostname}]`)
     }
 
     disconnect() {
@@ -112,7 +120,7 @@ export class Gateway implements Types.Gateway {
         const result = new OperationResult()
         const player = getCurrentPlayer()
 
-        console.log(`Login attempt from [${player.userName}] - userName[${userName}], password: [${password}] on gateway [${this.id}]`)
+        console.log(`Login attempt from [${player.userName}] - userName[${userName}], password: [${password}] on gateway [${this.gameId}]`)
 
         result.assert(player.gateway.outboundConnection !== undefined, `Not connected to remote gateway`)
         if (player.gateway.outboundConnection === undefined) return result
@@ -140,7 +148,7 @@ export class Gateway implements Types.Gateway {
     executeSoftware(id: string, ...args: any[]) {
         const validator = new OperationResult()
 
-        const file = this.storage.files.find(f => f.id === id)
+        const file = this.storage.files.find(f => f.guiId === id)
 
         validator.assert(file !== undefined, `File [${file}] not found.`)
         if (!file) return validator

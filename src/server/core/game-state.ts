@@ -1,6 +1,6 @@
 import { createNamespace, getNamespace } from 'cls-hooked'
 import { ConnectionStatus } from "../../common/constants"
-import { GameState, Types } from "../../common/types"
+import { GameState, Gui } from "../../common/types"
 import { Log } from "./log"
 import { Player } from "./owner"
 

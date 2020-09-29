@@ -1,24 +1,19 @@
-import { ConnectionStatus, ProcessStatus, ResourceTypes, SoftwareTypes } from "./constants"
+import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
 
 export interface GameState {
-    localGateway: Partial<Types.Gateway>
-    remoteGateway?: Partial<Types.Gateway>
-    hackedDB: Partial<Types.HackedDB>
+    localGateway: Partial<Gui.Gateway>
+    remoteGateway?: Partial<Gui.Gateway>
+    hackedDB: Partial<Gui.HackedDB>
 }
 
 export interface Owner {
     name: string
 }
 
-export namespace Types {
-
-    export interface GuiElementId {
-        id: string
-        type: SoftwareTypes
-    }
+export namespace Gui {
 
     export interface Gateway extends Presentable<Gateway> {
-        id: string
+        guiId: string
         ip: string
         hostname: string
 
@@ -37,11 +32,11 @@ export namespace Types {
         inboundConnections: RemoteConnection[]
     }
 
-    export interface Storage extends Resource, Presentable<Storage> {
+    export interface Storage extends Resource {
         files: File[]
     }
 
-    export interface Process extends Presentable<Process>, GuiElementId {
+    export interface Process extends Presentable<Process>, GameEntity {
         readonly priority: number
         userName: string
         status: ProcessStatus
@@ -55,7 +50,7 @@ export namespace Types {
 
     export interface PasswordCrackerProcess extends WorkerProcess {
         password: string
-        userToHack: Types.User
+        userToHack: Gui.User
     }
 
     export interface TaskManager extends Presentable<TaskManager> {
@@ -90,15 +85,15 @@ export namespace Types {
         handleProcessPriorityChanged(): void
     }
 
-    export interface RemoteConnection extends Presentable<RemoteConnection> {
+    export interface RemoteConnection {
         status: ConnectionStatus
         ip: string
         loggedAs?: string
     }
 
 
-    export interface File extends Presentable<File> {
-        id: string
+    export interface File {
+        guiId: string
         name: string
         size: number
     }
@@ -127,7 +122,7 @@ export namespace Types {
         getMaxBandwidth(): number
     }
 
-    export interface StreamerProcess extends Types.Process, Streamer {
+    export interface StreamerProcess extends Streamer {
         networkInterface: INetworkInterface
         stream: Stream
         priorityRatio: number
@@ -146,7 +141,25 @@ export namespace Types {
 }
 
 export interface Presentable<T> {
-    toClient(): Partial<T>
+    toClient(): GameEntity & T
 }
 
 
+export interface GameEntity {
+    gameId: string
+    entityType: EntityType
+}
+
+export enum EntityType {
+    GATEWAY = 'GATEWAY',
+
+    FILE = 'FILE',
+
+    RESOURCE_STORAGE = 'RESOURCE_STORAGE',
+
+    WINDOW_TASK_MANAGER = 'WINDOW_TASK_MANAGER',
+    WINDOW_FILE_MANAGER = 'WINDOW_FILE_MANAGER',
+
+    PROCESS_TRANSFER = 'PROCESS_TRANSFER',
+    PROCESS_CRACKER = 'PROCESS_CRACKER',
+}

@@ -1,14 +1,17 @@
 import faker from 'faker'
 import { ResourceTypes } from "../../common/constants"
-import { Types } from "../../common/types"
+import { EntityType, GameEntity, GuiElementId, Presentable, Gui } from "../../common/types"
 
-export class Resource {
+export abstract class Resource implements GameEntity, Presentable<Gui.Resource> {
+    abstract gId: string
+    abstract entityType: EntityType
+
     name: string
     type: ResourceTypes
     capacity: number
     allocated: number
 
-    constructor(config?: Partial<Types.Resource>) {
+    constructor(config?: Partial<Gui.Resource>) {
         this.name = config?.name || 'UNDEFINED_RESOURCE'
         this.type = config?.type || ResourceTypes.CPU
         this.capacity = config?.capacity || 0
@@ -30,43 +33,62 @@ export class Resource {
     freeCapacity() {
         return this.capacity - this.allocated
     }
+
+    toClient(): GuiElementId & Gui.Resource {
+        return {
+            guiId: this.gId,
+            entityType: this.entityType,
+
+            name: this.name,
+            type: this.type,
+            capacity: this.capacity,
+            allocated: this.allocated
+        }
+    }
 }
 
 
-export class File implements Types.File {
-    id: string
+export class File implements GameEntity, Presentable<Gui.File> {
+    guiId: string
+    entityType: EntityType = EntityType.FILE
+
     name: string
     size: number
 
-    constructor(config?: Partial<Types.File>) {
-        this.id = config?.id || faker.random.uuid()
+    constructor(config?: Partial<File>) {
+        this.guiId = config?.guiId || faker.random.uuid()
         this.name = config?.name || faker.system.fileName()
         this.size = config?.size || 0
     }
 
-    toClient(): Partial<Types.File> {
-        return <Partial<Types.File>>{
-            id: this.id,
+    toClient(): GuiElementId & Gui.File {
+        return {
+            guiId: this.guiId,
+            entityType: this.entityType,
+
             name: this.name,
-            size: this.size
+            size: this.size,
         }
     }
 }
 
-export class Storage extends Resource implements Types.Storage {
+export class Storage extends Resource implements Presentable<Gui.Storage> {
+    gId: string
+    entityType: EntityType = EntityType.RESOURCE_STORAGE
     files: File[] = []
 
-    constructor(config?: Partial<Types.Storage>) {
+    constructor(config?: Partial<Storage>) {
         super({ ...config, type: ResourceTypes.STORAGE })
 
         this.files = config?.files || []
     }
-
-    toClient(): Partial<Types.Storage> {
-        return <Partial<Types.Storage>>{
+    toClient(): GuiElementId & Gui.Storage {
+        return {
+            ...super.toClient(),
             files: this.files.map(f => f.toClient())
         }
     }
+
 }
 
 interface ExecutableRequirement {

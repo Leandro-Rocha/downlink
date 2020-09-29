@@ -1,5 +1,5 @@
 import { ROOT, SoftwareTypes } from "../../../common/constants"
-import { Types } from "../../../common/types"
+import { EntityType, Gui } from "../../../common/types"
 import { OperationResult } from "../../../shared"
 import { getCurrentPlayer } from "../game-state"
 import { Player } from "../owner"
@@ -11,12 +11,12 @@ import faker from "faker";
 export class PasswordCracker extends Software {
     version: number
 
-    constructor(config?: Partial<Types.Software>) {
+    constructor(config?: Partial<Gui.Software>) {
         super(config)
 
         this.version = config?.version || 1.0
         this.name = config?.name || `PasswordCracker[${this.version}]`
-        this.id = config?.id || `${this.name}_${Date.now()}`
+        this.guiId = config?.guiId || `${this.name}_${Date.now()}`
         this.size = config?.size || 1000
     }
 
@@ -54,22 +54,22 @@ export class PasswordCracker extends Software {
         return result
     }
 
-    toClient(): Partial<Types.File> {
-        return <Partial<Types.File>>{
+    toClient(): Partial<Gui.File> {
+        return <Partial<Gui.File>>{
             ...super.toClient()
         }
     }
 }
 
 
-interface PasswordCrackerProcessConstructor extends WorkerProcessConstructor { password: string, userToHack: Types.User }
+interface PasswordCrackerProcessConstructor extends WorkerProcessConstructor { password: string, userToHack: Gui.User }
 @signalEmitter
 export class PasswordCrackerProcess extends WorkerProcess {
+    entityType: EntityType = EntityType.PROCESS_CRACKER
     description: string
-    type: SoftwareTypes = SoftwareTypes.CRACKER
 
     password: string
-    userToHack: Types.User
+    userToHack: Gui.User
     private interval!: NodeJS.Timeout
 
     constructor(config: PasswordCrackerProcessConstructor) {

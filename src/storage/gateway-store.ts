@@ -41,7 +41,7 @@ export class GatewayStore {
     }
 
     static saveGateway(gateway: Gateway) {
-        GatewayStore.gatewayMap.set(gateway.id, gateway)
+        GatewayStore.gatewayMap.set(gateway.guiId, gateway)
         // await (await GatewayStore.getStorage()).setItem(gateway.id, gateway)
     }
 

@@ -1,6 +1,6 @@
 import { ISignalEmitter, signalEmitter, SIGNALS } from "./signal"
-import { Presentable, Types } from '../../common/types'
-import { ProcessStatus, ROOT, SoftwareTypes } from "../../common/constants"
+import { EntityType, GameEntity, GuiElementId, Presentable, Gui } from '../../common/types'
+import { ProcessStatus, ROOT } from "../../common/constants"
 import { OperationResult } from "../../shared"
 
 function pidGenerator(userName: string) {
@@ -9,14 +9,15 @@ function pidGenerator(userName: string) {
 
 interface ProcessConstructor { userName?: string, pid?: string, priority?: number, status?: ProcessStatus }
 export interface Process extends ISignalEmitter { }
-export abstract class Process implements Types.Process, Presentable<Process> {
+
+export abstract class Process implements GameEntity, Presentable<Gui.Process> {
     static MIN_PRIORITY = 0
     static MAX_PRIORITY = 10
 
-    abstract type: SoftwareTypes
+    abstract entityType: EntityType
     abstract description: string
 
-    readonly id: string
+    readonly pid: string
     userName: string
     status: ProcessStatus
 
@@ -24,11 +25,23 @@ export abstract class Process implements Types.Process, Presentable<Process> {
 
     constructor(config: ProcessConstructor) {
         this.userName = config.userName || ROOT
-        this.id = config.pid || pidGenerator(this.userName)
+        this.pid = config.pid || pidGenerator(this.userName)
         this._priority = config.priority || (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
         this.status = config.status || ProcessStatus.NEW
     }
 
+
+    toClient(): GuiElementId & Partial<Process> {
+        return {
+            guiId: this.pid,
+            entityType: this.entityType,
+
+            userName: this.userName,
+            status: this.status,
+            priority: this.priority,
+            description: this.description,
+        }
+    }
 
     get priority() {
         return this._priority
@@ -45,39 +58,30 @@ export abstract class Process implements Types.Process, Presentable<Process> {
     }
 
     start() {
-        console.log(`Process [${this.id}] started`)
+        console.log(`Process [${this.pid}] started`)
         this.status = ProcessStatus.RUNNING
         this.sendSignal(this, SIGNALS.PROCESS_STARTED)
     }
 
     finish() {
-        console.log(`Process [${this.id}] finished`)
+        console.log(`Process [${this.pid}] finished`)
         this.status = ProcessStatus.FINISHED
         this.sendSignal(this, SIGNALS.PROCESS_FINISHED)
     }
 
-    toClient(): Partial<Process> {
-        return <Partial<Process>>{
-            id: this.id,
-            userName: this.userName,
-            status: this.status,
-            priority: this.priority,
-            description: this.description,
-            type: this.type
-        }
-    }
+
 }
 
 export interface StreamerProcess extends ISignalEmitter { }
 
 // TODO: refactor download logic
 @signalEmitter
-export class StreamerProcess extends Process implements Types.StreamerProcess {
-    type: SoftwareTypes = SoftwareTypes.TRANSFER
+export class StreamerProcess extends Process {
+    entityType: EntityType = EntityType.PROCESS_TRANSFER
     description: string = 'File transfer'
 
-    networkInterface: Types.INetworkInterface
-    stream!: Types.Stream
+    networkInterface: Gui.INetworkInterface
+    stream!: Gui.Stream
     priorityRatio!: number
     fairBandwidth!: number
 
@@ -91,7 +95,7 @@ export class StreamerProcess extends Process implements Types.StreamerProcess {
      */
     isBounded: boolean
 
-    constructor(networkInterface: Types.INetworkInterface) {
+    constructor(networkInterface: Gui.INetworkInterface) {
         super({ userName: 'REFACTOR_ME_PLEASE' })
 
         this.networkInterface = networkInterface
@@ -123,7 +127,7 @@ export class StreamerProcess extends Process implements Types.StreamerProcess {
 }
 
 export interface WorkerProcessConstructor extends ProcessConstructor { totalWork: number, workDone?: number }
-export abstract class WorkerProcess extends Process implements Types.WorkerProcess, Presentable<Types.WorkerProcess>{
+export abstract class WorkerProcess extends Process implements Presentable<Gui.WorkerProcess>{
     totalWork: number
     workDone: number
 
@@ -165,12 +169,11 @@ export abstract class WorkerProcess extends Process implements Types.WorkerProce
         this.workDone += elapsedTime
     }
 
-    toClient(): Partial<Types.PasswordCrackerProcess> {
-        return <Partial<Types.PasswordCrackerProcess>>{
+    toClient() {
+        return {
             ...super.toClient(),
             totalWork: this.totalWork,
             workDone: this.workDone <= this.totalWork ? this.workDone : this.totalWork
-
         }
     }
 }

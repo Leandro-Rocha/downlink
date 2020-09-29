@@ -1,7 +1,7 @@
 import { ISignalEmitter, SIGNALS, signalEmitter, SignalEmitter } from "./signal"
 import { OperationResult } from "../../shared"
 import { ConnectionStatus, ResourceTypes } from "../../common/constants"
-import { Types } from "../../common/types"
+import { EntityType, GameEntity, Gui } from "../../common/types"
 import { StreamerProcess } from "./process"
 import { Gateway } from "./gateway"
 import { File } from "./resource"
@@ -20,7 +20,7 @@ export enum AccessPrivileges {
 @signalEmitter
 export class BounceInfo {
     maxBandwidth: number = Number.MAX_VALUE
-    limiters: Types.Stream[] = []
+    limiters: Gui.Stream[] = []
 }
 export interface BounceInfo extends ISignalEmitter { }
 
@@ -28,7 +28,7 @@ interface IBouncer {
     bounceInfo: BounceInfo
 }
 
-export class NetworkStream implements Types.Stream, IBouncer {
+export class NetworkStream implements Gui.Stream, IBouncer {
     bandWidth: number
 
     upStreamer: StreamerProcess
@@ -43,7 +43,7 @@ export class NetworkStream implements Types.Stream, IBouncer {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
 
-        this.description = `${upStreamer.id}->${downStreamer.id}`
+        this.description = `${upStreamer.pid}->${downStreamer.pid}`
         this.bandWidth = 0
     }
 
@@ -101,14 +101,14 @@ export class NetworkStream implements Types.Stream, IBouncer {
     }
 }
 
-export class NetworkInterface implements Types.INetworkInterface {
+export class NetworkInterface implements Gui.INetworkInterface {
 
     name: string
     type: ResourceTypes
     capacity: number
     allocated: number
 
-    private processes: Types.StreamerProcess[] = []
+    private processes: Gui.StreamerProcess[] = []
     prioritiesSum: number = 0
 
     constructor(name: string, type: ResourceTypes, capacity: number) {
@@ -137,7 +137,7 @@ export class NetworkInterface implements Types.INetworkInterface {
         process.unregisterSignalHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED)
     }
 
-    getProcessMaxAllocation(process: Types.StreamerProcess): number {
+    getProcessMaxAllocation(process: Gui.StreamerProcess): number {
         var maxAllocation = process.fairBandwidth
 
         const unusedAllocation = this.processes
@@ -154,7 +154,7 @@ export class NetworkInterface implements Types.INetworkInterface {
         return maxAllocation
     }
 
-    handleStreamerAllocationChanged(emitter: Types.StreamerProcess, date: any) {
+    handleStreamerAllocationChanged(emitter: Gui.StreamerProcess, date: any) {
         const otherProcesses = this.processes.filter(p => p !== emitter)
         if (otherProcesses.length === 0) return
 
@@ -191,18 +191,30 @@ export class Uplink extends NetworkInterface {
 export interface RemoteConnection extends SignalEmitter { }
 
 @signalEmitter
-export class RemoteConnection implements Types.RemoteConnection {
+export class RemoteConnection implements GameEntity, Gui.RemoteConnection {
+    gameId: string
+    entityType: EntityType
+
     ip: string
     status: ConnectionStatus
     loggedAs?: string
 
     gateway: Gateway
 
-    constructor(config: Partial<Types.RemoteConnection> & { gateway: Gateway }) {
+    constructor(config: RemoteConnection) {
         this.gateway = config.gateway
         this.ip = config.gateway.ip
         this.status = config.status || ConnectionStatus.DISCONNECTED
         this.loggedAs = config.loggedAs
+    }
+    toClient(): GameEntity & Gui.RemoteConnection {
+        return {
+            gameId: this.gameId,
+            entityType: this.entityType,
+
+            ip: this.ip,
+            status: this.status
+        }
     }
 
 
@@ -225,17 +237,12 @@ export class RemoteConnection implements Types.RemoteConnection {
         this.sendSignal(this, SIGNALS.REMOTE_CONNECTION_CHANGED)
     }
 
-    toClient(): Partial<Types.RemoteConnection> {
-        return <Partial<Types.RemoteConnection>>{
-            status: this.status
-        }
-    }
 }
 
 
 
 
-type FileTransferDetails = { stream: Types.Stream, uploadProcess: StreamerProcess, downloadProcess: StreamerProcess }[]
+type FileTransferDetails = { stream: Gui.Stream, uploadProcess: StreamerProcess, downloadProcess: StreamerProcess }[]
 
 export class FileTransferFactory {
 

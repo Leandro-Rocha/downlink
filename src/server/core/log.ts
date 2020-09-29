@@ -1,12 +1,12 @@
 import { format } from 'date-fns'
-import { Types } from "../../common/types"
+import { Gui } from "../../common/types"
 import { signalEmitter, SignalEmitter, SIGNALS } from './signal'
 
 export interface Log extends SignalEmitter { }
 
 @signalEmitter
 export class Log implements Log {
-    entries: Types.LogEntry[]
+    entries: Gui.LogEntry[]
 
     constructor(config?: Partial<Log>) {
         this.entries = config?.entries || []
@@ -14,7 +14,7 @@ export class Log implements Log {
 
     addEntry(message: string) {
         const timestamp = format(Date.now(), 'yyyy-MM-dd HH:mm:ss.SSS')
-        const entry: Types.LogEntry = { timestamp, message }
+        const entry: Gui.LogEntry = { timestamp, message }
         this.entries.push(entry)
         this.sendSignal(this, SIGNALS.LOG_CHANGED, entry)
     }
