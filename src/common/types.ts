@@ -11,6 +11,12 @@ export interface Owner {
 }
 
 export namespace Types {
+
+    export interface GuiElementId {
+        id: string
+        type: SoftwareTypes
+    }
+
     export interface Gateway extends Presentable<Gateway> {
         id: string
         ip: string
@@ -35,18 +41,16 @@ export namespace Types {
         files: File[]
     }
 
-    export interface Process extends Presentable<Process> {
-        readonly pid: string
+    export interface Process extends Presentable<Process>, GuiElementId {
         readonly priority: number
         userName: string
         status: ProcessStatus
-        description: string
-        type: SoftwareTypes
+        description?: string
     }
 
     export interface WorkerProcess extends Process {
         totalWork: number
-        workDone: number
+        workDone?: number
     }
 
     export interface PasswordCrackerProcess extends WorkerProcess {
@@ -144,3 +148,5 @@ export namespace Types {
 export interface Presentable<T> {
     toClient(): Partial<T>
 }
+
+

@@ -3,14 +3,13 @@ import { Types } from '../../common/types'
 import { Process, WorkerProcess } from './process';
 import { SignalEmitter, signalEmitter, SIGNALS } from './signal';
 import { PasswordCrackerProcess } from './software/password-cracker';
-import { SoftwareTypeMap } from './software/software';
 
-export function createProcess<K extends keyof SoftwareTypeMap>(type: K, config: any): SoftwareTypeMap[K] {
+export function createProcess(type: SoftwareTypes, data: any) {
     if (type === SoftwareTypes.CRACKER) {
-        return new PasswordCrackerProcess(config)
+        return new PasswordCrackerProcess(data)
     }
 
-    return new PasswordCrackerProcess(config) //TODO:
+    throw {}//TODO:
 }
 
 export interface TaskManager extends SignalEmitter { }
@@ -21,7 +20,7 @@ export class TaskManager implements Types.TaskManager {
     processes: WorkerProcess[]
 
     constructor(config?: Partial<Types.TaskManager>) {
-        this.daemons = []//TODO:implement
+        this.daemons = config?.daemons?.map(p => createProcess(p.type, p)) || [] //TODO:implement
 
         this.processes = config?.processes?.map(p => createProcess(p.type, p)) || []
     }

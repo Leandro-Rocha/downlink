@@ -43,7 +43,7 @@ export class NetworkStream implements Types.Stream, IBouncer {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
 
-        this.description = `${upStreamer.pid}->${downStreamer.pid}`
+        this.description = `${upStreamer.id}->${downStreamer.id}`
         this.bandWidth = 0
     }
 

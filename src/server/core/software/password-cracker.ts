@@ -3,7 +3,7 @@ import { Types } from "../../../common/types"
 import { OperationResult } from "../../../shared"
 import { getCurrentPlayer } from "../game-state"
 import { Player } from "../owner"
-import { WorkerProcess } from "../process"
+import { WorkerProcess, WorkerProcessConstructor } from "../process"
 import { signalEmitter, SIGNALS } from "../signal"
 import { Software, SpawnProcessResult } from "./software"
 import faker from "faker";
@@ -62,19 +62,23 @@ export class PasswordCracker extends Software {
 }
 
 
+interface PasswordCrackerProcessConstructor extends WorkerProcessConstructor { password: string, userToHack: Types.User }
 @signalEmitter
 export class PasswordCrackerProcess extends WorkerProcess {
+    description: string
     type: SoftwareTypes = SoftwareTypes.CRACKER
 
     password: string
     userToHack: Types.User
     private interval!: NodeJS.Timeout
 
-    constructor(config: Partial<PasswordCrackerProcess> & { password: string, userToHack: Types.User }) {
+    constructor(config: PasswordCrackerProcessConstructor) {
         super(config)
 
         this.password = config.password
         this.userToHack = config.userToHack
+
+        this.description = `Breaking password of user [${this.userToHack.userName}]`
     }
 
     start() {

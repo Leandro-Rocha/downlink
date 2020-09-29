@@ -1,6 +1,7 @@
 import { socket } from './socket.js'
-import { PlayerActions, socketEvents } from '../common/constants.js'
+import { PlayerActions, socketEvents, SoftwareTypes } from '../common/constants.js'
 import { Types } from '../common/types.js'
+import './client-interfaces.js'
 
 // if (!localStorage.getItem('windowPositions')) {
 //     localStorage.setItem('windowPositions', JSON.stringify('{}'))
@@ -28,7 +29,7 @@ function getWindowData(id: string) {
 }
 
 
-interface WindowConfig {
+export interface WindowConfig {
     id: string
     title: string
     x?: number
@@ -36,7 +37,7 @@ interface WindowConfig {
     width?: number
 }
 
-abstract class Window<T> implements WindowConfig {
+export abstract class Window<T> implements WindowConfig {
     static draggingWindowObject: Window<never>
     static mouseStartingX: number
     static mouseStartingY: number
@@ -171,60 +172,3 @@ function createWindowElement(window: Window<never>): CreateWindowResult {
 
     return { windowElement: windowDiv, headerElement: headerDiv, contentElement: contentDiv }
 }
-
-export class FileManagerWindow extends Window<Types.Storage> {
-
-    updateContent(content: Types.Storage): void {
-        this.contentElement.innerHTML = ''
-        const fileList = document.createElement('ul')
-        this.contentElement.appendChild(fileList)
-
-        fileList.childNodes.forEach(c => c.remove())
-
-        content.files.forEach(f => {
-            const fileElement = document.createElement('li')
-            fileElement.innerHTML = `<button>${f.name}</button>`
-
-
-            fileElement.addEventListener('click', () => {
-                //TODO: hardcoded username input
-                const userName = (<HTMLInputElement>document.querySelector('#userNameInput')).value
-                socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, f.id, userName)
-            })
-            fileList.appendChild(fileElement)
-        })
-    }
-}
-
-export class TaskManagerWindow extends Window<Types.TaskManager> {
-
-    updateContent(content: Types.TaskManager): void {
-        this.contentElement.innerHTML = ''
-        const taskManagerTable = document.createElement('table')
-        this.contentElement.appendChild(taskManagerTable)
-
-        taskManagerTable.querySelectorAll('tr').forEach(c => c.remove())
-        taskManagerTable.innerHTML = '<thead><td>PID</td><td>progress</td></thead>'
-
-        content.processes.forEach(p => {
-            const processRow = document.createElement('tr')
-            const pidElement = processRow.appendChild(document.createElement('td'))
-            const progressElement = processRow.appendChild(document.createElement('td'))
-
-            pidElement.textContent = p.pid
-
-            var workDone = (<Types.WorkerProcess>p).workDone
-            var totalWork = (<Types.WorkerProcess>p).totalWork
-
-            setInterval(() => {
-                workDone += 1000 / 30
-                console.log(`TaskManagerWindow -> updateContent -> workDone`, workDone)
-                progressElement.textContent = `${Math.round(workDone / totalWork * 100)}%`
-
-            }, 1000 / 30)
-
-            taskManagerTable.appendChild(processRow)
-        })
-    }
-}
-

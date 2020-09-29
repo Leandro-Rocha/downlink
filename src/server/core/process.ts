@@ -7,28 +7,28 @@ function pidGenerator(userName: string) {
     return `${userName}_${Date.now()}`
 }
 
-
+interface ProcessConstructor { userName?: string, pid?: string, priority?: number, status?: ProcessStatus }
 export interface Process extends ISignalEmitter { }
 export abstract class Process implements Types.Process, Presentable<Process> {
     static MIN_PRIORITY = 0
     static MAX_PRIORITY = 10
 
-    readonly pid: string
     abstract type: SoftwareTypes
+    abstract description: string
+
+    readonly id: string
     userName: string
     status: ProcessStatus
-    description: string
 
     _priority: number
 
-
-    constructor(config?: Partial<Types.Process>) {
-        this.userName = config?.userName || ROOT
-        this.pid = config?.pid || pidGenerator(this.userName)
-        this._priority = config?.priority || (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
-        this.status = config?.status || ProcessStatus.NEW
-        this.description = config?.description || 'unknown_process'
+    constructor(config: ProcessConstructor) {
+        this.userName = config.userName || ROOT
+        this.id = config.pid || pidGenerator(this.userName)
+        this._priority = config.priority || (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
+        this.status = config.status || ProcessStatus.NEW
     }
+
 
     get priority() {
         return this._priority
@@ -45,24 +45,25 @@ export abstract class Process implements Types.Process, Presentable<Process> {
     }
 
     start() {
-        console.log(`Process [${this.pid}] started`)
+        console.log(`Process [${this.id}] started`)
         this.status = ProcessStatus.RUNNING
         this.sendSignal(this, SIGNALS.PROCESS_STARTED)
     }
 
     finish() {
-        console.log(`Process [${this.pid}] finished`)
+        console.log(`Process [${this.id}] finished`)
         this.status = ProcessStatus.FINISHED
         this.sendSignal(this, SIGNALS.PROCESS_FINISHED)
     }
 
     toClient(): Partial<Process> {
         return <Partial<Process>>{
-            pid: this.pid,
+            id: this.id,
             userName: this.userName,
             status: this.status,
             priority: this.priority,
             description: this.description,
+            type: this.type
         }
     }
 }
@@ -73,6 +74,7 @@ export interface StreamerProcess extends ISignalEmitter { }
 @signalEmitter
 export class StreamerProcess extends Process implements Types.StreamerProcess {
     type: SoftwareTypes = SoftwareTypes.TRANSFER
+    description: string = 'File transfer'
 
     networkInterface: Types.INetworkInterface
     stream!: Types.Stream
@@ -120,7 +122,7 @@ export class StreamerProcess extends Process implements Types.StreamerProcess {
     }
 }
 
-
+export interface WorkerProcessConstructor extends ProcessConstructor { totalWork: number, workDone?: number }
 export abstract class WorkerProcess extends Process implements Types.WorkerProcess, Presentable<Types.WorkerProcess>{
     totalWork: number
     workDone: number
@@ -128,10 +130,10 @@ export abstract class WorkerProcess extends Process implements Types.WorkerProce
     private timeout!: NodeJS.Timeout
     private lastUpdate: number
 
-    constructor(config?: Partial<Types.WorkerProcess> & Partial<Types.Process>) {
+    constructor(config: WorkerProcessConstructor) {
         super(config)
-        this.totalWork = config?.totalWork || 0
-        this.workDone = config?.workDone || 0
+        this.totalWork = config.totalWork
+        this.workDone = config.workDone || 0
 
         this.lastUpdate = 0
     }

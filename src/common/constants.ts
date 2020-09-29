@@ -1,3 +1,5 @@
+import { Types } from "./types";
+
 export const ROOT = 'root'
 
 export enum socketEvents {

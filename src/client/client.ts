@@ -1,7 +1,8 @@
 import { PlayerActions, socketEvents } from '../common/constants.js'
 import { GameState, Types } from '../common/types.js'
+import { FileManagerWindow } from './gui/gui-file-manager.js'
+import { TaskManagerWindow } from './gui/gui-task-manager.js'
 import { socket } from './socket.js'
-import { FileManagerWindow, TaskManagerWindow } from './window.js'
 
 document.querySelector('#resetDataBtn')?.addEventListener('click', resetData)
 document.querySelector('#connectToGatewayBtn')?.addEventListener('click', connectToGateway)
@@ -43,7 +44,7 @@ export function connectToGateway() {
 }
 
 export function updateGameState(newState: GameState) {
-    console.log(newState)
+    // console.log(newState)
 
     gameState = newState
 
