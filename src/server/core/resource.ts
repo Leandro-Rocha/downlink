@@ -1,9 +1,9 @@
 import faker from 'faker'
 import { ResourceTypes } from "../../common/constants"
-import { EntityType, GameEntity, GuiElementId, Presentable, Gui } from "../../common/types"
+import { EntityType, GameEntity, Presentable, Gui } from "../../common/types"
 
 export abstract class Resource implements GameEntity, Presentable<Gui.Resource> {
-    abstract gId: string
+    id: string
     abstract entityType: EntityType
 
     name: string
@@ -11,7 +11,8 @@ export abstract class Resource implements GameEntity, Presentable<Gui.Resource> 
     capacity: number
     allocated: number
 
-    constructor(config?: Partial<Gui.Resource>) {
+    constructor(config?: Partial<Resource>) {
+        this.id = config?.id || faker.random.uuid()
         this.name = config?.name || 'UNDEFINED_RESOURCE'
         this.type = config?.type || ResourceTypes.CPU
         this.capacity = config?.capacity || 0
@@ -34,9 +35,9 @@ export abstract class Resource implements GameEntity, Presentable<Gui.Resource> 
         return this.capacity - this.allocated
     }
 
-    toClient(): GuiElementId & Gui.Resource {
+    toClient(): GameEntity & Gui.Resource {
         return {
-            guiId: this.gId,
+            id: this.id,
             entityType: this.entityType,
 
             name: this.name,
@@ -49,21 +50,21 @@ export abstract class Resource implements GameEntity, Presentable<Gui.Resource> 
 
 
 export class File implements GameEntity, Presentable<Gui.File> {
-    guiId: string
+    id: string
     entityType: EntityType = EntityType.FILE
 
     name: string
     size: number
 
     constructor(config?: Partial<File>) {
-        this.guiId = config?.guiId || faker.random.uuid()
         this.name = config?.name || faker.system.fileName()
+        this.id = config?.id || `${this.name}_${Date.now()}`
         this.size = config?.size || 0
     }
 
-    toClient(): GuiElementId & Gui.File {
+    toClient(): GameEntity & Gui.File {
         return {
-            guiId: this.guiId,
+            id: this.id,
             entityType: this.entityType,
 
             name: this.name,
@@ -73,7 +74,6 @@ export class File implements GameEntity, Presentable<Gui.File> {
 }
 
 export class Storage extends Resource implements Presentable<Gui.Storage> {
-    gId: string
     entityType: EntityType = EntityType.RESOURCE_STORAGE
     files: File[] = []
 
@@ -82,7 +82,7 @@ export class Storage extends Resource implements Presentable<Gui.Storage> {
 
         this.files = config?.files || []
     }
-    toClient(): GuiElementId & Gui.Storage {
+    toClient(): GameEntity & Gui.Storage {
         return {
             ...super.toClient(),
             files: this.files.map(f => f.toClient())
@@ -108,12 +108,16 @@ interface ExecutableRequirement {
 // }
 
 export class CPU extends Resource {
+    entityType: EntityType = EntityType.RESOURCE_CPU
+
     constructor(name: string, capacity: number) {
         super({ name, capacity, type: ResourceTypes.CPU })
     }
 }
 
 export class Memory extends Resource {
+    entityType: EntityType = EntityType.RESOURCE_MEMORY
+
     constructor(name: string, capacity: number) {
         super({ name, capacity, type: ResourceTypes.MEMORY })
     }

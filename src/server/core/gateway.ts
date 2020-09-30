@@ -16,7 +16,7 @@ export interface Gateway extends ISignalEmitter { }
 @signalEmitter
 export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
-    gameId: string
+    id: string
     entityType: EntityType = EntityType.GATEWAY
 
     ip: string
@@ -37,7 +37,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
     //TODO: avoid collisions for id and ip
     constructor(config?: Partial<Gateway>) {
-        this.gameId = config?.gameId || faker.random.uuid()
+        this.id = config?.id || faker.random.uuid()
 
         this.ip = config?.ip || faker.internet.ip()
         this.hostname = config?.hostname || faker.internet.userName()
@@ -59,14 +59,22 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
     toClient(): GameEntity & Gui.Gateway {
         return {
-            guiId: this.ip,
+            id: this.id,
             entityType: this.entityType,
 
             ip: this.ip,
             hostname: this.hostname,
 
             storage: this.storage,
+            memory: this.memory,
+            cpu: this.cpu,
+            downlink: this.downlink,
+            uplink: this.uplink,
 
+            users: this.users,
+            log: this.log,
+
+            inboundConnections: this.inboundConnections,
             outboundConnection: this.outboundConnection?.toClient(),
             taskManager: this.taskManager.toClient()
         }
@@ -98,7 +106,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
         this.outboundConnection.connect(remoteGateway)
 
-        console.log(`[${this.gameId}]-[${this.hostname}] connected to [${remoteGateway.gameId}]-[${remoteGateway.ip}] - [${remoteGateway.hostname}]`)
+        console.log(`[${this.id}]-[${this.hostname}] connected to [${remoteGateway.id}]-[${remoteGateway.ip}] - [${remoteGateway.hostname}]`)
     }
 
     disconnect() {
@@ -120,7 +128,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
         const result = new OperationResult()
         const player = getCurrentPlayer()
 
-        console.log(`Login attempt from [${player.userName}] - userName[${userName}], password: [${password}] on gateway [${this.gameId}]`)
+        console.log(`Login attempt from [${player.userName}] - userName[${userName}], password: [${password}] on gateway [${this.id}]`)
 
         result.assert(player.gateway.outboundConnection !== undefined, `Not connected to remote gateway`)
         if (player.gateway.outboundConnection === undefined) return result
@@ -148,7 +156,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
     executeSoftware(id: string, ...args: any[]) {
         const validator = new OperationResult()
 
-        const file = this.storage.files.find(f => f.guiId === id)
+        const file = this.storage.files.find(f => f.id === id)
 
         validator.assert(file !== undefined, `File [${file}] not found.`)
         if (!file) return validator

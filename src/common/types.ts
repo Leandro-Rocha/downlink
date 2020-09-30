@@ -12,8 +12,7 @@ export interface Owner {
 
 export namespace Gui {
 
-    export interface Gateway extends Presentable<Gateway> {
-        guiId: string
+    export interface Gateway extends GameEntity {
         ip: string
         hostname: string
 
@@ -36,8 +35,8 @@ export namespace Gui {
         files: File[]
     }
 
-    export interface Process extends Presentable<Process>, GameEntity {
-        readonly priority: number
+    export interface Process extends GameEntity {
+        priority: number
         userName: string
         status: ProcessStatus
         description?: string
@@ -53,7 +52,7 @@ export namespace Gui {
         userToHack: Gui.User
     }
 
-    export interface TaskManager extends Presentable<TaskManager> {
+    export interface TaskManager {
         daemons: Process[]
         processes: WorkerProcess[]
     }
@@ -92,8 +91,7 @@ export namespace Gui {
     }
 
 
-    export interface File {
-        guiId: string
+    export interface File extends GameEntity {
         name: string
         size: number
     }
@@ -146,18 +144,23 @@ export interface Presentable<T> {
 
 
 export interface GameEntity {
-    gameId: string
+    id: string
     entityType: EntityType
 }
 
 export enum EntityType {
     GATEWAY = 'GATEWAY',
+    HACKED_DB_ENTRY = 'HACKED_DB_ENTRY',
+    HACKED_DB = 'HACKED_DB',
 
     FILE = 'FILE',
+    REMOTE_CONNECTION = 'REMOTE_CONNECTION',
 
     RESOURCE_STORAGE = 'RESOURCE_STORAGE',
+    RESOURCE_CPU = 'RESOURCE_CPU',
+    RESOURCE_MEMORY = 'RESOURCE_MEMORY',
 
-    WINDOW_TASK_MANAGER = 'WINDOW_TASK_MANAGER',
+    TASK_MANAGER = 'WINDOW_TASK_MANAGER',
     WINDOW_FILE_MANAGER = 'WINDOW_FILE_MANAGER',
 
     PROCESS_TRANSFER = 'PROCESS_TRANSFER',

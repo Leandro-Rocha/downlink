@@ -43,7 +43,7 @@ export class NetworkStream implements Gui.Stream, IBouncer {
         this.upStreamer = upStreamer
         this.downStreamer = downStreamer
 
-        this.description = `${upStreamer.pid}->${downStreamer.pid}`
+        this.description = `${upStreamer.id}->${downStreamer.id}`
         this.bandWidth = 0
     }
 
@@ -108,7 +108,7 @@ export class NetworkInterface implements Gui.INetworkInterface {
     capacity: number
     allocated: number
 
-    private processes: Gui.StreamerProcess[] = []
+    private processes: StreamerProcess[] = []
     prioritiesSum: number = 0
 
     constructor(name: string, type: ResourceTypes, capacity: number) {
@@ -137,7 +137,7 @@ export class NetworkInterface implements Gui.INetworkInterface {
         process.unregisterSignalHandler(this, SIGNALS.STREAM_ALLOCATION_CHANGED)
     }
 
-    getProcessMaxAllocation(process: Gui.StreamerProcess): number {
+    getProcessMaxAllocation(process: StreamerProcess): number {
         var maxAllocation = process.fairBandwidth
 
         const unusedAllocation = this.processes
@@ -154,7 +154,7 @@ export class NetworkInterface implements Gui.INetworkInterface {
         return maxAllocation
     }
 
-    handleStreamerAllocationChanged(emitter: Gui.StreamerProcess, date: any) {
+    handleStreamerAllocationChanged(emitter: StreamerProcess, date: any) {
         const otherProcesses = this.processes.filter(p => p !== emitter)
         if (otherProcesses.length === 0) return
 
@@ -192,8 +192,8 @@ export interface RemoteConnection extends SignalEmitter { }
 
 @signalEmitter
 export class RemoteConnection implements GameEntity, Gui.RemoteConnection {
-    gameId: string
-    entityType: EntityType
+    id: string
+    entityType: EntityType = EntityType.REMOTE_CONNECTION
 
     ip: string
     status: ConnectionStatus
@@ -201,15 +201,16 @@ export class RemoteConnection implements GameEntity, Gui.RemoteConnection {
 
     gateway: Gateway
 
-    constructor(config: RemoteConnection) {
-        this.gateway = config.gateway
-        this.ip = config.gateway.ip
+    constructor(config: Partial<RemoteConnection>) {
+        this.id = config.id || `RemoteConnection_${Date.now()}`
+        this.gateway = config.gateway!
+        this.ip = this.gateway.ip
         this.status = config.status || ConnectionStatus.DISCONNECTED
         this.loggedAs = config.loggedAs
     }
     toClient(): GameEntity & Gui.RemoteConnection {
         return {
-            gameId: this.gameId,
+            id: this.id,
             entityType: this.entityType,
 
             ip: this.ip,

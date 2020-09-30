@@ -2,18 +2,14 @@ import { EntityType, GameEntity } from "../../common/types.js"
 import { WorkerProcessGuiElement } from "./gui-task-manager.js"
 
 export abstract class GuiElement<T extends GameEntity> {
-    data: T
+    data!: T
     abstract element: HTMLElement
-
-    constructor(data: T) {
-        this.data = data
-    }
 
     destroy() {
         this.element.remove()
     }
 
-    abstract updateContent(data?: T): void
+    abstract updateContent(data: T): void
 }
 
 
@@ -24,7 +20,7 @@ export function syncGuiAndData(parent: HTMLElement, data: GameEntity[], gui: Gui
 
     data.forEach(dataElem => {
         gui?.forEach(guiElem => {
-            if (dataElem.gameId === guiElem.data.gameId) {
+            if (dataElem.id === guiElem.data.id) {
                 dataNewElements.remove(dataElem)
                 guiElementsToRemove.remove(guiElem)
                 guiElem.data = dataElem
@@ -33,9 +29,9 @@ export function syncGuiAndData(parent: HTMLElement, data: GameEntity[], gui: Gui
     })
 
     dataNewElements.forEach(dataElem => {
-        const newElement = createClientElement(dataElem.entityType, dataElem)
+        const newElement = createClientElement(dataElem.entityType)
+        newElement.updateContent(dataElem)
         gui.push(newElement)
-        newElement.updateContent()
         parent.appendChild(newElement.element)
     })
 
@@ -45,9 +41,9 @@ export function syncGuiAndData(parent: HTMLElement, data: GameEntity[], gui: Gui
     })
 }
 
-function createClientElement(type: EntityType, data: any): GuiElement<GameEntity> {
+function createClientElement(type: EntityType): GuiElement<GameEntity> {
     if (type === EntityType.PROCESS_CRACKER) {
-        return new WorkerProcessGuiElement(data)
+        return new WorkerProcessGuiElement()
     }
 
     throw new Error(`Software type [${type}] does not exists`)

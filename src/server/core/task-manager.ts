@@ -1,4 +1,4 @@
-import { EntityType, Presentable, Gui } from '../../common/types'
+import { EntityType, Presentable, Gui, GameEntity } from '../../common/types'
 import { Process, WorkerProcess } from './process';
 import { SignalEmitter, signalEmitter, SIGNALS } from './signal';
 import { PasswordCrackerProcess } from './software/password-cracker';
@@ -13,17 +13,19 @@ export function createProcess(type: EntityType, data: any) {
 
 export interface TaskManager extends SignalEmitter { }
 @signalEmitter
-export class TaskManager implements Presentable<Gui.TaskManager> {
+export class TaskManager implements GameEntity, Presentable<Gui.TaskManager> {
+    id: string
+    entityType: EntityType = EntityType.TASK_MANAGER
 
     daemons: Process[]
     processes: WorkerProcess[]
 
-    constructor(config?: Partial<Gui.TaskManager>) {
-        this.daemons = config?.daemons?.map(p => createProcess(p.entityType, p)) || [] //TODO:implement
+    constructor(config?: Partial<TaskManager>) {
+        this.id = config?.id || `TaskManager_${Date.now()}`
 
+        this.daemons = config?.daemons?.map(p => createProcess(p.entityType, p)) || [] //TODO:implement
         this.processes = config?.processes?.map(p => createProcess(p.entityType, p)) || []
     }
-
 
     startProcess(process: Process) {
 
@@ -51,10 +53,14 @@ export class TaskManager implements Presentable<Gui.TaskManager> {
         this.sendSignal(this, SIGNALS.TASK_UNSCHEDULED, process)
     }
 
-    toClient(): Partial<Gui.TaskManager> {
-        return <Partial<Gui.TaskManager>>{
+    toClient(): GameEntity & Gui.TaskManager {
+        return {
+            id: this.id,
+            entityType: this.entityType,
+
             daemons: [],
             processes: this.processes.map(p => p.toClient())
         }
     }
+
 }

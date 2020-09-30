@@ -21,7 +21,7 @@ export class FileManagerWindow extends Window<Gui.Storage> {
             fileElement.addEventListener('click', () => {
                 //TODO: hardcoded username input
                 const userName = (<HTMLInputElement>document.querySelector('#userNameInput')).value
-                socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, f.guiId, userName)
+                socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, f.id, userName)
             })
             fileList.appendChild(fileElement)
         })

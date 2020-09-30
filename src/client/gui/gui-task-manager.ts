@@ -26,13 +26,12 @@ export class TaskManagerWindow extends Window<Gui.TaskManager> {
 export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
     element: HTMLElement
 
-    constructor(data: Gui.WorkerProcess) {
-        super(data)
-
+    constructor() {
+        super()
         this.element = document.createElement('tr')
     }
 
-    updateContent(data?: Gui.WorkerProcess): void {
+    updateContent(data: Gui.WorkerProcess): void {
         if (data !== undefined) {
             this.data = data
         }
@@ -40,7 +39,7 @@ export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
         const pidElement = this.element.appendChild(document.createElement('td'))
         const progressElement = this.element.appendChild(document.createElement('td'))
 
-        pidElement.textContent = this.data.gameId
+        pidElement.textContent = this.data.id
 
         var workDone = this.data.workDone!
         var totalWork = this.data.totalWork

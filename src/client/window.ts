@@ -1,6 +1,3 @@
-import { socket } from './socket.js'
-import { PlayerActions, socketEvents, SoftwareTypes } from '../common/constants.js'
-import { Gui } from '../common/types.js'
 import './client-interfaces.js'
 
 // if (!localStorage.getItem('windowPositions')) {

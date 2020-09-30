@@ -11,12 +11,11 @@ import faker from "faker";
 export class PasswordCracker extends Software {
     version: number
 
-    constructor(config?: Partial<Gui.Software>) {
+    constructor(config?: Partial<Software>) {
         super(config)
 
         this.version = config?.version || 1.0
         this.name = config?.name || `PasswordCracker[${this.version}]`
-        this.guiId = config?.guiId || `${this.name}_${Date.now()}`
         this.size = config?.size || 1000
     }
 
@@ -52,12 +51,6 @@ export class PasswordCracker extends Software {
 
         result.details = { process: process }
         return result
-    }
-
-    toClient(): Partial<Gui.File> {
-        return <Partial<Gui.File>>{
-            ...super.toClient()
-        }
     }
 }
 

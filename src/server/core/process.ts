@@ -1,5 +1,5 @@
 import { ISignalEmitter, signalEmitter, SIGNALS } from "./signal"
-import { EntityType, GameEntity, GuiElementId, Presentable, Gui } from '../../common/types'
+import { EntityType, GameEntity, Presentable, Gui } from '../../common/types'
 import { ProcessStatus, ROOT } from "../../common/constants"
 import { OperationResult } from "../../shared"
 
@@ -7,7 +7,7 @@ function pidGenerator(userName: string) {
     return `${userName}_${Date.now()}`
 }
 
-interface ProcessConstructor { userName?: string, pid?: string, priority?: number, status?: ProcessStatus }
+interface ProcessConstructor { userName?: string, id?: string, priority?: number, status?: ProcessStatus }
 export interface Process extends ISignalEmitter { }
 
 export abstract class Process implements GameEntity, Presentable<Gui.Process> {
@@ -17,7 +17,7 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
     abstract entityType: EntityType
     abstract description: string
 
-    readonly pid: string
+    readonly id: string
     userName: string
     status: ProcessStatus
 
@@ -25,15 +25,13 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
 
     constructor(config: ProcessConstructor) {
         this.userName = config.userName || ROOT
-        this.pid = config.pid || pidGenerator(this.userName)
+        this.id = config.id || pidGenerator(this.userName)
         this._priority = config.priority || (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
         this.status = config.status || ProcessStatus.NEW
     }
-
-
-    toClient(): GuiElementId & Partial<Process> {
+    toClient(): GameEntity & Gui.Process {
         return {
-            guiId: this.pid,
+            id: this.id,
             entityType: this.entityType,
 
             userName: this.userName,
@@ -42,6 +40,8 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
             description: this.description,
         }
     }
+
+
 
     get priority() {
         return this._priority
@@ -58,13 +58,13 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
     }
 
     start() {
-        console.log(`Process [${this.pid}] started`)
+        console.log(`Process [${this.id}] started`)
         this.status = ProcessStatus.RUNNING
         this.sendSignal(this, SIGNALS.PROCESS_STARTED)
     }
 
     finish() {
-        console.log(`Process [${this.pid}] finished`)
+        console.log(`Process [${this.id}] finished`)
         this.status = ProcessStatus.FINISHED
         this.sendSignal(this, SIGNALS.PROCESS_FINISHED)
     }
