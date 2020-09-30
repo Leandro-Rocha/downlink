@@ -1,4 +1,4 @@
-import { ROOT, SoftwareTypes } from "../../../common/constants"
+import { ROOT } from "../../../common/constants"
 import { EntityType, Gui } from "../../../common/types"
 import { OperationResult } from "../../../shared"
 import { getCurrentPlayer } from "../game-state"
@@ -58,7 +58,9 @@ export class PasswordCracker extends Software {
 interface PasswordCrackerProcessConstructor extends WorkerProcessConstructor { password: string, userToHack: Gui.User }
 @signalEmitter
 export class PasswordCrackerProcess extends WorkerProcess {
+    id: string
     entityType: EntityType = EntityType.PROCESS_CRACKER
+    shortName: string
     description: string
 
     password: string
@@ -68,9 +70,12 @@ export class PasswordCrackerProcess extends WorkerProcess {
     constructor(config: PasswordCrackerProcessConstructor) {
         super(config)
 
+        this.id = config.id || this.pidGenerator()
+
         this.password = config.password
         this.userToHack = config.userToHack
 
+        this.shortName = 'CRCKR'
         this.description = `Breaking password of user [${this.userToHack.userName}]`
     }
 

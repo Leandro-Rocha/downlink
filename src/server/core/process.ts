@@ -3,10 +3,6 @@ import { EntityType, GameEntity, Presentable, Gui } from '../../common/types'
 import { ProcessStatus, ROOT } from "../../common/constants"
 import { OperationResult } from "../../shared"
 
-function pidGenerator(userName: string) {
-    return `${userName}_${Date.now()}`
-}
-
 interface ProcessConstructor { userName?: string, id?: string, priority?: number, status?: ProcessStatus }
 export interface Process extends ISignalEmitter { }
 
@@ -14,10 +10,11 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
     static MIN_PRIORITY = 0
     static MAX_PRIORITY = 10
 
+    abstract readonly id: string
     abstract entityType: EntityType
+    abstract shortName: string
     abstract description: string
 
-    readonly id: string
     userName: string
     status: ProcessStatus
 
@@ -25,10 +22,14 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
 
     constructor(config: ProcessConstructor) {
         this.userName = config.userName || ROOT
-        this.id = config.id || pidGenerator(this.userName)
         this._priority = config.priority || (Process.MIN_PRIORITY + Process.MAX_PRIORITY) / 2
         this.status = config.status || ProcessStatus.NEW
     }
+
+    pidGenerator() {
+        return `${this.shortName}_${Date.now()}`
+    }
+
     toClient(): GameEntity & Gui.Process {
         return {
             id: this.id,
@@ -72,13 +73,16 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
 
 }
 
+
 export interface StreamerProcess extends ISignalEmitter { }
 
 // TODO: refactor download logic
 @signalEmitter
 export class StreamerProcess extends Process {
+    id: string
     entityType: EntityType = EntityType.PROCESS_TRANSFER
-    description: string = 'File transfer'
+    shortName: string
+    description: string
 
     networkInterface: Gui.INetworkInterface
     stream!: Gui.Stream
@@ -98,9 +102,14 @@ export class StreamerProcess extends Process {
     constructor(networkInterface: Gui.INetworkInterface) {
         super({ userName: 'REFACTOR_ME_PLEASE' })
 
+        this.id = this.pidGenerator()
+
         this.networkInterface = networkInterface
         this._bandWidth = 0
         this.isBounded = false
+
+        this.shortName = 'TRNSF'
+        this.description = 'File transfer'
     }
 
     updateBandwidth(amount: number) {
@@ -155,14 +164,11 @@ export abstract class WorkerProcess extends Process implements Presentable<Gui.W
     }
 
     checkStatus() {
-        // clearTimeout(this.timeout)
         const now = Date.now()
         const elapsedTime = now - this.lastUpdate
 
         this.lastUpdate = now
         this.workDone += elapsedTime
-
-        // this.timeout = setTimeout(() => this.finish(), this.totalWork - this.workDone)
     }
 
     doWork(elapsedTime: number): void {
@@ -170,6 +176,7 @@ export abstract class WorkerProcess extends Process implements Presentable<Gui.W
     }
 
     toClient() {
+        this.checkStatus()
         return {
             ...super.toClient(),
             totalWork: this.totalWork,

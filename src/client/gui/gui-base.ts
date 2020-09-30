@@ -1,5 +1,18 @@
-import { EntityType, GameEntity } from "../../common/types.js"
-import { WorkerProcessGuiElement } from "./gui-task-manager.js"
+import { GameEntity } from "../../common/types.js"
+import { createClientElement } from "../client-interfaces.js"
+
+
+declare global {
+    interface Array<T> {
+        remove(item: T): Array<T>;
+    }
+}
+
+Array.prototype.remove = function (item) {
+    this.splice(this.indexOf(item), 1)
+    return this
+}
+
 
 export abstract class GuiElement<T extends GameEntity> {
     data!: T
@@ -10,41 +23,42 @@ export abstract class GuiElement<T extends GameEntity> {
     }
 
     abstract updateContent(data: T): void
-}
 
+    syncGuiAndData(data: GameEntity[], gui: GuiElement<GameEntity>[], newElementHandler?: (newElement: GuiElement<GameEntity>) => void) {
 
-export function syncGuiAndData(parent: HTMLElement, data: GameEntity[], gui: GuiElement<GameEntity>[]) {
+        const dataNewElements = [...data]
+        const guiElementsToRemove = [...gui]
 
-    const dataNewElements = [...data]
-    const guiElementsToRemove = [...gui]
+        // Identify items to be create or removed and update existing ones
+        data.forEach(dataElem => {
+            gui?.forEach(guiElem => {
+                if (dataElem.id === guiElem.data.id) {
 
-    data.forEach(dataElem => {
-        gui?.forEach(guiElem => {
-            if (dataElem.id === guiElem.data.id) {
-                dataNewElements.remove(dataElem)
-                guiElementsToRemove.remove(guiElem)
-                guiElem.data = dataElem
-            }
+                    dataNewElements.remove(dataElem)
+                    guiElementsToRemove.remove(guiElem)
+
+                    guiElem.updateContent(dataElem)
+                }
+            })
         })
-    })
 
-    dataNewElements.forEach(dataElem => {
-        const newElement = createClientElement(dataElem.entityType)
-        newElement.updateContent(dataElem)
-        gui.push(newElement)
-        parent.appendChild(newElement.element)
-    })
+        dataNewElements.forEach(dataElem => {
+            const newElement = createClientElement(dataElem.entityType)
+            newElement.updateContent(dataElem)
 
-    guiElementsToRemove.forEach(guiElem => {
-        guiElem.destroy()
-        gui.remove(guiElem)
-    })
-}
+            gui.push(newElement)
 
-function createClientElement(type: EntityType): GuiElement<GameEntity> {
-    if (type === EntityType.PROCESS_CRACKER) {
-        return new WorkerProcessGuiElement()
+            if (newElementHandler !== undefined) newElementHandler(newElement)
+        })
+
+        guiElementsToRemove.forEach(guiElem => {
+            guiElem.destroy()
+            gui.remove(guiElem)
+        })
     }
-
-    throw new Error(`Software type [${type}] does not exists`)
 }
+
+
+
+
+

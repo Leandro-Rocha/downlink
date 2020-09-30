@@ -1,18 +1,13 @@
-import { WorkerProcessGuiElement } from "./gui/gui-task-manager"
+import { GuiElement } from "./gui/gui-base.js"
+import { EntityType, GameEntity } from "../common/types.js"
+import { WorkerProcessGuiElement } from "./gui/gui-worker-process.js"
 
-declare global {
-    interface Array<T> {
-        remove(item: T): Array<T>;
+export function createClientElement(type: EntityType): GuiElement<GameEntity> {
+    if (type === EntityType.PROCESS_CRACKER) {
+
+        return new WorkerProcessGuiElement()
     }
+
+    throw new Error(`Software type [${type}] does not exists`)
 }
 
-Array.prototype.remove = function (item) {
-    this.splice(this.indexOf(item), 1)
-    return this
-}
-
-export namespace Client {
-    export interface ProcessClientMap {
-        'CRACKER': WorkerProcessGuiElement
-    }
-}

@@ -1,11 +1,13 @@
+import { GameEntity } from '../common/types.js'
 import './client-interfaces.js'
+import { GuiElement } from './gui/gui-base.js'
 
 // if (!localStorage.getItem('windowPositions')) {
 //     localStorage.setItem('windowPositions', JSON.stringify('{}'))
 
 // }
 
-function setWindowData(window: Window<never>) {
+function setWindowData(window: Window<any>) {
     if (!localStorage.getItem('windowData')) {
         localStorage.setItem('windowData', '{}')
     }
@@ -34,13 +36,13 @@ export interface WindowConfig {
     width?: number
 }
 
-export abstract class Window<T> implements WindowConfig {
-    static draggingWindowObject: Window<never>
+export abstract class Window<T extends GameEntity> extends GuiElement<T> implements WindowConfig {
+    static draggingWindowObject: Window<any>
     static mouseStartingX: number
     static mouseStartingY: number
     static draggingWindow: HTMLElement | null
 
-    windowElement: HTMLDivElement
+    element: HTMLDivElement
     headerElement: HTMLDivElement
     contentElement: HTMLDivElement
 
@@ -55,14 +57,16 @@ export abstract class Window<T> implements WindowConfig {
 
     width: number
 
-    constructor(config: WindowConfig) {
-        this.id = config.id
-        this.title = config.title
+    constructor(config: Partial<Window<T>>) {
+        super()
+
+        this.id = config.id!
+        this.title = config.title!
 
         this.bindWindowPosition()
 
         const newWindow = createWindowElement(this)
-        this.windowElement = newWindow.windowElement
+        this.element = newWindow.windowElement
         this.headerElement = newWindow.headerElement
         this.contentElement = newWindow.contentElement
 
@@ -77,9 +81,9 @@ export abstract class Window<T> implements WindowConfig {
             get() { return this._x },
             set(newValue) {
                 var boundedValue = Math.max(newValue, 0)
-                boundedValue = Math.min(boundedValue, window.innerWidth - this.windowElement.offsetWidth)
+                boundedValue = Math.min(boundedValue, window.innerWidth - this.element.offsetWidth)
 
-                this.windowElement.style.left = boundedValue + 'px'
+                this.element.style.left = boundedValue + 'px'
                 this._x = boundedValue
             },
             enumerable: true
@@ -89,9 +93,9 @@ export abstract class Window<T> implements WindowConfig {
             get() { return this._y },
             set(newValue) {
                 var boundedValue = Math.max(newValue, 0)
-                boundedValue = Math.min(boundedValue, window.innerHeight - this.windowElement.offsetHeight)
+                boundedValue = Math.min(boundedValue, window.innerHeight - this.element.offsetHeight)
 
-                this.windowElement.style.top = boundedValue + 'px'
+                this.element.style.top = boundedValue + 'px'
                 this._y = boundedValue
             },
             enumerable: true
@@ -132,7 +136,7 @@ type CreateWindowResult = {
     headerElement: HTMLDivElement
     contentElement: HTMLDivElement
 }
-function createWindowElement(window: Window<never>): CreateWindowResult {
+function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWindowResult {
     const windowDiv = document.createElement('div')
     windowDiv.id = window.id
     windowDiv.classList.add('window')

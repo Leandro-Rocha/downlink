@@ -101,7 +101,9 @@ export class NetworkStream implements Gui.Stream, IBouncer {
     }
 }
 
-export class NetworkInterface implements Gui.INetworkInterface {
+export class NetworkInterface {
+    id: string
+    entityType: EntityType = EntityType.NETWORK_INTERFACE
 
     name: string
     type: ResourceTypes
@@ -112,6 +114,7 @@ export class NetworkInterface implements Gui.INetworkInterface {
     prioritiesSum: number = 0
 
     constructor(name: string, type: ResourceTypes, capacity: number) {
+        this.id = `NetworkInterface_${Date.now()}`
         this.name = name
         this.type = type
         this.capacity = capacity

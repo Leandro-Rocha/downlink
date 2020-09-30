@@ -51,7 +51,3 @@ export enum ResourceTypes {
     STORAGE = 'STORAGE',
 }
 
-export enum SoftwareTypes {
-    TRANSFER = 'TRANSFER',
-    CRACKER = 'CRACKER',
-}

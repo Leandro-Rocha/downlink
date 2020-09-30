@@ -30,8 +30,9 @@ export function createClientState(player: Player) {
             gameState.remoteGateway = player.gateway.outboundConnection.gateway.toClient()
             delete gameState.remoteGateway.outboundConnection
 
-            if (player.gateway.outboundConnection.status === ConnectionStatus.LOGGED) {
-                gameState.remoteGateway.log = new Log({ entries: [...player.gateway.outboundConnection.gateway.log.entries] })
+            if (player.gateway.outboundConnection.status !== ConnectionStatus.LOGGED) {
+                delete gameState.remoteGateway.log
+                // gameState.remoteGateway.log = new Log({ entries: [...player.gateway.outboundConnection.gateway.log.entries] })
             }
         }
     }

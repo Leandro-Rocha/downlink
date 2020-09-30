@@ -44,7 +44,7 @@ export namespace Gui {
 
     export interface WorkerProcess extends Process {
         totalWork: number
-        workDone?: number
+        workDone: number
     }
 
     export interface PasswordCrackerProcess extends WorkerProcess {
@@ -52,7 +52,7 @@ export namespace Gui {
         userToHack: Gui.User
     }
 
-    export interface TaskManager {
+    export interface TaskManager extends GameEntity {
         daemons: Process[]
         processes: WorkerProcess[]
     }
@@ -67,7 +67,7 @@ export namespace Gui {
         entries: LogEntry[]
     }
 
-    export interface Resource {
+    export interface Resource extends GameEntity {
         name: string
         type: ResourceTypes
         capacity: number
@@ -155,6 +155,7 @@ export enum EntityType {
 
     FILE = 'FILE',
     REMOTE_CONNECTION = 'REMOTE_CONNECTION',
+    NETWORK_INTERFACE = 'NETWORK_INTERFACE',
 
     RESOURCE_STORAGE = 'RESOURCE_STORAGE',
     RESOURCE_CPU = 'RESOURCE_CPU',
