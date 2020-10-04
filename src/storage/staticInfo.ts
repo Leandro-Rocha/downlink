@@ -1,10 +1,10 @@
 import faker from 'faker'
-import { Gateway } from "../server/core/gateway";
+import { createInitialGateway, Gateway } from "../server/core/gateway";
 import { GatewayStore } from "./gateway-store";
 import { PlayerStore } from "./player-store";
-import { Player } from "../server/core/owner";
 import { File } from '../server/core/resource'
 import { PasswordCracker } from '../server/core/software/password-cracker';
+import { Player } from '../server/core/player/player';
 
 export async function generateGateways() {
     GatewayStore.clear()
@@ -18,17 +18,9 @@ export async function generateGateways() {
 
 export async function generatePlayers() {
     PlayerStore.clear()
-    const player = new Player('Leandro', 'alze')
-    player.gateway = new Gateway({ hostname: 'alze-gateway' })
-    player.gateway.storage.files.push(new PasswordCracker({ name: 'Password Cracker', size: 100 }))
+    const player = new Player('alze')
+    player.gateway = createInitialGateway('alze')
 
     PlayerStore.savePlayer(player)
     GatewayStore.saveGateway(player.gateway)
-
-    const player2 = new Player('Hanoi', 'hanoi')
-    player2.gateway = new Gateway({ hostname: 'hanoi-gateway' })
-    player2.gateway.storage.files.push(new PasswordCracker({ name: 'Password Cracker', size: 100 }))
-
-    PlayerStore.savePlayer(player2)
-    GatewayStore.saveGateway(player2.gateway)
 }

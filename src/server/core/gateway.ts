@@ -10,6 +10,7 @@ import { User } from './player/hacked-db'
 import { getCurrentPlayer } from './game-state'
 import { ConnectionStatus } from '../../common/constants'
 import { ISignalEmitter, signalEmitter, SIGNALS } from './signal'
+import { PasswordCracker } from './software/password-cracker'
 
 export interface Gateway extends ISignalEmitter { }
 
@@ -190,4 +191,17 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
         return validator
     }
+}
+
+
+
+/**
+ * New players will start with this gateway config
+ */
+export function createInitialGateway(userName: string) {
+    const newGateway = new Gateway({ hostname: `${userName}-gateway` })
+
+    newGateway.storage.files.push(new PasswordCracker())
+
+    return newGateway
 }

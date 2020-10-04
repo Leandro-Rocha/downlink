@@ -1,4 +1,4 @@
-import { Player } from "../server/core/owner"
+import { Player } from "../server/core/player/player"
 
 
 export class PlayerStore {

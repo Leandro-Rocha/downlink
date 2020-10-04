@@ -1,6 +1,7 @@
 import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
 
 export interface GameState {
+    userName: string
     localGateway: Partial<Gui.Gateway>
     remoteGateway?: Partial<Gui.Gateway>
     hackedDB: Partial<Gui.HackedDB>

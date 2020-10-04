@@ -3,7 +3,6 @@ import http from 'http'
 import { ConnectionStatus, PlayerActions, socketEvents } from '../../common/constants'
 import { PlayerStore } from '../../storage/player-store'
 import { GatewayStore } from '../../storage/gateway-store'
-import { Player } from './owner'
 import { createClientState, createPlayerContext } from './game-state'
 import { Gateway } from './gateway'
 import { SIGNALS } from './signal'
@@ -11,6 +10,8 @@ import { Process } from './process'
 import { TaskManager } from './task-manager'
 import { createNamespace } from 'cls-hooked'
 import { RemoteConnection } from './network-interfaces'
+import { onRegisterUser } from '../infra/register-player'
+import { Player } from './player/player'
 
 export function createSocketHandler(config: { httpServer: http.Server }) {
     return new SocketHandler(config.httpServer)
@@ -126,14 +127,6 @@ function emitError(message: string) {
 
 
 
-function onRegisterUser(userName: string) {
-    const newPlayer = new Player(userName, userName)
-    newPlayer.gateway = new Gateway()
-
-    GatewayStore.saveGateway(newPlayer.gateway)
-    PlayerStore.savePlayer(newPlayer)
-    console.info(`New player registered: ${userName}`)
-}
 
 
 

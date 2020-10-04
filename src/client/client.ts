@@ -29,7 +29,7 @@ function registerUser() {
     const userName = (<HTMLInputElement>document.querySelector('#registerUserInput')).value
     localStorage.setItem('user', userName)
     socket.emit(socketEvents.REGISTER_USER, userName)
-    playerConnected()
+    window.location.reload()
 }
 
 function login() {
@@ -44,7 +44,7 @@ export function connectToGateway() {
 }
 
 export function updateGameState(newState: GameState) {
-    // console.log(newState)
+    console.log(newState)
 
     gameState = newState
 
@@ -62,6 +62,9 @@ function updateLocalGateway() {
 
     const ip = (<HTMLSpanElement>document.querySelector('#localIp'))
     ip.textContent = gameState.localGateway.ip!
+
+    const owner = (<HTMLSpanElement>document.querySelector('#localOwner'))
+    owner.textContent = gameState.userName
 
     const localLog = (<HTMLInputElement>document.querySelector('#localLog'))
     localLog.value = ''

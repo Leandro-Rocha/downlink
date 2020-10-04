@@ -2,11 +2,11 @@ import { ROOT } from "../../../common/constants"
 import { EntityType, Gui } from "../../../common/types"
 import { OperationResult } from "../../../shared"
 import { getCurrentPlayer } from "../game-state"
-import { Player } from "../owner"
 import { WorkerProcess, WorkerProcessConstructor } from "../process"
 import { signalEmitter, SIGNALS } from "../signal"
 import { Software, SpawnProcessResult } from "./software"
 import faker from "faker";
+import { Player } from "../player/player"
 
 export class PasswordCracker extends Software {
     version: number
@@ -15,7 +15,7 @@ export class PasswordCracker extends Software {
         super(config)
 
         this.version = config?.version || 1.0
-        this.name = config?.name || `PasswordCracker[${this.version}]`
+        this.name = config?.name || `PasswordCracker[v${this.version}]`
         this.size = config?.size || 1000
     }
 
@@ -70,13 +70,14 @@ export class PasswordCrackerProcess extends WorkerProcess {
     constructor(config: PasswordCrackerProcessConstructor) {
         super(config)
 
-        this.id = config.id || this.pidGenerator()
-
         this.password = config.password
         this.userToHack = config.userToHack
 
         this.shortName = 'CRCKR'
         this.description = `Breaking password of user [${this.userToHack.userName}]`
+
+
+        this.id = config.id || this.pidGenerator()
     }
 
     start() {

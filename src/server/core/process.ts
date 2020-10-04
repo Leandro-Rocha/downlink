@@ -102,14 +102,15 @@ export class StreamerProcess extends Process {
     constructor(networkInterface: Gui.INetworkInterface) {
         super({ userName: 'REFACTOR_ME_PLEASE' })
 
-        this.id = this.pidGenerator()
+        this.shortName = 'TRNSF'
+        this.description = 'File transfer'
 
         this.networkInterface = networkInterface
         this._bandWidth = 0
         this.isBounded = false
 
-        this.shortName = 'TRNSF'
-        this.description = 'File transfer'
+
+        this.id = this.pidGenerator()
     }
 
     updateBandwidth(amount: number) {

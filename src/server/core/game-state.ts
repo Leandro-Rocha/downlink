@@ -1,8 +1,8 @@
 import { createNamespace, getNamespace } from 'cls-hooked'
 import { ConnectionStatus } from "../../common/constants"
-import { GameState, Gui } from "../../common/types"
+import { GameState } from "../../common/types"
 import { Log } from "./log"
-import { Player } from "./owner"
+import { Player } from './player/player'
 
 const CONTEXT_NAME = 'playerContext'
 
@@ -17,6 +17,7 @@ export function createPlayerContext() {
 export function createClientState(player: Player) {
 
     const gameState: GameState = {
+        userName: player.userName,
         localGateway: player.gateway.toClient(),
         hackedDB: player.hackedDB.toClient()
     }
