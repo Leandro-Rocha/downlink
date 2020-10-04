@@ -1,6 +1,7 @@
 import { PlayerActions, socketEvents } from '../common/constants.js'
 import { GameState, Gui } from '../common/types.js'
 import { FileManagerWindow } from './gui/gui-file-manager.js'
+import { HackedDbWindow } from './gui/gui-hacked-db.js'
 import { TaskManagerWindow } from './gui/gui-task-manager.js'
 import { socket } from './socket.js'
 
@@ -18,6 +19,7 @@ const remoteLogTab = (<HTMLInputElement>document.querySelector('#remoteLogDiv'))
 
 const fileManager = new FileManagerWindow({ id: 'file-manager', title: 'File Manager' })
 const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager' })
+const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB' })
 
 var gameState: GameState
 
@@ -65,6 +67,8 @@ function updateLocalGateway() {
 
     const owner = (<HTMLSpanElement>document.querySelector('#localOwner'))
     owner.textContent = gameState.userName
+
+    hackedDB.updateContent(gameState.hackedDB)
 
     const localLog = (<HTMLInputElement>document.querySelector('#localLog'))
     localLog.value = ''

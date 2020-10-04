@@ -11,6 +11,7 @@ import { getCurrentPlayer } from './game-state'
 import { ConnectionStatus } from '../../common/constants'
 import { ISignalEmitter, signalEmitter, SIGNALS } from './signal'
 import { PasswordCracker } from './software/password-cracker'
+import { NetworkScanner } from './software/network-scanner'
 
 export interface Gateway extends ISignalEmitter { }
 
@@ -73,7 +74,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
             uplink: this.uplink,
 
             users: this.users,
-            log: this.log,
+            log: this.log.toClient(),
 
             inboundConnections: this.inboundConnections,
             outboundConnection: this.outboundConnection?.toClient(),
@@ -201,6 +202,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 export function createInitialGateway(userName: string) {
     const newGateway = new Gateway({ hostname: `${userName}-gateway` })
 
+    newGateway.storage.files.push(new NetworkScanner())
     newGateway.storage.files.push(new PasswordCracker())
 
     return newGateway

@@ -4,7 +4,7 @@ export interface GameState {
     userName: string
     localGateway: Partial<Gui.Gateway>
     remoteGateway?: Partial<Gui.Gateway>
-    hackedDB: Partial<Gui.HackedDB>
+    hackedDB: Gui.HackedDB
 }
 
 export interface Owner {
@@ -64,7 +64,7 @@ export namespace Gui {
         partial: boolean
     }
 
-    export interface Log {
+    export interface Log extends GameEntity {
         entries: LogEntry[]
     }
 
@@ -129,12 +129,12 @@ export namespace Gui {
         isBounded: boolean
     }
 
-    export interface HackedDbEntry {
+    export interface HackedDbEntry extends GameEntity {
         ip: string
         users: User[]
     }
 
-    export interface HackedDB {
+    export interface HackedDB extends GameEntity {
         entries: HackedDbEntry[]
     }
 }
@@ -157,6 +157,7 @@ export enum EntityType {
     FILE = 'FILE',
     REMOTE_CONNECTION = 'REMOTE_CONNECTION',
     NETWORK_INTERFACE = 'NETWORK_INTERFACE',
+    LOG = 'LOG',
 
     RESOURCE_STORAGE = 'RESOURCE_STORAGE',
     RESOURCE_CPU = 'RESOURCE_CPU',
@@ -167,4 +168,5 @@ export enum EntityType {
 
     PROCESS_TRANSFER = 'PROCESS_TRANSFER',
     PROCESS_CRACKER = 'PROCESS_CRACKER',
+    PROCESS_NETWORK_SCANNER = 'PROCESS_NETWORK_SCANNER',
 }

@@ -103,6 +103,8 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
     }
 
     startMoving(e: MouseEvent) {
+        e.preventDefault()
+
         Window.mouseStartingX = e.offsetX
         Window.mouseStartingY = e.offsetY
         Window.draggingWindowObject = this
@@ -147,6 +149,7 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     windowDiv.appendChild(headerDiv)
 
     const contentDiv = document.createElement('div')
+    contentDiv.classList.add('window-content')
     windowDiv.appendChild(contentDiv)
 
     const headerTitleDiv = document.createElement('span')
@@ -156,7 +159,6 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     //  Brings clicked window to top level
     windowDiv.style.zIndex = document.querySelectorAll('.window').length.toString()
     windowDiv.addEventListener("mousedown", function (e) {
-        e.preventDefault()
         const allWindows = (<NodeListOf<HTMLDivElement>>document.querySelectorAll('.window'))
 
         allWindows.forEach((e: HTMLDivElement) => {
