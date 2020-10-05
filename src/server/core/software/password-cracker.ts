@@ -9,6 +9,7 @@ import faker from "faker";
 import { Player } from "../player/player"
 
 export class PasswordCracker extends Software {
+    entityType = EntityType.SOFTWARE_CRACKER
     version: number
 
     constructor(config?: Partial<Software>) {

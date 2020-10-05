@@ -85,7 +85,7 @@ export namespace Gui {
         handleProcessPriorityChanged(): void
     }
 
-    export interface RemoteConnection {
+    export interface RemoteConnection extends GameEntity {
         status: ConnectionStatus
         ip: string
         loggedAs?: string
@@ -157,7 +157,7 @@ export enum EntityType {
     FILE = 'FILE',
     REMOTE_CONNECTION = 'REMOTE_CONNECTION',
     NETWORK_INTERFACE = 'NETWORK_INTERFACE',
-    
+
     LOG = 'LOG',
     LOG_ENTRY = 'LOG_ENTRY',
 
@@ -169,6 +169,10 @@ export enum EntityType {
     WINDOW_FILE_MANAGER = 'WINDOW_FILE_MANAGER',
 
     PROCESS_TRANSFER = 'PROCESS_TRANSFER',
+    
     PROCESS_CRACKER = 'PROCESS_CRACKER',
+    SOFTWARE_CRACKER = 'SOFTWARE_CRACKER',
+
     PROCESS_NETWORK_SCANNER = 'PROCESS_NETWORK_SCANNER',
+    SOFTWARE_NETWORK_SCANNER = 'SOFTWARE_NETWORK_SCANNER',
 }

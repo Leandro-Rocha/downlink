@@ -67,7 +67,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
             ip: this.ip,
             hostname: this.hostname,
 
-            storage: this.storage,
+            storage: this.storage.toClient(),
             memory: this.memory,
             cpu: this.cpu,
             downlink: this.downlink,

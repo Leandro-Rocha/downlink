@@ -8,8 +8,8 @@
     width: 100%;
     height: 25px;
 
-    background: rgb(0,118,130);
-    background: linear-gradient(180deg, rgba(0,118,130,1) 0%, rgba(10,19,29,1) 30%, rgb(10, 19, 29) 70%, rgba(9,30,40,1) 100%);
+    background: rgb(0,92,130);
+    background: linear-gradient(180deg, rgba(0,92,130,1) 0%, rgba(10,19,29,1) 30%, rgba(10,19,29,1) 70%, rgba(9,30,40,1) 100%); 
 }
 
 ul{

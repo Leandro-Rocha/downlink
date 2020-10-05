@@ -12,6 +12,7 @@ import { Software, SpawnProcessResult } from "./software";
 
 
 export class NetworkScanner extends Software {
+    entityType = EntityType.SOFTWARE_NETWORK_SCANNER
     version: number
 
 
@@ -37,8 +38,6 @@ export class NetworkScanner extends Software {
         return result
     }
 }
-
-
 
 @signalEmitter
 export class NetworkScannerProcess extends WorkerProcess {
