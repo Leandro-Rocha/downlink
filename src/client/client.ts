@@ -6,6 +6,7 @@ import { LogWindow } from './gui/gui-log.js'
 import { TaskManagerWindow } from './gui/gui-task-manager.js'
 import { RemoteConnectionWindow } from './gui/window-remote-connection.js'
 import { socket } from './socket.js'
+import { WindowDomain } from './window.js'
 
 document.querySelector('#resetDataBtn')?.addEventListener('click', resetData)
 document.querySelector('#remoteLoginBtn')?.addEventListener('click', login)
@@ -17,11 +18,13 @@ const remoteGatewayDiv = (<HTMLDivElement>document.querySelector('#remoteGateway
 const remoteSshTab = document.querySelector('#remote_ssh') as HTMLInputElement
 const remoteLogTab = (<HTMLInputElement>document.querySelector('#remoteLogDiv'))
 
-const log = new LogWindow({ id: 'local-log', title: 'Local Log' })
-const fileManagerWindow = new FileManagerWindow({ id: 'file-manager', title: 'File Manager' })
-const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager' })
-const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB' })
-const remoteConnectionWindow = new RemoteConnectionWindow({ id: 'remote-connection', title: 'Remote Connection' })
+const log = new LogWindow({ id: 'local-log', title: 'Local Log', domain: WindowDomain.LOCAL })
+const localFileManagerWindow = new FileManagerWindow({ id: 'local-file-manager', title: 'File Manager', domain: WindowDomain.LOCAL })
+const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager', domain: WindowDomain.LOCAL })
+const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB', domain: WindowDomain.LOCAL })
+
+const remoteConnectionWindow = new RemoteConnectionWindow({ id: 'remote-connection', title: 'Remote Connection', domain: WindowDomain.REMOTE })
+const remoteFileManagerWindow = new FileManagerWindow({ id: 'remote-file-manager', title: 'File Manager', domain: WindowDomain.REMOTE })
 
 var gameState: GameState
 
@@ -73,7 +76,7 @@ function updateLocalGateway() {
     }
 
     if (gameState.localGateway.storage !== undefined) {
-        fileManagerWindow.updateContent(gameState.localGateway.storage)
+        localFileManagerWindow.updateContent(gameState.localGateway.storage)
     }
 
     if (gameState.localGateway.taskManager !== undefined) {
@@ -94,10 +97,17 @@ function updateRemoteGateway() {
     // if (gameState.remoteGateway.log !== undefined) {
     //     gameState.remoteGateway.log.entries.forEach(entry => remoteLog.value += `${entry.message} \n`)
 
+    if (gameState.remoteGateway.storage !== undefined) {
+        remoteFileManagerWindow.updateContent(gameState.remoteGateway.storage)
+    }
+
+
     const userName = (<HTMLInputElement>document.querySelector('#userNameInput'))
     const password = (<HTMLInputElement>document.querySelector('#passwordInput'))
     const hackedDbEntry = gameState.hackedDB.entries?.find(e => e.ip === gameState.remoteGateway!.ip)
-   
+
+
+
     // if (hackedDbEntry !== undefined) {
     //     userName.value = hackedDbEntry.users[0].userName
     //     password.value = hackedDbEntry.users[0].password

@@ -33,9 +33,14 @@ enum WindowState {
     RESTORED = 'RESTORED',
     MINIMIZED = 'MINIMIZED',
 }
+export enum WindowDomain {
+    LOCAL = 'LOCAL',
+    REMOTE = 'REMOTE',
+}
 export interface WindowConfig {
     id: string
     title: string
+    domain: WindowDomain
     x?: number
     y?: number
     width?: number
@@ -43,6 +48,7 @@ export interface WindowConfig {
 }
 
 export abstract class Window<T extends GameEntity> extends GuiElement<T> implements WindowConfig {
+
     static draggingWindowObject: Window<any>
     static mouseStartingX: number
     static mouseStartingY: number
@@ -57,6 +63,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
 
     id: string
     title: string
+    domain: WindowDomain
 
     x: number
     private _x!: number
@@ -75,6 +82,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
 
         this.id = config.id!
         this.title = config.title!
+        this.domain = config.domain!
 
         this.bindWindowPosition()
 
@@ -117,7 +125,6 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
     restore() {
         this.state = WindowState.RESTORED
         const hack = (this.positionCSS as any).style.top = getWindowData(this.id).y + 'px' // HACK =[
-
         this.savePosition()
 
         this.element.classList.remove('minimizeTransitions')
@@ -134,6 +141,18 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         }
     }
 
+    bringToFront() {
+        const allWindows = (<NodeListOf<HTMLDivElement>>document.querySelectorAll('.window'))
+
+        allWindows.forEach((e: HTMLDivElement) => {
+            if (e.style.zIndex > this.element.style.zIndex) {
+                var zIndex = Number(e.style.zIndex)
+                e.style.zIndex = (--zIndex).toString()
+            }
+        })
+
+        this.element.style.zIndex = document.querySelectorAll('.window').length.toString()
+    }
 
     bindWindowPosition() {
         Object.defineProperty(this, 'x', {
@@ -193,6 +212,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
             {
                 id: this.id,
                 title: this.title,
+                domain: this.domain,
                 x: this.x,
                 y: this.y,
                 width: this.width,
@@ -214,33 +234,35 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     windowDiv.id = window.id
     windowDiv.classList.add('window')
     document.body.appendChild(windowDiv)
-
+    
     const headerDiv = document.createElement('div')
     headerDiv.classList.add('header')
     windowDiv.appendChild(headerDiv)
-
+    
     const contentDiv = document.createElement('div')
     contentDiv.classList.add('window-content')
     windowDiv.appendChild(contentDiv)
+    
+    const domainClass = getTargetDomainClass(window.domain)
+    windowDiv.classList.add(domainClass)
+    headerDiv.classList.add(domainClass)
+    contentDiv.classList.add(domainClass)
+    
 
     const headerTitleDiv = document.createElement('span')
     headerTitleDiv.textContent = window.title
     headerDiv.appendChild(headerTitleDiv)
 
+    const windowControlDiv = document.createElement('div')
+    headerDiv.appendChild(windowControlDiv)
+
+    const minimizeDiv = document.createElement('div')
+    windowControlDiv.appendChild(minimizeDiv)
+
+
     //  Brings clicked window to top level
     windowDiv.style.zIndex = document.querySelectorAll('.window').length.toString()
-    windowDiv.addEventListener("mousedown", function (e) {
-        const allWindows = (<NodeListOf<HTMLDivElement>>document.querySelectorAll('.window'))
-
-        allWindows.forEach((e: HTMLDivElement) => {
-            if (e.style.zIndex > windowDiv.style.zIndex) {
-                var zIndex = Number(e.style.zIndex)
-                e.style.zIndex = (--zIndex).toString()
-            }
-        })
-
-        windowDiv.style.zIndex = document.querySelectorAll('.window').length.toString()
-    })
+    windowDiv.addEventListener("mousedown", window.bringToFront.bind(window))
 
     headerDiv.addEventListener("mousedown", (e) => window.startMoving(e), false)
 
@@ -248,12 +270,30 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
 }
 
 function createMinimizedElement(window: Window<any>) {
-    const leftMenuList = document.querySelector('#localMenu')!
+    const targetMenu = getTargetMenu(window.domain)
     const minimizedElement = document.createElement('li')
     minimizedElement.innerText = window.title
-    minimizedElement.addEventListener('click', window.toggle.bind(window))
+    minimizedElement.addEventListener('click', () => {
+        if (window.state === WindowState.MINIMIZED) {
+            window.restore()
+        }
 
-    leftMenuList.appendChild(minimizedElement)
+        window.bringToFront()
+    })
+
+    targetMenu.appendChild(minimizedElement)
 
     return minimizedElement
+}
+
+function getTargetMenu(domain: WindowDomain) {
+    if (domain === WindowDomain.LOCAL)
+        return document.querySelector('#localMenu')!
+
+    return document.querySelector('#remoteMenu')!
+}
+
+function getTargetDomainClass(domain: WindowDomain) {
+    if (domain === WindowDomain.LOCAL) return 'local'
+    return 'remote'
 }

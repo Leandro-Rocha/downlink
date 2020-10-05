@@ -1,4 +1,6 @@
-
+*{
+    font-family: 'White Rabbit';
+}
 
 #guiHeader{
     position: fixed;
@@ -12,6 +14,15 @@
     background: linear-gradient(180deg, rgba(0,92,130,1) 0%, rgba(10,19,29,1) 30%, rgba(10,19,29,1) 70%, rgba(9,30,40,1) 100%); 
 }
 
+thead td{
+    background-color: #0B4C6D;
+    color: #93b9df;
+}
+
+td{
+    background-color: #062F42;
+}
+
 ul{
     padding: 0px;
     margin: 0px;
@@ -19,7 +30,6 @@ ul{
 
 li{
     list-style: none;
-    font-family: 'White Rabbit';
 
     margin: 3px;
     padding-top: 10px;

@@ -24,6 +24,10 @@ export function createClientElement(type: EntityType): GuiElement<GameEntity> {
         return new LogEntryGuiElement()
     }
 
+    if (type === EntityType.FILE) {
+        return new FileGuiElement()
+    }
+
     if (type === EntityType.SOFTWARE_NETWORK_SCANNER) {
         return new SoftwareGuiElement()
     }
