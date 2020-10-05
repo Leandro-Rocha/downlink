@@ -1,13 +1,14 @@
+import { resolve } from 'path'
 import { GameEntity } from '../common/types.js'
 import './client-interfaces.js'
-import { GuiElement } from './gui/gui-base.js'
+import { createCSSRule, GuiElement } from './gui/gui-base.js'
 
 // if (!localStorage.getItem('windowPositions')) {
 //     localStorage.setItem('windowPositions', JSON.stringify('{}'))
 
 // }
 
-function setWindowData(window: Window<any>) {
+function setWindowData(window: WindowConfig) {
     if (!localStorage.getItem('windowData')) {
         localStorage.setItem('windowData', '{}')
     }
@@ -28,12 +29,17 @@ function getWindowData(id: string) {
 }
 
 
+enum WindowState {
+    RESTORED = 'RESTORED',
+    MINIMIZED = 'MINIMIZED',
+}
 export interface WindowConfig {
     id: string
     title: string
     x?: number
     y?: number
     width?: number
+    state?: WindowState
 }
 
 export abstract class Window<T extends GameEntity> extends GuiElement<T> implements WindowConfig {
@@ -42,20 +48,27 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
     static mouseStartingY: number
     static draggingWindow: HTMLElement | null
 
+    positionCSS: CSSRule
     element: HTMLDivElement
     headerElement: HTMLDivElement
     contentElement: HTMLDivElement
+
+    minimizedElement: HTMLLIElement
 
     id: string
     title: string
 
     x: number
     private _x!: number
+    restoredX!: number
 
     y: number
     private _y!: number
+    restoredY!: number
 
     width: number
+
+    state: WindowState
 
     constructor(config: Partial<Window<T>>) {
         super()
@@ -70,11 +83,57 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         this.headerElement = newWindow.headerElement
         this.contentElement = newWindow.contentElement
 
-        this.x = config.x || getWindowData(this.id)?.x || 100
-        this.y = config.y || getWindowData(this.id)?.y || 100
+        this.minimizedElement = createMinimizedElement(this)
 
-        this.width = config.width || getWindowData(this.id)?.width || 300
+        this.positionCSS = createCSSRule(`.${this.id}-position`)
+        this.element.classList.add(`${this.id}-position`)
+
+
+        // Disable transitions while creating the window
+        this.element.style.transition = 'none'
+        setTimeout(() => this.element.style.transition = '', 1);
+
+        const storedPosition = getWindowData(this.id)
+        this.x = config.x || storedPosition?.x || 100
+        this.y = config.y || storedPosition?.y || 100
+        this.width = config.width || storedPosition?.width || 300
+        this.state = config.state || storedPosition?.state || WindowState.MINIMIZED
+
+        if (this.state === WindowState.MINIMIZED) this.minimize()
+        else this.restore()
     }
+
+    minimize() {
+        this.state = WindowState.MINIMIZED
+        this.savePosition()
+
+        const hack = (this.positionCSS as any).style.top = this.minimizedElement.offsetTop + 25 + 'px' // HACK =[
+
+        this.element.classList.remove('restoreTransitions')
+        this.element.classList.add('minimizeTransitions')
+        this.element.classList.add('minimized')
+    }
+
+    restore() {
+        this.state = WindowState.RESTORED
+        const hack = (this.positionCSS as any).style.top = getWindowData(this.id).y + 'px' // HACK =[
+
+        this.savePosition()
+
+        this.element.classList.remove('minimizeTransitions')
+        this.element.classList.add('restoreTransitions')
+        this.element.classList.remove('minimized')
+    }
+
+    toggle() {
+        if (this.state === WindowState.MINIMIZED) {
+            this.restore()
+        }
+        else {
+            this.minimize()
+        }
+    }
+
 
     bindWindowPosition() {
         Object.defineProperty(this, 'x', {
@@ -83,7 +142,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
                 var boundedValue = Math.max(newValue, 0)
                 boundedValue = Math.min(boundedValue, window.innerWidth - this.element.offsetWidth)
 
-                this.element.style.left = boundedValue + 'px'
+                this.positionCSS.style.left = boundedValue + 'px'
                 this._x = boundedValue
             },
             enumerable: true
@@ -95,7 +154,8 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
                 var boundedValue = Math.max(newValue, 0)
                 boundedValue = Math.min(boundedValue, window.innerHeight - this.element.offsetHeight)
 
-                this.element.style.top = boundedValue + 'px'
+
+                this.positionCSS.style.top = boundedValue + 'px'
                 this._y = boundedValue
             },
             enumerable: true
@@ -104,6 +164,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
 
     startMoving(e: MouseEvent) {
         e.preventDefault()
+        this.element.style.transition = 'none'
 
         Window.mouseStartingX = e.offsetX
         Window.mouseStartingY = e.offsetY
@@ -116,6 +177,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         document.addEventListener("mouseup", function () {
             document.removeEventListener("mousemove", handler, false)
             Window.draggingWindowObject.savePosition()
+            Window.draggingWindowObject.element.style.transition = ''
         }, false)
     }
 
@@ -127,7 +189,16 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
     }
 
     savePosition() {
-        setWindowData(this)
+        setWindowData(
+            {
+                id: this.id,
+                title: this.title,
+                x: this.x,
+                y: this.y,
+                width: this.width,
+                state: this.state
+            }
+        )
     }
 
     abstract updateContent(content: T): void
@@ -174,4 +245,15 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     headerDiv.addEventListener("mousedown", (e) => window.startMoving(e), false)
 
     return { windowElement: windowDiv, headerElement: headerDiv, contentElement: contentDiv }
+}
+
+function createMinimizedElement(window: Window<any>) {
+    const leftMenuList = document.querySelector('#localMenu')!
+    const minimizedElement = document.createElement('li')
+    minimizedElement.innerText = window.title
+    minimizedElement.addEventListener('click', window.toggle.bind(window))
+
+    leftMenuList.appendChild(minimizedElement)
+
+    return minimizedElement
 }

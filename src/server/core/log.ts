@@ -9,7 +9,7 @@ export class Log implements GameEntity, Presentable<Gui.Log>  {
     id: string
     entityType: EntityType = EntityType.LOG
 
-    entries: Gui.LogEntry[]
+    entries: LogEntry[]
 
     constructor(config?: Partial<Log>) {
         this.id = `${this.entityType}_${Date.now()}`
@@ -17,8 +17,8 @@ export class Log implements GameEntity, Presentable<Gui.Log>  {
     }
 
     addEntry(message: string) {
-        const timestamp = format(Date.now(), 'yyyy-MM-dd HH:mm:ss.SSS')
-        const entry: Gui.LogEntry = { timestamp, message }
+        const timestamp = format(Date.now(), 'yyyy-MM-dd HH:mm:ss')
+        const entry: LogEntry = new LogEntry({ timestamp, message })
         this.entries.push(entry)
         this.sendSignal(this, SIGNALS.LOG_CHANGED, entry)
     }
@@ -27,7 +27,34 @@ export class Log implements GameEntity, Presentable<Gui.Log>  {
         return {
             id: this.id,
             entityType: this.entityType,
-            entries: this.entries
+            entries: this.entries.map(e => e.toClient())
+        }
+    }
+}
+
+
+export class LogEntry implements GameEntity, Presentable<Gui.LogEntry>
+{
+    id: string
+    entityType: EntityType = EntityType.LOG_ENTRY
+
+    timestamp: string
+    message: string
+
+    constructor(config: { timestamp: string, message: string }) {
+        this.id = `${this.entityType}_${Date.now()}`
+
+        this.timestamp = config.timestamp
+        this.message = config.message
+    }
+
+
+    toClient(): GameEntity & Gui.LogEntry {
+        return {
+            id: this.id,
+            entityType: this.entityType,
+            timestamp: this.timestamp,
+            message: this.message
         }
     }
 }

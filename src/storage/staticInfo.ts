@@ -12,6 +12,10 @@ export async function generateGateways() {
     for (let i = 0; i < 10; i++) {
         const gateway = new Gateway({ hostname: `${faker.company.companyName()} ${faker.company.companySuffix()}` })
 
+        for (let j = 0; j < 5; j++) {
+            gateway.storage.files.push(new File({ name: faker.system.fileName(), size: faker.random.number({ min: 100, max: 1000 }) }))
+        }
+
         GatewayStore.saveGateway(gateway)
     }
 }

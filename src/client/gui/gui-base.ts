@@ -13,6 +13,13 @@ Array.prototype.remove = function (item) {
     return this
 }
 
+export function createCSSRule(selector: string, style: string = '') {
+    const documentStyleSheet = document.styleSheets[0]
+    const ruleIndex = documentStyleSheet.insertRule(`${selector}{${style}}`)
+
+    return documentStyleSheet.cssRules.item(ruleIndex)!
+}
+
 
 export abstract class GuiElement<T extends GameEntity> {
     data!: T
@@ -57,8 +64,5 @@ export abstract class GuiElement<T extends GameEntity> {
         })
     }
 }
-
-
-
 
 

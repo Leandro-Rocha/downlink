@@ -2,6 +2,7 @@ import { PlayerActions, socketEvents } from '../common/constants.js'
 import { GameState, Gui } from '../common/types.js'
 import { FileManagerWindow } from './gui/gui-file-manager.js'
 import { HackedDbWindow } from './gui/gui-hacked-db.js'
+import { LogWindow } from './gui/gui-log.js'
 import { TaskManagerWindow } from './gui/gui-task-manager.js'
 import { socket } from './socket.js'
 
@@ -13,10 +14,10 @@ document.querySelector('#registerUserBtn')?.addEventListener('click', registerUs
 const remoteIpInput = (<HTMLInputElement>document.querySelector('#remoteIpInput'))
 
 const remoteGatewayDiv = (<HTMLDivElement>document.querySelector('#remoteGateway'))
-const localGatewayDiv = (<HTMLDivElement>document.querySelector('#localGateway'))
-const remoteSshTab = (<HTMLInputElement>document.querySelector('#remote_ssh'))
+const remoteSshTab = document.querySelector('#remote_ssh') as HTMLInputElement
 const remoteLogTab = (<HTMLInputElement>document.querySelector('#remoteLogDiv'))
 
+const log = new LogWindow({ id: 'local-log', title: 'Local Log' })
 const fileManager = new FileManagerWindow({ id: 'file-manager', title: 'File Manager' })
 const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager' })
 const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB' })
@@ -56,24 +57,19 @@ export function updateGameState(newState: GameState) {
 
 function updateLocalGateway() {
     if (gameState === undefined) {
-        localGatewayDiv.classList.add('hidden')
         return
     }
 
-    localGatewayDiv.classList.remove('hidden')
-
     const ip = (<HTMLSpanElement>document.querySelector('#localIp'))
-    ip.textContent = gameState.localGateway.ip!
+    // ip.textContent = gameState.localGateway.ip!
 
     const owner = (<HTMLSpanElement>document.querySelector('#localOwner'))
-    owner.textContent = gameState.userName
+    // owner.textContent = gameState.userName
 
     hackedDB.updateContent(gameState.hackedDB)
 
-    const localLog = (<HTMLInputElement>document.querySelector('#localLog'))
-    localLog.value = ''
     if (gameState.localGateway.log !== undefined) {
-        gameState.localGateway.log.entries.forEach(entry => localLog.value += `${entry.timestamp} - ${entry.message}\n`)
+        log.updateContent(gameState.localGateway.log)
     }
 
     if (gameState.localGateway.storage !== undefined) {

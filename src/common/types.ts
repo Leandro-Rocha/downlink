@@ -101,7 +101,7 @@ export namespace Gui {
         version: number
     }
 
-    export interface LogEntry {
+    export interface LogEntry extends GameEntity {
         timestamp: string
         message: string
     }
@@ -157,7 +157,9 @@ export enum EntityType {
     FILE = 'FILE',
     REMOTE_CONNECTION = 'REMOTE_CONNECTION',
     NETWORK_INTERFACE = 'NETWORK_INTERFACE',
+    
     LOG = 'LOG',
+    LOG_ENTRY = 'LOG_ENTRY',
 
     RESOURCE_STORAGE = 'RESOURCE_STORAGE',
     RESOURCE_CPU = 'RESOURCE_CPU',
