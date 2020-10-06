@@ -24,4 +24,8 @@ export class RemoteConnectionWindow extends Window<Gui.RemoteConnection> {
 
 
     }
+
+    getDefaultPosition() {
+        return { width: 500 }
+    }
 }

@@ -16,7 +16,6 @@ export class LogWindow extends Window<Gui.Log> {
         super(config)
 
         this.element.classList.add('window-log')
-        this.contentElement.classList.add('window-log-content')
 
         this.logTable = document.createElement('table')
         this.logTable.innerHTML = `<thead><td id='timestamp_header' >Timestamp</td><td>Message</td></thead>`
@@ -29,5 +28,9 @@ export class LogWindow extends Window<Gui.Log> {
 
     updateContent(data: Gui.Log): void {
         this.syncGuiAndData(data.entries, this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
+    }
+
+    getDefaultPosition() {
+        return { width: 500 }
     }
 }

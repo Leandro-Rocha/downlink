@@ -23,4 +23,8 @@ export class HackedDbWindow extends Window<Gui.HackedDB> {
     updateContent(data: Gui.HackedDB): void {
         this.syncGuiAndData(data.entries, this.entries, (newElement) => this.hackedDbTable.appendChild(newElement.element))
     }
+
+    getDefaultPosition() {
+        return { width: 500 }
+    }
 }

@@ -73,7 +73,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
     private _y!: number
     restoredY!: number
 
-    width: number
+    width?: number
 
     state: WindowState
 
@@ -102,14 +102,18 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         setTimeout(() => this.element.style.transition = '', 1);
 
         const storedPosition = getWindowData(this.id)
+        const defaultPosition = this.getDefaultPosition()
         this.x = config.x || storedPosition?.x || 100
         this.y = config.y || storedPosition?.y || 100
-        this.width = config.width || storedPosition?.width || 300
+        this.width = config.width || storedPosition?.width || defaultPosition.width
         this.state = config.state || storedPosition?.state || WindowState.MINIMIZED
 
         if (this.state === WindowState.MINIMIZED) this.minimize()
         else this.restore()
     }
+
+    abstract getDefaultPosition(): { x?: number, y?: number, width?: number, height?: number }
+
 
     minimize() {
         this.state = WindowState.MINIMIZED
@@ -117,11 +121,11 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
 
         const hack = (this.positionCSS as any).style.top = this.minimizedElement.offsetTop + 25 + 'px' // HACK =[
 
-        this.contentElement.style.overflow = 'hidden'
-
-        this.element.classList.remove('restoreTransitions')
-        this.element.classList.add('minimizeTransitions')
+        this.element.classList.remove('restored')
         this.element.classList.add('minimized')
+
+        this.contentElement.classList.remove('restored')
+        this.contentElement.classList.add('minimized')
     }
 
     restore() {
@@ -129,11 +133,11 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         const hack = (this.positionCSS as any).style.top = getWindowData(this.id).y + 'px' // HACK =[
         this.savePosition()
 
-        this.contentElement.style.overflow = ''
-
-        this.element.classList.remove('minimizeTransitions')
-        this.element.classList.add('restoreTransitions')
         this.element.classList.remove('minimized')
+        this.element.classList.add('restored')
+
+        this.contentElement.classList.remove('minimized')
+        this.contentElement.classList.add('restored')
     }
 
     toggle() {
@@ -180,6 +184,15 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
 
                 this.positionCSS.style.top = boundedValue + 'px'
                 this._y = boundedValue
+            },
+            enumerable: true
+        })
+
+        Object.defineProperty(this, 'width', {
+            get() { return this._width },
+            set(newValue) {
+                this.positionCSS.style.width = newValue + 'px'
+                this._width = newValue
             },
             enumerable: true
         })
@@ -244,7 +257,7 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     windowDiv.appendChild(headerDiv)
 
     const contentDiv = document.createElement('div')
-    contentDiv.classList.add('window-content')
+    contentDiv.classList.add('content')
     windowDiv.appendChild(contentDiv)
 
     const domainClass = getTargetDomainClass(window.domain)
@@ -262,7 +275,7 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     headerDiv.appendChild(windowControlDiv)
 
     const minimizeDiv = document.createElement('div')
-    minimizeDiv.classList.add('minimize')
+    minimizeDiv.classList.add('minimize-control')
     windowControlDiv.appendChild(minimizeDiv)
 
     minimizeDiv.addEventListener('click', window.minimize.bind(window))
@@ -270,9 +283,14 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
 
     //  Brings clicked window to top level
     windowDiv.style.zIndex = document.querySelectorAll('.window').length.toString()
-    windowDiv.addEventListener("mousedown", window.bringToFront.bind(window))
+    windowDiv.addEventListener('mousedown', window.bringToFront.bind(window))
 
-    headerDiv.addEventListener("mousedown", (e) => window.startMoving(e), false)
+    headerDiv.addEventListener('mousedown', (e) => {
+        e.preventDefault()
+        if (e.target !== headerDiv) return
+
+        window.startMoving(e)
+    })
 
     return { windowElement: windowDiv, headerElement: headerDiv, contentElement: contentDiv }
 }
@@ -285,7 +303,6 @@ function createMinimizedElement(window: Window<any>) {
         if (window.state === WindowState.MINIMIZED) {
             window.restore()
         }
-
         window.bringToFront()
     })
 

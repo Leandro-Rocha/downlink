@@ -20,4 +20,8 @@ export class TaskManagerWindow extends Window<Gui.TaskManager> {
     updateContent(data: Gui.TaskManager): void {
         this.syncGuiAndData(data.processes, this.processes, (newElement) => this.taskManagerTable.appendChild(newElement.element))
     }
+
+    getDefaultPosition() {
+        return { width: 500 }
+    }
 }
