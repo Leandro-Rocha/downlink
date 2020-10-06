@@ -1,5 +1,5 @@
 import { PlayerActions, socketEvents } from '../common/constants.js'
-import { GameState, Gui } from '../common/types.js'
+import { GameState } from '../common/types.js'
 import { FileManagerWindow } from './gui/gui-file-manager.js'
 import { HackedDbWindow } from './gui/gui-hacked-db.js'
 import { LogWindow } from './gui/gui-log.js'

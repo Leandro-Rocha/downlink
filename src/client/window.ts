@@ -281,13 +281,13 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     minimizeDiv.addEventListener('click', window.minimize.bind(window))
 
 
-    //  Brings clicked window to top level
     windowDiv.style.zIndex = document.querySelectorAll('.window').length.toString()
     windowDiv.addEventListener('mousedown', window.bringToFront.bind(window))
 
+    // Window dragging
     headerDiv.addEventListener('mousedown', (e) => {
         e.preventDefault()
-        if (e.target !== headerDiv) return
+        if (e.target === minimizeDiv) return
 
         window.startMoving(e)
     })
