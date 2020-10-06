@@ -14,16 +14,15 @@ document.querySelector('#registerUserBtn')?.addEventListener('click', registerUs
 
 const remoteIpInput = (<HTMLInputElement>document.querySelector('#remoteIpInput'))
 
-const remoteGatewayDiv = (<HTMLDivElement>document.querySelector('#remoteGateway'))
 const remoteSshTab = document.querySelector('#remote_ssh') as HTMLInputElement
-const remoteLogTab = (<HTMLInputElement>document.querySelector('#remoteLogDiv'))
 
-const log = new LogWindow({ id: 'local-log', title: 'Local Log', domain: WindowDomain.LOCAL })
+const localLog = new LogWindow({ id: 'local-log', title: 'Local Log', domain: WindowDomain.LOCAL })
 const localFileManagerWindow = new FileManagerWindow({ id: 'local-file-manager', title: 'File Manager', domain: WindowDomain.LOCAL })
 const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager', domain: WindowDomain.LOCAL })
 const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB', domain: WindowDomain.LOCAL })
 
 const remoteConnectionWindow = new RemoteConnectionWindow({ id: 'remote-connection', title: 'Remote Connection', domain: WindowDomain.REMOTE })
+const remoteLog = new LogWindow({ id: 'remote-log', title: 'Remote Log', domain: WindowDomain.REMOTE })
 const remoteFileManagerWindow = new FileManagerWindow({ id: 'remote-file-manager', title: 'File Manager', domain: WindowDomain.REMOTE })
 
 var gameState: GameState
@@ -72,7 +71,7 @@ function updateLocalGateway() {
     hackedDB.updateContent(gameState.hackedDB)
 
     if (gameState.localGateway.log !== undefined) {
-        log.updateContent(gameState.localGateway.log)
+        localLog.updateContent(gameState.localGateway.log)
     }
 
     if (gameState.localGateway.storage !== undefined) {
@@ -94,8 +93,9 @@ function updateRemoteGateway() {
 
     // owner.textContent = gameState.remoteGateway.hostname!
 
-    // if (gameState.remoteGateway.log !== undefined) {
-    //     gameState.remoteGateway.log.entries.forEach(entry => remoteLog.value += `${entry.message} \n`)
+    if (gameState.remoteGateway.log !== undefined) {
+        remoteLog.updateContent(gameState.remoteGateway.log)
+    }
 
     if (gameState.remoteGateway.storage !== undefined) {
         remoteFileManagerWindow.updateContent(gameState.remoteGateway.storage)
