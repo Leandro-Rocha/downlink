@@ -16,10 +16,8 @@
 }
 
 .header {
-    display: flex;
     width: 100%;
     height: 25px;
-    padding-top: 6px;
     color: #e6e6e6;
     cursor: default;
 }
@@ -34,6 +32,17 @@
     background: linear-gradient(180deg, rgba(130,0,0,1) 0%, rgba(10,19,29,1) 30%, rgba(9,30,40,1) 70%, rgba(130,0,0,1) 100%);
 }
 
+.window-control{
+    float: right;
+    margin-right: 6px;
+}
+
+.minimize{
+    border-bottom: 3px solid white;
+    width: 15px;
+    height: 13px;
+    cursor: pointer;
+}
 
 .window-content{
     overflow-y: auto;
@@ -64,15 +73,18 @@
 }
 
 .header span {
-    padding-top: 3px;
     padding-left: 5px;
+    position: relative;
+    top: 5px;
 }
+
 
 .minimizeTransitions{
     transition: height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1),
                 top 0.4s cubic-bezier(0.19, 1, 0.22, 1) 0.2s,
                 width 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s,
                 left 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s,
+                right 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s,
                 opacity 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s,
                 visibility 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s
     ;
@@ -81,9 +93,16 @@
 .minimized{
     width: 0px;
     height: 30px;
-    left: 3px;
     opacity: 0;
     visibility: hidden;
+}
+
+.minimized.local{
+    left: 3px ;
+}
+
+.minimized.remote{
+    left: 90% ;
 }
 
 .restoreTransitions{

@@ -117,6 +117,8 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
 
         const hack = (this.positionCSS as any).style.top = this.minimizedElement.offsetTop + 25 + 'px' // HACK =[
 
+        this.contentElement.style.overflow = 'hidden'
+
         this.element.classList.remove('restoreTransitions')
         this.element.classList.add('minimizeTransitions')
         this.element.classList.add('minimized')
@@ -126,6 +128,8 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         this.state = WindowState.RESTORED
         const hack = (this.positionCSS as any).style.top = getWindowData(this.id).y + 'px' // HACK =[
         this.savePosition()
+
+        this.contentElement.style.overflow = ''
 
         this.element.classList.remove('minimizeTransitions')
         this.element.classList.add('restoreTransitions')
@@ -234,30 +238,34 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     windowDiv.id = window.id
     windowDiv.classList.add('window')
     document.body.appendChild(windowDiv)
-    
+
     const headerDiv = document.createElement('div')
     headerDiv.classList.add('header')
     windowDiv.appendChild(headerDiv)
-    
+
     const contentDiv = document.createElement('div')
     contentDiv.classList.add('window-content')
     windowDiv.appendChild(contentDiv)
-    
+
     const domainClass = getTargetDomainClass(window.domain)
     windowDiv.classList.add(domainClass)
     headerDiv.classList.add(domainClass)
     contentDiv.classList.add(domainClass)
-    
+
 
     const headerTitleDiv = document.createElement('span')
     headerTitleDiv.textContent = window.title
     headerDiv.appendChild(headerTitleDiv)
 
     const windowControlDiv = document.createElement('div')
+    windowControlDiv.classList.add('window-control')
     headerDiv.appendChild(windowControlDiv)
 
     const minimizeDiv = document.createElement('div')
+    minimizeDiv.classList.add('minimize')
     windowControlDiv.appendChild(minimizeDiv)
+
+    minimizeDiv.addEventListener('click', window.minimize.bind(window))
 
 
     //  Brings clicked window to top level
