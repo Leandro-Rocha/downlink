@@ -49,7 +49,7 @@ export function connectToGateway(remoteIp: string) {
 }
 
 export function updateGameState(newState: GameState) {
-    console.log(newState)
+    console.log(socket.id ,newState)
 
     gameState = newState
 

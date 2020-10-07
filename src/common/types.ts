@@ -1,6 +1,7 @@
 import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
 
 export interface GameState {
+    timestamp: number
     userName: string
     localGateway: Partial<Gui.Gateway>
     remoteGateway?: Partial<Gui.Gateway>
@@ -169,7 +170,7 @@ export enum EntityType {
     WINDOW_FILE_MANAGER = 'WINDOW_FILE_MANAGER',
 
     PROCESS_TRANSFER = 'PROCESS_TRANSFER',
-    
+
     PROCESS_CRACKER = 'PROCESS_CRACKER',
     SOFTWARE_CRACKER = 'SOFTWARE_CRACKER',
 

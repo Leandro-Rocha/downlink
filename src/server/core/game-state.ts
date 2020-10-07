@@ -17,6 +17,7 @@ export function createPlayerContext() {
 export function createClientState(player: Player) {
 
     const gameState: GameState = {
+        timestamp: process.hrtime()[1],
         userName: player.userName,
         localGateway: player.gateway.toClient(),
         hackedDB: player.hackedDB.toClient()
@@ -27,7 +28,6 @@ export function createClientState(player: Player) {
     // TODO: move to method
     if (player.gateway.outboundConnection?.status !== ConnectionStatus.DISCONNECTED) {
         if (player.gateway.outboundConnection?.gateway !== undefined) {
-
             gameState.remoteGateway = player.gateway.outboundConnection.gateway.toClient()
             delete gameState.remoteGateway.outboundConnection
 

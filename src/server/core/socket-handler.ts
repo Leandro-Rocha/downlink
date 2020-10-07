@@ -115,6 +115,8 @@ function unregisterPlayerSignals(player: Player) {
 
 
 function sendClientState(socket: io.Socket, player: Player) {
+    console.log(`Updating player [${player.userName}] on socket [${socket.id}]`)
+
     socket.emit(socketEvents.UPDATE_STATE, createClientState(player))
 }
 
