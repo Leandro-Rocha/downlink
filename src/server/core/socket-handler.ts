@@ -51,7 +51,7 @@ function onPlayerConnect(socket: io.Socket, userName: string) {
 
     if (player === undefined) {
         console.log(`Player not found`)
-        socket.emit(socketEvents.ERROR, `Player not found`)
+        // socket.emit(socketEvents.ERROR, `Player not found`)
         return
     }
 

@@ -10,3 +10,4 @@ socket.on(socketEvents.CONNECT, () => {
 
 socket.on(socketEvents.UPDATE_STATE, (newState: any) => updateGameState(newState))
 socket.on(socketEvents.GOD_MODE, (newState: any) => godMode(newState))
+// socket.on(socketEvents.ERROR, (error: any) => handleError(error))

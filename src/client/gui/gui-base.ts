@@ -1,5 +1,5 @@
 import { GameEntity } from "../../common/types.js"
-import { createClientElement } from "../client-interfaces.js"
+import { createClientElement } from "../internals.js"
 
 
 declare global {

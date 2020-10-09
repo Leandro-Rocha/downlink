@@ -1,29 +1,12 @@
+import './internals.js'
 import { PlayerActions, socketEvents } from '../common/constants.js'
 import { GameState } from '../common/types.js'
-import { FileManagerWindow } from './gui/gui-file-manager.js'
-import { HackedDbWindow } from './gui/gui-hacked-db.js'
-import { LogWindow } from './gui/gui-log.js'
-import { TaskManagerWindow } from './gui/gui-task-manager.js'
-import { RemoteConnectionWindow } from './gui/window-remote-connection.js'
 import { socket } from './socket.js'
-import { WindowDomain } from './window.js'
+import { hackedDB, localLog, localFileManagerWindow, taskManager, remoteLog, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow } from './gui/gui.js'
 
-document.querySelector('#resetDataBtn')?.addEventListener('click', resetData)
 document.querySelector('#remoteLoginBtn')?.addEventListener('click', login)
 document.querySelector('#registerUserBtn')?.addEventListener('click', registerUser)
 
-const remoteIpInput = (<HTMLInputElement>document.querySelector('#remoteIpInput'))
-
-const remoteSshTab = document.querySelector('#remote_ssh') as HTMLInputElement
-
-const localLog = new LogWindow({ id: 'local-log', title: 'Local Log', domain: WindowDomain.LOCAL })
-const localFileManagerWindow = new FileManagerWindow({ id: 'local-file-manager', title: 'File Manager', domain: WindowDomain.LOCAL })
-const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager', domain: WindowDomain.LOCAL })
-const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB', domain: WindowDomain.LOCAL })
-
-const remoteConnectionWindow = new RemoteConnectionWindow({ id: 'remote-connection', title: 'Remote Connection', domain: WindowDomain.REMOTE })
-const remoteLog = new LogWindow({ id: 'remote-log', title: 'Remote Log', domain: WindowDomain.REMOTE })
-const remoteFileManagerWindow = new FileManagerWindow({ id: 'remote-file-manager', title: 'File Manager', domain: WindowDomain.REMOTE })
 
 var gameState: GameState
 
@@ -49,7 +32,7 @@ export function connectToGateway(remoteIp: string) {
 }
 
 export function updateGameState(newState: GameState) {
-    console.log(socket.id ,newState)
+    console.log(socket.id, newState)
 
     gameState = newState
 
@@ -62,11 +45,10 @@ function updateLocalGateway() {
         return
     }
 
-    const ip = (<HTMLSpanElement>document.querySelector('#localIp'))
-    // ip.textContent = gameState.localGateway.ip!
-
-    const owner = (<HTMLSpanElement>document.querySelector('#localOwner'))
-    // owner.textContent = gameState.userName
+    if (gameState.localGateway.hostname) {
+        localDomain.navigation.updateContent({ hostname: gameState.localGateway.hostname })
+        connectionWindow.updateContent({ localHostname: gameState.localGateway.hostname })
+    }
 
     hackedDB.updateContent(gameState.hackedDB)
 
@@ -89,9 +71,9 @@ function updateRemoteGateway() {
         return
     }
 
-    // ip.textContent = gameState.remoteGateway.ip!
-
-    // owner.textContent = gameState.remoteGateway.hostname!
+    if (gameState.remoteGateway.hostname) {
+        remoteDomain.navigation.updateContent({ hostname: gameState.remoteGateway.hostname })
+    }
 
     if (gameState.remoteGateway.log !== undefined) {
         remoteLog.updateContent(gameState.remoteGateway.log)
@@ -122,9 +104,4 @@ function updateRemoteGateway() {
 export function godMode(newState: any) {
     console.log('god mode', newState)
 
-}
-
-
-export function resetData() {
-    // socket.emit(socketEvents.RESET_DATA)
 }

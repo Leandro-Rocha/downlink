@@ -1,7 +1,6 @@
-import { resolve } from 'path'
 import { GameEntity } from '../common/types.js'
-import './client-interfaces.js'
 import { createCSSRule, GuiElement } from './gui/gui-base.js'
+import { Domain } from './gui/domain.js'
 
 // if (!localStorage.getItem('windowPositions')) {
 //     localStorage.setItem('windowPositions', JSON.stringify('{}'))
@@ -33,14 +32,10 @@ enum WindowState {
     RESTORED = 'RESTORED',
     MINIMIZED = 'MINIMIZED',
 }
-export enum WindowDomain {
-    LOCAL = 'LOCAL',
-    REMOTE = 'REMOTE',
-}
 export interface WindowConfig {
     id: string
     title: string
-    domain: WindowDomain
+    domain: Domain
     x?: number
     y?: number
     width?: number
@@ -63,7 +58,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
 
     id: string
     title: string
-    domain: WindowDomain
+    domain: Domain
 
     x: number
     private _x!: number
@@ -119,7 +114,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         this.state = WindowState.MINIMIZED
         this.savePosition()
 
-        const hack = (this.positionCSS as any).style.top = this.minimizedElement.offsetTop + 25 + 'px' // HACK =[
+        const hack = (this.positionCSS as any).style.top = this.minimizedElement.offsetTop + 40 + 'px' // HACK =[
 
         this.element.classList.remove('restored')
         this.element.classList.add('minimized')
@@ -260,7 +255,7 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     contentDiv.classList.add('content')
     windowDiv.appendChild(contentDiv)
 
-    const domainClass = getTargetDomainClass(window.domain)
+    const domainClass = window.domain.cssClass
     windowDiv.classList.add(domainClass)
     headerDiv.classList.add(domainClass)
     contentDiv.classList.add(domainClass)
@@ -296,7 +291,7 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
 }
 
 function createMinimizedElement(window: Window<any>) {
-    const targetMenu = getTargetMenu(window.domain)
+    const targetMenu = window.domain.navigation.menuElement
     const minimizedElement = document.createElement('li')
     minimizedElement.innerText = window.title
     minimizedElement.addEventListener('click', () => {
@@ -309,16 +304,4 @@ function createMinimizedElement(window: Window<any>) {
     targetMenu.appendChild(minimizedElement)
 
     return minimizedElement
-}
-
-function getTargetMenu(domain: WindowDomain) {
-    if (domain === WindowDomain.LOCAL)
-        return document.querySelector('#localMenu')!
-
-    return document.querySelector('#remoteMenu')!
-}
-
-function getTargetDomainClass(domain: WindowDomain) {
-    if (domain === WindowDomain.LOCAL) return 'local'
-    return 'remote'
 }

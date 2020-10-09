@@ -1,25 +1,103 @@
-*{
+:root {
+    --local-background-color: #052133;
+    --remote-background-color: #3a0303;
+    --GUI_HEADER_HEIGHT: 35px;
+}
+
+* {
     font-family: 'White Rabbit';
 }
 
-#guiHeader{
+#guiHeader {
     position: fixed;
     top: 0px;
     left: 0px;
 
     width: 100%;
-    height: 25px;
+    height: var(--GUI_HEADER_HEIGHT);
 
-    background: rgb(0,92,130);
-    background: linear-gradient(180deg, rgba(0,92,130,1) 0%, rgba(10,19,29,1) 30%, rgba(10,19,29,1) 70%, rgba(9,30,40,1) 100%); 
+    background: var(--local-background-color);
+    background: linear-gradient(180deg, #005c82 0%, #0a131d 30%, #0a131d 70%, #091e28 100%);
 }
 
-ul{
+#connectionDivMinimized {
+    border: 1px solid white;
+    width: 100px;
+    height: 30px;
+    position: relative;
+    /* top: -15px; */
+    /* margin: 0 auto; */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.connectionDiv {
+    border: 1px solid gainsboro;
+    width: 400px;
+    height: 300px;
+    position: absolute;
+    /* top: -15px; */
+    /* margin: 0 auto; */
+    top: var(--GUI_HEADER_HEIGHT);
+    left: 50%;
+    transform: translate(-50%, 0%);
+
+    background: rgb(5, 33, 51);
+    background: linear-gradient(90deg, rgba(5, 33, 51, 1) 0%, rgba(255, 255, 255, 1) 3%, rgba(255, 255, 255, 1) 97%, rgba(58, 3, 3, 1) 100%);
+}
+
+.connectionDiv .gatewayDiv {
+    display: table;
+    text-align: center;
+    width: 200px;
+}
+
+.connectionDiv .gatewayDiv.local {
+    position: absolute;
+    top: 30px;
+    left: -10px;
+}
+
+.connectionDiv .gatewayDiv.remote {
+    position: absolute;
+    top: 30px;
+    right: -10px;
+}
+
+.connectionDiv .hostname {
+    display: table-row;
+}
+
+.connectionDiv .ipInput {
+    text-align: center;
+    width: 120px;
+}
+
+.connectionDiv .connectButton {
+    margin-top: 5px;
+}
+
+.icon-server {
+    font-size: 40px;
+}
+
+.icon-server.local {
+    font-size: 40px;
+    color: #3973ad;
+}
+
+.icon-server.remote {
+    font-size: 40px;
+    color: #ad3939;
+}
+
+ul {
     padding: 0px;
     margin: 0px;
 }
 
-li{
+li {
     list-style: none;
 
     margin: 3px;
@@ -28,47 +106,55 @@ li{
     padding-left: 10px;
 }
 
-.sideNav{
+.sideNav {
     position: fixed;
-    top: 25px;
+    top: var(--GUI_HEADER_HEIGHT);
 
     width: 150px;
     height: 100%;
 }
 
-#leftNav{
-    left: 0px;
-    background: #052133;
+.sideNav .hostname {
+    color: white;
+    padding-left: 8px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    margin-top: 10px;
 }
 
-#leftNav li{
+#localNav {
+    left: 0px;
+    background: var(--local-background-color);
+}
+
+#localNav li {
     background-color: #083450;
     color: #7897B5;
 }
 
-#leftNav li:hover{
+#localNav li:hover {
     background-color: #0B4C6D;
     color: #93b9df;
     cursor: pointer;
 }
 
 
-#rightNav{
+#remoteNav {
     right: 0px;
-    background: #3a0303;
+    background: var(--remote-background-color);
 }
 
-#rightNav ul{
+#remoteNav ul {
     padding: 0px;
     margin: 0px;
 }
 
-#rightNav li{
+#remoteNav li {
     background-color: #640606;
     color: #b57878;
 }
 
-#rightNav li:hover{
+#remoteNav li:hover {
     background-color: #821919;
     color: #e09191;
     cursor: pointer;
