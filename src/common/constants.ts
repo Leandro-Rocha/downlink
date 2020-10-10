@@ -1,8 +1,6 @@
-import { Gui } from "./types";
-
 export const ROOT = 'root'
 
-export enum socketEvents {
+export enum SocketEvents {
     GOD_MODE = 'GOD_MODE',
     CONNECT = 'connect',
 
@@ -12,8 +10,13 @@ export enum socketEvents {
     UPDATE_STATE = 'UPDATE_STATE',
     ERROR = 'ERROR',
     PLAYER_CONNECT = 'PLAYER_CONNECT',
+    PLAYER_AUTHENTICATED = 'PLAYER_AUTHENTICATED',
 
     PLAYER_ACTION = 'PLAYER_ACTION'
+}
+
+export enum ErrorCodes {
+    PLAYER_NOT_FOUND
 }
 
 export enum PlayerActions {

@@ -1,4 +1,5 @@
 :root {
+    --icon-color-blue: #005c82;
     --local-background-color: #052133;
     --remote-background-color: #3a0303;
     --GUI_HEADER_HEIGHT: 35px;
@@ -19,6 +20,18 @@
     top: 0;
     margin: 0;
     left: 0;
+}
+
+.centerHV {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.loadingIcon {
+    font-size: 100px;
+    color: var(--icon-color-blue);
 }
 
 .guiHeader {
@@ -63,7 +76,7 @@
 }
 
 .guiRegister i:hover {
-    color: #005c82;
+    color: var(--icon-color-blue);
     cursor: pointer;
 }
 

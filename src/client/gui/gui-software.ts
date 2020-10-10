@@ -1,4 +1,4 @@
-import { PlayerActions, socketEvents } from "../../common/constants.js"
+import { PlayerActions, SocketEvents } from "../../common/constants.js"
 import { socket } from "../socket.js"
 import { FileGuiElement } from "./gui-file.js"
 
@@ -10,7 +10,7 @@ export class SoftwareGuiElement extends FileGuiElement {
     }
 
     executeSoftware() {
-        socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, this.data.id, this.getExecutionArgs())
+        socket.emit(SocketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, this.data.id, this.getExecutionArgs())
     }
 
     getExecutionArgs() {

@@ -1,6 +1,6 @@
 import io from 'socket.io'
 import http from 'http'
-import { ConnectionStatus, PlayerActions, socketEvents } from '../../common/constants'
+import { ConnectionStatus, ErrorCodes, PlayerActions, SocketEvents } from '../../common/constants'
 import { PlayerStore } from '../../storage/player-store'
 import { GatewayStore } from '../../storage/gateway-store'
 import { createClientState, createPlayerContext } from './game-state'
@@ -31,10 +31,10 @@ class SocketHandler {
         this.io.on('connection', (socket) => {
             console.log('New connection: ' + socket.id)
 
-            socket.once(socketEvents.PLAYER_CONNECT, (userName) => onPlayerConnect(socket, userName))
-            socket.on(socketEvents.REGISTER_USER, (userName) => onRegisterUser(userName))
+            socket.once(SocketEvents.PLAYER_CONNECT, (userName) => onPlayerConnect(socket, userName))
+            socket.on(SocketEvents.REGISTER_USER, (userName) => onRegisterUser(userName))
 
-            socket.emit(socketEvents.GOD_MODE, GatewayStore.getAll().map(g => g.ip))
+            socket.emit(SocketEvents.GOD_MODE, GatewayStore.getAll().map(g => g.ip))
         })
     }
 
@@ -51,20 +51,20 @@ function onPlayerConnect(socket: io.Socket, userName: string) {
 
     if (player === undefined) {
         console.log(`Player not found`)
-        // socket.emit(socketEvents.ERROR, `Player not found`)
+        socket.emit(SocketEvents.ERROR, ErrorCodes.PLAYER_NOT_FOUND)
         return
     }
 
     setPlayerEvents(socket, player)
     registerPlayerSignals(socket, player)
 
-    sendClientState(socket, player)
+    socket.emit(SocketEvents.PLAYER_AUTHENTICATED, createClientState(player))
 }
 
 function setPlayerEvents(socket: io.Socket, player: Player) {
     socket.on('disconnect', (socket: io.Socket) => onPlayerDisconnect(socket, player))
 
-    socket.on(socketEvents.PLAYER_ACTION, (action: PlayerActions, ...args: any[]) => {
+    socket.on(SocketEvents.PLAYER_ACTION, (action: PlayerActions, ...args: any[]) => {
         player.handlePlayerAction(action, ...args)
 
     })
@@ -117,7 +117,7 @@ function unregisterPlayerSignals(player: Player) {
 function sendClientState(socket: io.Socket, player: Player) {
     console.log(`Updating player [${player.userName}] on socket [${socket.id}]`)
 
-    socket.emit(socketEvents.UPDATE_STATE, createClientState(player))
+    socket.emit(SocketEvents.UPDATE_STATE, createClientState(player))
 }
 
 // TODO: define client error handling

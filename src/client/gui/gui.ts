@@ -3,14 +3,13 @@ import { HackedDbWindow } from "./gui-hacked-db.js"
 import { LogWindow } from "./gui-log.js"
 import { Domain, DomainType } from "./domain.js"
 import { TaskManagerWindow } from "./gui-task-manager.js"
-import { RemoteConnectionWindow } from "./window-remote-connection.js"
 import { ConnectionWindow } from "./gui-connection.js"
 import { GuiHeader } from "./gui-header.js"
 import { GuiRegister } from "./gui-register.js"
 
-export const guiBase = document.createElement('div')
-guiBase.classList.add('fullScreen')
-document.body.appendChild(guiBase)
+export const guiContainer = document.createElement('div')
+guiContainer.classList.add('fullScreen')
+document.body.appendChild(guiContainer)
 
 export const guiHeader = new GuiHeader()
 export const guiRegister = new GuiRegister()
@@ -23,7 +22,6 @@ export const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB',
 
 
 export const remoteDomain = new Domain(DomainType.REMOTE)
-// export const remoteConnectionWindow = new RemoteConnectionWindow({ id: 'remote-connection', title: 'Remote Connection', domain: remoteDomain })
 export const remoteLog = new LogWindow({ id: 'remote-log', title: 'Remote Log', domain: remoteDomain })
 export const remoteFileManagerWindow = new FileManagerWindow({ id: 'remote-file-manager', title: 'File Manager', domain: remoteDomain })
 

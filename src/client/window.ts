@@ -1,7 +1,7 @@
 import { GameEntity } from '../common/types.js'
 import { createCSSRule, GuiElement } from './gui/gui-base.js'
 import { Domain } from './gui/domain.js'
-import { guiBase } from './gui/gui.js'
+import { guiContainer } from './gui/gui.js'
 
 // if (!localStorage.getItem('windowPositions')) {
 //     localStorage.setItem('windowPositions', JSON.stringify('{}'))
@@ -246,7 +246,7 @@ function createWindowElement<T extends GameEntity>(window: Window<T>): CreateWin
     const windowDiv = document.createElement('div')
     windowDiv.id = window.id
     windowDiv.classList.add('window')
-    guiBase.appendChild(windowDiv)
+    guiContainer.appendChild(windowDiv)
 
     const headerDiv = document.createElement('div')
     headerDiv.classList.add('header')

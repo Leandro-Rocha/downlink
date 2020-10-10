@@ -1,4 +1,4 @@
-import { socketEvents } from "../../common/constants"
+import { SocketEvents } from "../../common/constants"
 import { GatewayStore } from "../../storage/gateway-store"
 import { PlayerStore } from "../../storage/player-store"
 import { createInitialGateway, Gateway } from "../core/gateway"

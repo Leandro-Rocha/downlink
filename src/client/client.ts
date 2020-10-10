@@ -1,43 +1,38 @@
 import './internals.js'
-import { PlayerActions, socketEvents } from '../common/constants.js'
+import { PlayerActions, SocketEvents } from '../common/constants.js'
 import { GameState } from '../common/types.js'
 import { socket } from './socket.js'
-import { hackedDB, localLog, localFileManagerWindow, taskManager, remoteLog, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiRegister, guiBase } from './gui/gui.js'
+import { hackedDB, localLog, localFileManagerWindow, taskManager, remoteLog, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiRegister, guiContainer } from './gui/gui.js'
+import { guiLoadingScreen } from './gui/gui-loading.js'
 
 
 var gameState: GameState
 
-guiBase.classList.add('hidden')
+guiContainer.classList.add('hidden')
 
-export function playerConnected() {
-    socket.emit(socketEvents.PLAYER_CONNECT, localStorage.getItem('user'))
-}
 
 export function registerUser(userName: string) {
     localStorage.setItem('user', userName)
-    socket.emit(socketEvents.REGISTER_USER, userName)
+    socket.emit(SocketEvents.REGISTER_USER, userName)
     window.location.reload()
 }
 
 function login() {
     const userName = (<HTMLInputElement>document.querySelector('#userNameInput')).value
     const password = (<HTMLInputElement>document.querySelector('#passwordInput')).value
-    socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.LOGIN, userName, password)
+    socket.emit(SocketEvents.PLAYER_ACTION, PlayerActions.LOGIN, userName, password)
 }
 
 export function connectToGateway(remoteIp: string) {
-    socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.CONNECT_TO_GATEWAY, remoteIp)
+    socket.emit(SocketEvents.PLAYER_ACTION, PlayerActions.CONNECT_TO_GATEWAY, remoteIp)
 }
 
 export function disconnect() {
-    socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.DISCONNECT)
+    socket.emit(SocketEvents.PLAYER_ACTION, PlayerActions.DISCONNECT)
 }
 
 export function updateGameState(newState: GameState) {
     console.log(socket.id, newState)
-
-    guiRegister.element.classList.add('hidden')
-    guiBase.classList.remove('hidden')
 
     gameState = newState
 

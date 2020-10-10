@@ -10,6 +10,7 @@ export class GuiRegister {
     constructor() {
         this.element = document.createElement('div')
         this.element.classList.add('fullScreen')
+        this.element.classList.add('hidden')
         this.element.classList.add('guiRegister')
         document.body.appendChild(this.element)
 

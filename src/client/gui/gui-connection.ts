@@ -2,7 +2,7 @@ import { ConnectionStatus } from "../../common/constants.js"
 import { GameState } from "../../common/types.js"
 import { connectToGateway, disconnect } from "../client.js"
 import { createIcon, IconType } from "./gui-icon.js"
-import { guiBase, guiHeader } from "./gui.js"
+import { guiContainer, guiHeader } from "./gui.js"
 
 
 export class ConnectionWindow {
@@ -19,7 +19,7 @@ export class ConnectionWindow {
     constructor() {
 
         this.createRestoredWindow()
-        guiBase.appendChild(this.restoredDiv)
+        guiContainer.appendChild(this.restoredDiv)
 
         this.createMinimizedWindow()
         guiHeader.element.appendChild(this.minimizedDiv)
