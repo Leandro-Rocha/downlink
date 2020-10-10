@@ -20,8 +20,23 @@ class Watcher {
     }
 }
 
+
+Object.defineProperty(data.local, 'ip',
+    {
+        jsonPath: '',
+        set(newValue) {
+
+            // data.local.ip = newValue
+            watchers.forEach(w => {
+                if (w.expression === this.jsonPath) {
+                    w.value = newValue
+                }
+            })
+        }
+    })
+
 watcher1 = new Watcher('>local>connection>hacked')
-watcher2 = new Watcher('>remote>ip')
+watcher2 = new Watcher('local>ip')
 
 watchers = [watcher1, watcher2]
 
@@ -50,10 +65,12 @@ watchers.forEach(w => {
     console.log(w.value)
 })
 
-data.remote.ip = 123
+data.local.ip = 123
 data.local.connection.hacked = false
 
 printJsonPath(data)
 watchers.forEach(w => {
     console.log(w.value)
 })
+
+console.log(data.local.ip)

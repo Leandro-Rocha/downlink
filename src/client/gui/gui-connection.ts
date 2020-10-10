@@ -1,4 +1,6 @@
-import { connectToGateway } from "../client.js"
+import { ConnectionStatus } from "../../common/constants.js"
+import { GameState } from "../../common/types.js"
+import { connectToGateway, disconnect } from "../client.js"
 
 
 export class ConnectionWindow {
@@ -6,7 +8,8 @@ export class ConnectionWindow {
     localHostname: HTMLSpanElement
     remoteHostname: HTMLSpanElement
     remoteIpInput: HTMLInputElement
-    connectToRemoteButton: HTMLButtonElement
+    connectButton: HTMLButtonElement
+    disconnectButton: HTMLButtonElement
 
     constructor() {
         this.restoredDiv = document.createElement('div')
@@ -48,18 +51,39 @@ export class ConnectionWindow {
         this.remoteIpInput.classList.add('ipInput')
         remoteGatewayDiv.appendChild(this.remoteIpInput)
 
-        this.connectToRemoteButton = document.createElement('button')
-        this.connectToRemoteButton.classList.add('connectButton')
-        this.connectToRemoteButton.innerText = 'Connect!'
-        this.connectToRemoteButton.addEventListener('click', () => connectToGateway(this.remoteIpInput.value))
-        remoteGatewayDiv.appendChild(this.connectToRemoteButton)
+        this.connectButton = document.createElement('button')
+        this.connectButton.classList.add('connect')
+        this.connectButton.innerText = 'Connect'
+        this.connectButton.addEventListener('click', () => connectToGateway(this.remoteIpInput.value))
 
 
+        this.disconnectButton = document.createElement('button')
+        this.disconnectButton.classList.add('disconnect')
+        this.disconnectButton.innerText = 'Disconnect'
+        this.disconnectButton.addEventListener('click', () => disconnect())
+        this.restoredDiv.appendChild(this.disconnectButton)
+
+        remoteGatewayDiv.appendChild(this.connectButton)
 
     }
 
-    updateContent(data: { localHostname: string }) {
-        this.localHostname.textContent = data.localHostname
-    }
+    updateContent(gameState: GameState) {
+        this.localHostname.textContent = gameState.localGateway.hostname!
+        this.remoteHostname.textContent = gameState.remoteGateway?.hostname || ''
 
+        const connection = gameState.localGateway.outboundConnection
+
+        if (!connection || connection.status === ConnectionStatus.DISCONNECTED) {
+            this.remoteIpInput.classList.remove('hidden')
+            this.connectButton.classList.remove('hidden')
+            this.disconnectButton.classList.add('hidden')
+        }
+
+        if (connection && connection.status === ConnectionStatus.CONNECTED) {
+            this.remoteIpInput.classList.add('hidden')
+            this.connectButton.classList.add('hidden')
+            this.disconnectButton.classList.remove('hidden')
+        }
+
+    }
 }

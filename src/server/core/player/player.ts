@@ -42,6 +42,10 @@ export class Player {
                 this.onConnectToGateway(ip)
             }
 
+            if (action === PlayerActions.DISCONNECT) {
+                this.onDisconnect()
+            }
+
             if (action === PlayerActions.LOGIN) {
                 const [userName, password] = [...args]
                 this.onRemoteLogin(userName, password)
@@ -64,6 +68,11 @@ export class Player {
         }
 
         this.gateway.connectTo(remoteGateway)
+    }
+
+    onDisconnect() {
+        // TODO: move error to gateway and add observer to player
+        this.gateway.disconnect()
     }
 
     onRemoteLogin(userName: string, password: string) {

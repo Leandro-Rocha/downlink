@@ -18,6 +18,7 @@ export enum socketEvents {
 
 export enum PlayerActions {
     CONNECT_TO_GATEWAY = 'CONNECT_TO_GATEWAY',
+    DISCONNECT = 'DISCONNECT',
     LOGIN = 'LOGIN',
     EXECUTE_SOFTWARE = 'EXECUTE_SOFTWARE',
 }

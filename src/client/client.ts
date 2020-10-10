@@ -31,6 +31,10 @@ export function connectToGateway(remoteIp: string) {
     socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.CONNECT_TO_GATEWAY, remoteIp)
 }
 
+export function disconnect() {
+    socket.emit(socketEvents.PLAYER_ACTION, PlayerActions.DISCONNECT)
+}
+
 export function updateGameState(newState: GameState) {
     console.log(socket.id, newState)
 
@@ -47,9 +51,10 @@ function updateLocalGateway() {
 
     if (gameState.localGateway.hostname) {
         localDomain.navigation.updateContent({ hostname: gameState.localGateway.hostname })
-        connectionWindow.updateContent({ localHostname: gameState.localGateway.hostname })
     }
-
+    
+    connectionWindow.updateContent(gameState)
+    
     hackedDB.updateContent(gameState.hackedDB)
 
     if (gameState.localGateway.log !== undefined) {
@@ -82,23 +87,6 @@ function updateRemoteGateway() {
     if (gameState.remoteGateway.storage !== undefined) {
         remoteFileManagerWindow.updateContent(gameState.remoteGateway.storage)
     }
-
-
-    const userName = (<HTMLInputElement>document.querySelector('#userNameInput'))
-    const password = (<HTMLInputElement>document.querySelector('#passwordInput'))
-    const hackedDbEntry = gameState.hackedDB.entries?.find(e => e.ip === gameState.remoteGateway!.ip)
-
-
-
-    // if (hackedDbEntry !== undefined) {
-    //     userName.value = hackedDbEntry.users[0].userName
-    //     password.value = hackedDbEntry.users[0].password
-    // }
-    // else {
-    //     userName.value = ''
-    //     password.value = ''
-    // }
-
 }
 
 export function godMode(newState: any) {

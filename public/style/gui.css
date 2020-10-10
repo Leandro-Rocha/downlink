@@ -8,6 +8,10 @@
     font-family: 'White Rabbit';
 }
 
+.hidden {
+    display: none;
+}
+
 #guiHeader {
     position: fixed;
     top: 0px;
@@ -48,7 +52,6 @@
 }
 
 .connectionDiv .gatewayDiv {
-    display: table;
     text-align: center;
     width: 200px;
 }
@@ -66,29 +69,47 @@
 }
 
 .connectionDiv .hostname {
-    display: table-row;
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translate(-50%, 0%);
 }
 
 .connectionDiv .ipInput {
+    position: absolute;
     text-align: center;
     width: 120px;
+    top: 45px;
+    left: 50%;
+    transform: translate(-50%, 0%);
 }
 
-.connectionDiv .connectButton {
-    margin-top: 5px;
+.connectionDiv button {
+    position: absolute;
+    transform: translate(-50%, 0%);
+    left: 50%;
+}
+
+.connectionDiv button.connect {
+    top: 65px;
+}
+
+.connectionDiv button.disconnect {
+    top: 80px;
 }
 
 .icon-server {
+    position: absolute;
     font-size: 40px;
+    left: 50%;
+    transform: translate(-50%, 0%);
 }
 
 .icon-server.local {
-    font-size: 40px;
     color: #3973ad;
 }
 
 .icon-server.remote {
-    font-size: 40px;
     color: #ad3939;
 }
 

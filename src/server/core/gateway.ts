@@ -115,15 +115,16 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
         // TODO: implement
         console.log(`Disconnecting`)
 
-        const remoteGateway = this.outboundConnection?.gateway!
+        const connection = this.outboundConnection
+        const remoteGateway = connection?.gateway!
 
         this.log.addEntry(`[localhost] disconnected from [${remoteGateway.ip}]`)
         remoteGateway.log.addEntry(`connection from [${this.ip}] closed`)
 
-        this.outboundConnection?.disconnect()
-
         //TODO: unregister all handlers
         this.outboundConnection = undefined
+        
+        connection?.disconnect()
     }
 
     login(userName: string, password: string) {
