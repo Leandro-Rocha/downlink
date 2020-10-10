@@ -173,7 +173,7 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
         Object.defineProperty(this, 'y', {
             get() { return this._y },
             set(newValue) {
-                var boundedValue = Math.max(newValue, 0)
+                var boundedValue = Math.max(newValue, 35)
                 boundedValue = Math.min(boundedValue, window.innerHeight - this.element.offsetHeight)
 
 

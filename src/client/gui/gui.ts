@@ -5,7 +5,9 @@ import { Domain, DomainType } from "./domain.js"
 import { TaskManagerWindow } from "./gui-task-manager.js"
 import { RemoteConnectionWindow } from "./window-remote-connection.js"
 import { ConnectionWindow } from "./gui-connection.js"
+import { GuiHeader } from "./gui-header.js"
 
+export const guiHeader = new GuiHeader()
 export const localDomain = new Domain(DomainType.LOCAL)
 export const localLog = new LogWindow({ id: 'local-log', title: 'Local Log', domain: localDomain })
 export const localFileManagerWindow = new FileManagerWindow({ id: 'local-file-manager', title: 'File Manager', domain: localDomain })

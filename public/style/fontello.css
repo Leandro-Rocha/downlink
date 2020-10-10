@@ -1,6 +1,11 @@
 @font-face {
   font-family: 'fontello';
-  src: url('../font/fontello.woff2?86763624') format('woff2');
+  src: url('../font/fontello.eot?57970897');
+  src: url('../font/fontello.eot?57970897#iefix') format('embedded-opentype'),
+       url('../font/fontello.woff2?57970897') format('woff2'),
+       url('../font/fontello.woff?57970897') format('woff'),
+       url('../font/fontello.ttf?57970897') format('truetype'),
+       url('../font/fontello.svg?57970897#fontello') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -10,7 +15,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?86763624#fontello') format('svg');
+    src: url('../font/fontello.svg?57970897#fontello') format('svg');
   }
 }
 */
@@ -19,12 +24,14 @@
   font-family: "fontello";
   font-style: normal;
   font-weight: normal;
+  speak: never;
  
   display: inline-block;
   text-decoration: inherit;
   width: 1em;
   margin-right: .2em;
   text-align: center;
+  /* opacity: .8; */
  
   /* For safety - reset parent styles, that can break glyph codes*/
   font-variant: normal;
@@ -36,6 +43,9 @@
   /* Animation center compensation - margins should be symmetric */
   /* remove if not needed */
   margin-left: .2em;
+ 
+  /* you can be more comfortable with increased icons size */
+  /* font-size: 120%; */
  
   /* Font smoothing. That was taken from TWBS */
   -webkit-font-smoothing: antialiased;
@@ -52,6 +62,9 @@
 .icon-wifi:before { content: '\e804'; } /* '' */
 .icon-folder:before { content: '\e805'; } /* '' */
 .icon-folder-open:before { content: '\e806'; } /* '' */
+.icon-menu:before { content: '\e807'; } /* '' */
+.icon-menu-outline:before { content: '\e808'; } /* '' */
+.icon-link:before { content: '\e809'; } /* '' */
 .icon-spin1:before { content: '\e830'; } /* '' */
 .icon-spin2:before { content: '\e831'; } /* '' */
 .icon-spin3:before { content: '\e832'; } /* '' */
@@ -61,7 +74,10 @@
 .icon-money:before { content: '\f0d6'; } /* '' */
 .icon-folder-empty:before { content: '\f114'; } /* '' */
 .icon-folder-open-empty:before { content: '\f115'; } /* '' */
+.icon-terminal:before { content: '\f120'; } /* '' */
+.icon-unlink:before { content: '\f127'; } /* '' */
 .icon-database:before { content: '\f1c0'; } /* '' */
+.icon-connectdevelop:before { content: '\f20e'; } /* '' */
 .icon-server:before { content: '\f233'; } /* '' */
 .icon-television:before { content: '\f26c'; } /* '' */
 .icon-credit-card-alt:before { content: '\f283'; } /* '' */
