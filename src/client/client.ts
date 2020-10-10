@@ -2,20 +2,18 @@ import './internals.js'
 import { PlayerActions, socketEvents } from '../common/constants.js'
 import { GameState } from '../common/types.js'
 import { socket } from './socket.js'
-import { hackedDB, localLog, localFileManagerWindow, taskManager, remoteLog, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow } from './gui/gui.js'
-
-document.querySelector('#remoteLoginBtn')?.addEventListener('click', login)
-document.querySelector('#registerUserBtn')?.addEventListener('click', registerUser)
+import { hackedDB, localLog, localFileManagerWindow, taskManager, remoteLog, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiRegister, guiBase } from './gui/gui.js'
 
 
 var gameState: GameState
+
+guiBase.classList.add('hidden')
 
 export function playerConnected() {
     socket.emit(socketEvents.PLAYER_CONNECT, localStorage.getItem('user'))
 }
 
-function registerUser() {
-    const userName = (<HTMLInputElement>document.querySelector('#registerUserInput')).value
+export function registerUser(userName: string) {
     localStorage.setItem('user', userName)
     socket.emit(socketEvents.REGISTER_USER, userName)
     window.location.reload()
@@ -38,6 +36,9 @@ export function disconnect() {
 export function updateGameState(newState: GameState) {
     console.log(socket.id, newState)
 
+    guiRegister.element.classList.add('hidden')
+    guiBase.classList.remove('hidden')
+
     gameState = newState
 
     updateLocalGateway()
@@ -52,9 +53,9 @@ function updateLocalGateway() {
     if (gameState.localGateway.hostname) {
         localDomain.navigation.updateContent({ hostname: gameState.localGateway.hostname })
     }
-    
+
     connectionWindow.updateContent(gameState)
-    
+
     hackedDB.updateContent(gameState.hackedDB)
 
     if (gameState.localGateway.log !== undefined) {

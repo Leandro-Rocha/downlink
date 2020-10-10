@@ -12,10 +12,20 @@
     display: none;
 }
 
+.fullScreen {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    margin: 0;
+    left: 0;
+}
+
 .guiHeader {
     position: fixed;
     top: 0px;
     left: 0px;
+    z-index: 1;
 
     width: 100%;
     height: var(--GUI_HEADER_HEIGHT);
@@ -23,6 +33,40 @@
     background: var(--local-background-color);
     background: linear-gradient(180deg, #005c82 0%, #0a131d 30%, #0a131d 70%, #091e28 100%);
 }
+
+.guiRegister {
+    background-color: white;
+}
+
+.guiRegister * {
+    clear: both;
+    float: left;
+    top: 30%;
+    left: 50%;
+    position: relative;
+    transform: translate(-50%, -50%);
+    margin-top: 20px;
+}
+
+.guiRegister span {
+    font-size: 40px;
+}
+
+.guiRegister input {
+    font-size: 30px;
+    border: 1px solid gray;
+    text-align: center;
+}
+
+.guiRegister i {
+    font-size: 32px;
+}
+
+.guiRegister i:hover {
+    color: #005c82;
+    cursor: pointer;
+}
+
 
 .connectionDiv.minimized {
     border: 1px solid white;

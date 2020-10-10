@@ -6,8 +6,15 @@ import { TaskManagerWindow } from "./gui-task-manager.js"
 import { RemoteConnectionWindow } from "./window-remote-connection.js"
 import { ConnectionWindow } from "./gui-connection.js"
 import { GuiHeader } from "./gui-header.js"
+import { GuiRegister } from "./gui-register.js"
+
+export const guiBase = document.createElement('div')
+guiBase.classList.add('fullScreen')
+document.body.appendChild(guiBase)
 
 export const guiHeader = new GuiHeader()
+export const guiRegister = new GuiRegister()
+
 export const localDomain = new Domain(DomainType.LOCAL)
 export const localLog = new LogWindow({ id: 'local-log', title: 'Local Log', domain: localDomain })
 export const localFileManagerWindow = new FileManagerWindow({ id: 'local-file-manager', title: 'File Manager', domain: localDomain })

@@ -1,3 +1,4 @@
+import { guiBase } from "./gui.js"
 
 
 export class GuiHeader {
@@ -6,6 +7,6 @@ export class GuiHeader {
     constructor() {
         this.element = document.createElement('div')
         this.element.classList.add('guiHeader')
-        document.body.appendChild(this.element)
+        guiBase.appendChild(this.element)
     }
 }

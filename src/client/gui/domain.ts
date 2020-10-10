@@ -1,3 +1,5 @@
+import { guiBase } from "./gui.js"
+
 export enum DomainType {
     LOCAL = 'LOCAL',
     REMOTE = 'REMOTE',
@@ -26,7 +28,7 @@ class SideNav {
         this.navElement = document.createElement('div')
         this.navElement.id = `${domain.toLowerCase()}Nav`
         this.navElement.classList.add('sideNav')
-        document.body.appendChild(this.navElement)
+        guiBase.appendChild(this.navElement)
 
         this.hostname = document.createElement('div')
         this.hostname.classList.add('hostname')
