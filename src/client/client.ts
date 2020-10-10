@@ -3,7 +3,6 @@ import { PlayerActions, SocketEvents } from '../common/constants.js'
 import { GameState } from '../common/types.js'
 import { socket } from './socket.js'
 import { hackedDB, localLog, localFileManagerWindow, taskManager, remoteLog, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiRegister, guiContainer } from './gui/gui.js'
-import { guiLoadingScreen } from './gui/gui-loading.js'
 
 
 var gameState: GameState

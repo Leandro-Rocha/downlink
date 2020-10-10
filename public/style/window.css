@@ -14,39 +14,38 @@
     box-shadow: 0px 10px 20px -10px black;
 }
 
-.window.restored{
-     transition: opacity  cubic-bezier(0.075, 0.82, 0.165, 1),
-    left 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
-    width 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
-    top 0.2s cubic-bezier(0.19, 1, 0.22, 1) 0.2s,
-    height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1) 0.2s
+.window.restored {
+    transition: opacity cubic-bezier(0.075, 0.82, 0.165, 1),
+        left 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
+        width 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
+        top 0.2s cubic-bezier(0.19, 1, 0.22, 1) 0.2s,
+        height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1) 0.2s
 }
 
-.window.minimized{
+.window.minimized {
     width: 0px;
     height: 22px;
     opacity: 0;
     visibility: hidden;
 
-     transition: height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1),
-                top 0.2s cubic-bezier(0.19, 1, 0.22, 1) ,
-                width 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
-                left 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
-                right 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
-                opacity 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
-                visibility 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms
+    transition: height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1),
+        top 0.2s cubic-bezier(0.19, 1, 0.22, 1),
+        width 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
+        left 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
+        right 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
+        opacity 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms,
+        visibility 0.2s cubic-bezier(0.075, 0.82, 0.165, 1) 250ms;
+
+
     ;
-
-   
-;
 }
 
-.window.minimized.local{
-    left: 3px ;
+.window.minimized.local {
+    left: 3px;
 }
 
-.window.minimized.remote{
-    left: 90% ;
+.window.minimized.remote {
+    left: 90%;
 }
 
 .header {
@@ -56,71 +55,71 @@
     cursor: default;
 }
 
-.header.local{
-    background: rgb(0,92,130);
-    background: linear-gradient(180deg, rgb(0, 92, 130) 0%, rgba(10,19,29,1) 30%, rgba(9,30,40,1) 70%, rgba(0,92,130,1) 100%);
+.header.local {
+    background: rgb(0, 92, 130);
+    background: linear-gradient(180deg, rgb(0, 92, 130) 0%, rgba(10, 19, 29, 1) 30%, rgba(9, 30, 40, 1) 70%, rgba(0, 92, 130, 1) 100%);
 }
 
-.header.remote{
-    background: rgb(130,0,0);
-    background: linear-gradient(180deg, rgba(130,0,0,1) 0%, rgba(10,19,29,1) 30%, rgba(9,30,40,1) 70%, rgba(130,0,0,1) 100%);
+.header.remote {
+    background: rgb(130, 0, 0);
+    background: linear-gradient(180deg, rgba(130, 0, 0, 1) 0%, rgba(10, 19, 29, 1) 30%, rgba(9, 30, 40, 1) 70%, rgba(130, 0, 0, 1) 100%);
 }
 
-.window-control{
+.window-control {
     float: right;
     margin-right: 6px;
 }
 
-.minimize-control{
+.minimize-control {
     border-bottom: 3px solid white;
     width: 15px;
     height: 13px;
     cursor: pointer;
 }
 
-.window .content table{
+.window .content table {
     width: 100%;
 }
 
-.window .content td{
+.window .content td {
     padding: 10px 5px 10px 5px;
 }
 
-.window .content.local thead td{
+.window .content.local thead td {
     background-color: #0B4C6D;
     color: #93b9df;
 }
 
-.window .content.local td{
+.window .content.local td {
     background-color: #062F42;
 }
 
-.window .content.remote thead td{
+.window .content.remote thead td {
     background-color: #821919;
     color: #e09191;
 }
 
-.window .content.remote td{
+.window .content.remote td {
     background-color: #44160b;
 }
 
-.content.local{
+.content.local {
     color: #52758A;
     background-color: #0A1E35;
 }
 
-.content.remote{
+.content.remote {
     color: #ad7878;
     background-color: #2f0202;
 }
 
-.content.restored{
+.content.restored {
     height: 100%;
     overflow-y: auto;
     transition: height 100ms 200ms;
 }
 
-.content.minimized{
+.content.minimized {
     height: 0px;
     overflow-y: hidden;
     transition: height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1);
@@ -132,11 +131,11 @@
     top: 5px;
 }
 
-.window-log{
+.window-log {
     width: 800px;
     height: 500px;
 }
 
-.window-log .content #timestamp_header{
+.window-log .content #timestamp_header {
     width: 180px;
 }

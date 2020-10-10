@@ -109,6 +109,7 @@
 
     background: rgb(5, 33, 51);
     background: linear-gradient(90deg, #052133 0%, #ffffff 3%, #ffffff 97%, #3a0303 100%);
+    box-shadow: 0px 10px 20px -10px black;
 }
 
 .connectionDiv .gatewayDiv {
