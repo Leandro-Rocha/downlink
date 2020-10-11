@@ -1,23 +1,23 @@
 import { ConnectionStatus } from "../../common/constants.js"
-import { GameState } from "../../common/types.js"
+import { GameStateType } from "../../common/types.js"
 import { connectToGateway, disconnect } from "../client.js"
+import { StateAware } from "./gui-game-state.js"
 import { createIcon, IconType } from "./gui-icon.js"
 import { guiContainer, guiHeader } from "./gui.js"
 
 
-export class ConnectionWindow {
+
+export class ConnectionWindow implements StateAware<GameStateType> {
     restoredDiv!: HTMLDivElement
     localHostname!: HTMLSpanElement
     remoteHostname!: HTMLSpanElement
     remoteIpInput!: HTMLInputElement
     connectButton!: HTMLButtonElement
     disconnectButton!: HTMLButtonElement
-
     minimizedDiv!: HTMLDivElement
     linkIcon!: HTMLElement
 
     constructor() {
-
         this.createRestoredWindow()
         guiContainer.appendChild(this.restoredDiv)
 
@@ -101,11 +101,11 @@ export class ConnectionWindow {
         remoteGatewayDiv.appendChild(this.connectButton)
     }
 
-    updateContent(gameState: GameState) {
-        this.localHostname.textContent = gameState.localGateway.hostname!
-        this.remoteHostname.textContent = gameState.remoteGateway?.hostname || ''
+    updateState(state: GameStateType): void {
+        this.localHostname.textContent = state.localGateway.hostname!
+        this.remoteHostname.textContent = state.remoteGateway?.hostname || ''
 
-        const connection = gameState.localGateway.outboundConnection
+        const connection = state.localGateway.outboundConnection
 
         if (!connection || connection.status === ConnectionStatus.DISCONNECTED) {
             this.remoteIpInput.classList.remove('hidden')
@@ -126,6 +126,5 @@ export class ConnectionWindow {
 
             this.remoteIpInput.value = connection.ip
         }
-
     }
 }

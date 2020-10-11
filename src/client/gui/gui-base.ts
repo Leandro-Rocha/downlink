@@ -30,39 +30,38 @@ export abstract class GuiElement<T extends GameEntity> {
     }
 
     abstract updateContent(data: T): void
-
-    syncGuiAndData(data: GameEntity[], gui: GuiElement<GameEntity>[], newElementHandler?: (newElement: GuiElement<GameEntity>) => void) {
-
-        const dataNewElements = [...data]
-        const guiElementsToRemove = [...gui]
-
-        // Identify items to be create or removed and update existing ones
-        data.forEach(dataElem => {
-            gui?.forEach(guiElem => {
-                if (dataElem.id === guiElem.data.id) {
-
-                    dataNewElements.remove(dataElem)
-                    guiElementsToRemove.remove(guiElem)
-
-                    guiElem.updateContent(dataElem)
-                }
-            })
-        })
-
-        dataNewElements.forEach(dataElem => {
-            const newElement = createClientElement(dataElem.entityType)
-            newElement.updateContent(dataElem)
-
-            gui.push(newElement)
-
-            if (newElementHandler !== undefined) newElementHandler(newElement)
-        })
-
-        guiElementsToRemove.forEach(guiElem => {
-            guiElem.destroy()
-            gui.remove(guiElem)
-        })
-    }
 }
 
 
+export function syncGuiAndData(data: GameEntity[], gui: GuiElement<GameEntity>[], newElementHandler?: (newElement: GuiElement<GameEntity>) => void) {
+
+    const dataNewElements = [...data]
+    const guiElementsToRemove = [...gui]
+
+    // Identify items to be create or removed and update existing ones
+    data.forEach(dataElem => {
+        gui?.forEach(guiElem => {
+            if (dataElem.id === guiElem.data.id) {
+
+                dataNewElements.remove(dataElem)
+                guiElementsToRemove.remove(guiElem)
+
+                guiElem.updateContent(dataElem)
+            }
+        })
+    })
+
+    dataNewElements.forEach(dataElem => {
+        const newElement = createClientElement(dataElem.entityType)
+        newElement.updateContent(dataElem)
+
+        gui.push(newElement)
+
+        if (newElementHandler !== undefined) newElementHandler(newElement)
+    })
+
+    guiElementsToRemove.forEach(guiElem => {
+        guiElem.destroy()
+        gui.remove(guiElem)
+    })
+}

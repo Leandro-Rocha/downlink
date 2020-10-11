@@ -1,6 +1,6 @@
 import { createNamespace, getNamespace } from 'cls-hooked'
 import { ConnectionStatus } from "../../common/constants"
-import { GameState } from "../../common/types"
+import { GameStateType } from "../../common/types"
 import { Log } from "./log"
 import { Player } from './player/player'
 
@@ -16,7 +16,7 @@ export function createPlayerContext() {
 
 export function createClientState(player: Player) {
 
-    const gameState: GameState = {
+    const gameState: GameStateType = {
         timestamp: process.hrtime()[1],
         userName: player.userName,
         localGateway: player.gateway.toClient(),

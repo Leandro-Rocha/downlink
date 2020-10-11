@@ -1,12 +1,10 @@
 import { Gui } from "../../common/types.js"
+import { syncGuiAndData } from "../internals.js"
 import { Window, WindowConfig } from "../window.js"
+import { StateAware } from "./gui-game-state.js"
 import { LogEntryGuiElement } from "./gui-log-entry.js"
 
-
-
-
-
-export class LogWindow extends Window<Gui.Log> {
+export class LogWindow extends Window<Gui.Log> implements StateAware<Gui.Log> {
 
     entries: LogEntryGuiElement[] = []
     logTable: HTMLTableElement
@@ -26,11 +24,16 @@ export class LogWindow extends Window<Gui.Log> {
         this.contentElement.appendChild(this.logTable)
     }
 
-    updateContent(data: Gui.Log): void {
-        this.syncGuiAndData(data.entries, this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
+    updateState(state?: Gui.Log): void {
+
+        if (state) {
+            syncGuiAndData(state.entries, this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
+        }
     }
 
     getDefaultPosition() {
         return { width: 500 }
     }
 }
+
+

@@ -1,6 +1,6 @@
 import { ConnectionStatus, ProcessStatus, ResourceTypes } from "./constants"
 
-export interface GameState {
+export interface GameStateType {
     timestamp: number
     userName: string
     localGateway: Partial<Gui.Gateway>

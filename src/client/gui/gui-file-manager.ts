@@ -1,9 +1,11 @@
 import { Gui } from "../../common/types.js"
+import { syncGuiAndData as syncGuiAndDataArray } from "../internals.js"
 import { Window, WindowConfig } from "../window.js"
 import { FileGuiElement } from "./gui-file.js"
+import { StateAware } from "./gui-game-state.js"
 
 
-export class FileManagerWindow extends Window<Gui.Storage> {
+export class FileManagerWindow extends Window<Gui.Storage> implements StateAware<Gui.Storage> {
     fileList: FileGuiElement[] = []
 
     fileTable: HTMLTableElement
@@ -11,9 +13,6 @@ export class FileManagerWindow extends Window<Gui.Storage> {
 
     constructor(config: WindowConfig) {
         super(config)
-
-        //TODO
-        this.contentElement.classList.add('window-log-content')
 
         this.fileTable = document.createElement('table')
         this.fileTable.innerHTML = `<thead>
@@ -26,9 +25,20 @@ export class FileManagerWindow extends Window<Gui.Storage> {
         this.contentElement.appendChild(this.fileTable)
     }
 
-    updateContent(data: Gui.Storage): void {
-        this.syncGuiAndData(data.files, this.fileList, (newElement) => this.fileTableBody.appendChild(newElement.element))
+    updateState(state?: Gui.Storage): void {
+        if (state) {
+            syncGuiAndDataArray(state.files, this.fileList, (newElement) => this.fileTableBody.appendChild(newElement.element))
+
+            this.element.classList.remove('hidden')
+            this.minimizedElement.classList.remove('hidden')
+        }
+        else {
+            syncGuiAndDataArray([], this.fileList)
+            this.element.classList.add('hidden')
+            this.minimizedElement.classList.add('hidden')
+        }
     }
+
 
     getDefaultPosition() {
         return { width: 500 }

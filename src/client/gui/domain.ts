@@ -1,3 +1,4 @@
+import { StateAware } from "./gui-game-state.js"
 import { guiContainer } from "./gui.js"
 
 export enum DomainType {
@@ -18,7 +19,7 @@ export class Domain {
     }
 }
 
-class SideNav {
+class SideNav implements StateAware<{ hostname?: string }>{
     navElement: HTMLDivElement
     menuElement: HTMLUListElement
     hostname: HTMLDivElement
@@ -38,7 +39,7 @@ class SideNav {
         this.navElement.appendChild(this.menuElement)
     }
 
-    updateContent(data: { hostname: string }): void {
-        this.hostname.innerText = data.hostname
+    updateState(state: { hostname?: string }): void {
+        this.hostname.innerText = state.hostname || ''
     }
 }

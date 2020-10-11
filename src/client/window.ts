@@ -1,5 +1,5 @@
 import { GameEntity } from '../common/types.js'
-import { createCSSRule, GuiElement } from './gui/gui-base.js'
+import { createCSSRule } from './gui/gui-base.js'
 import { Domain } from './gui/domain.js'
 import { guiContainer } from './gui/gui.js'
 
@@ -43,7 +43,7 @@ export interface WindowConfig {
     state?: WindowState
 }
 
-export abstract class Window<T extends GameEntity> extends GuiElement<T> implements WindowConfig {
+export abstract class Window<T> implements WindowConfig {
 
     static draggingWindowObject: Window<any>
     static mouseStartingX: number
@@ -54,7 +54,6 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
     element: HTMLDivElement
     headerElement: HTMLDivElement
     contentElement: HTMLDivElement
-
     minimizedElement: HTMLLIElement
 
     id: string
@@ -74,8 +73,6 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
     state: WindowState
 
     constructor(config: Partial<Window<T>>) {
-        super()
-
         this.id = config.id!
         this.title = config.title!
         this.domain = config.domain!
@@ -233,8 +230,6 @@ export abstract class Window<T extends GameEntity> extends GuiElement<T> impleme
             }
         )
     }
-
-    abstract updateContent(content: T): void
 }
 
 type CreateWindowResult = {
