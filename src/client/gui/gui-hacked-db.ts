@@ -1,5 +1,5 @@
 import { Gui } from "../../common/types.js"
-import { syncGuiAndData } from "../internals.js"
+import { syncGuiAndDataArray } from "../internals.js"
 import { Window, WindowConfig } from "../window.js"
 import { HackedDbEntryGuiElement } from "./gui-hacked-db-entry.js"
 
@@ -22,7 +22,7 @@ export class HackedDbWindow extends Window<Gui.HackedDB> {
     }
 
     updateContent(data: Gui.HackedDB): void {
-       syncGuiAndData(data.entries, this.entries, (newElement) => this.hackedDbTable.appendChild(newElement.element))
+       syncGuiAndDataArray(data.entries, this.entries, (newElement) => this.hackedDbTable.appendChild(newElement.element))
     }
 
     getDefaultPosition() {

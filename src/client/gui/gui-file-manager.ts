@@ -1,5 +1,5 @@
 import { Gui } from "../../common/types.js"
-import { syncGuiAndData as syncGuiAndDataArray } from "../internals.js"
+import { syncGuiAndDataArray as syncGuiAndDataArray } from "../internals.js"
 import { Window, WindowConfig } from "../window.js"
 import { FileGuiElement } from "./gui-file.js"
 import { StateAware } from "./gui-game-state.js"
@@ -26,9 +26,10 @@ export class FileManagerWindow extends Window<Gui.Storage> implements StateAware
     }
 
     updateState(state?: Gui.Storage): void {
-        if (state) {
-            syncGuiAndDataArray(state.files, this.fileList, (newElement) => this.fileTableBody.appendChild(newElement.element))
+        syncGuiAndDataArray(state?.files || [], this.fileList, (newElement) => this.fileTableBody.appendChild(newElement.element))
 
+        //TODO make generic Window hide 
+        if (state) {
             this.element.classList.remove('hidden')
             this.minimizedElement.classList.remove('hidden')
         }

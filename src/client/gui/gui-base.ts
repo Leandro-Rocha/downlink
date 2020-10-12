@@ -33,7 +33,7 @@ export abstract class GuiElement<T extends GameEntity> {
 }
 
 
-export function syncGuiAndData(data: GameEntity[], gui: GuiElement<GameEntity>[], newElementHandler?: (newElement: GuiElement<GameEntity>) => void) {
+export function syncGuiAndDataArray(data: GameEntity[] = [], gui: GuiElement<GameEntity>[], newElementHandler?: (newElement: GuiElement<GameEntity>) => void) {
 
     const dataNewElements = [...data]
     const guiElementsToRemove = [...gui]

@@ -1,5 +1,5 @@
 import { Gui } from "../../common/types.js"
-import { syncGuiAndData } from "../internals.js"
+import { syncGuiAndDataArray } from "../internals.js"
 import { Window, WindowConfig } from "../window.js"
 import { StateAware } from "./gui-game-state.js"
 import { WorkerProcessGuiElement } from "./gui-worker-process.js"
@@ -21,7 +21,7 @@ export class TaskManagerWindow extends Window<Gui.TaskManager> implements StateA
 
     updateState(state?: Gui.TaskManager): void {
         if (state) {
-            syncGuiAndData(state.processes, this.processes, (newElement) => this.taskManagerTable.appendChild(newElement.element))
+            syncGuiAndDataArray(state.processes, this.processes, (newElement) => this.taskManagerTable.appendChild(newElement.element))
         }
     }
 

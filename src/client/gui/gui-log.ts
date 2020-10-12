@@ -1,5 +1,5 @@
 import { Gui } from "../../common/types.js"
-import { syncGuiAndData } from "../internals.js"
+import { syncGuiAndDataArray } from "../internals.js"
 import { Window, WindowConfig } from "../window.js"
 import { StateAware } from "./gui-game-state.js"
 import { LogEntryGuiElement } from "./gui-log-entry.js"
@@ -27,7 +27,7 @@ export class LogWindow extends Window<Gui.Log> implements StateAware<Gui.Log> {
     updateState(state?: Gui.Log): void {
 
         if (state) {
-            syncGuiAndData(state.entries, this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
+            syncGuiAndDataArray(state.entries, this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
         }
     }
 
