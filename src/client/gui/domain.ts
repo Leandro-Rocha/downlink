@@ -1,3 +1,4 @@
+import { Gui } from "../../common/types.js"
 import { StateAware } from "./gui-game-state.js"
 import { guiContainer } from "./gui.js"
 
@@ -39,7 +40,14 @@ class SideNav implements StateAware<{ hostname?: string }>{
         this.navElement.appendChild(this.menuElement)
     }
 
-    updateState(state: { hostname?: string }): void {
-        this.hostname.innerText = state.hostname || ''
+    updateState(state?: Partial<Gui.Gateway>): void {
+        this.hostname.innerText = state?.hostname || ''
+
+        if (state) {
+            this.navElement.classList.remove('hidden')
+        }
+        else{
+            this.navElement.classList.add('hidden')
+        }
     }
 }

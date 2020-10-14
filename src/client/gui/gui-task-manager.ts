@@ -1,4 +1,3 @@
-import { te } from "date-fns/locale"
 import { Gui } from "../../common/types.js"
 import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
 import { syncGuiAndDataArray } from "../internals.js"
