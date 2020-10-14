@@ -3,7 +3,7 @@ import { GuiElement } from "./gui-base.js"
 
 
 export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
-    element: HTMLElement
+    element: HTMLTableRowElement 
 
     pidElement: HTMLElement
     progressElement: HTMLElement

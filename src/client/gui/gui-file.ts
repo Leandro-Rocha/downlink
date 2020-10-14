@@ -11,6 +11,9 @@ export class FileGuiElement extends GuiElement<Gui.File>{
         this.element = document.createElement('tr')
         this.fileNameElement = this.element.appendChild(document.createElement('td'))
         this.fileSizeElement = this.element.appendChild(document.createElement('td'))
+
+        this.fileNameElement.classList.add('file-name')
+        this.fileSizeElement.classList.add('file-size')
     }
 
     updateContent(data: Gui.File): void {

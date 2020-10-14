@@ -136,6 +136,21 @@
     height: 500px;
 }
 
-.window-log .content #timestamp_header {
+.window-log .content #timestamp-header {
     width: 180px;
+}
+
+
+.window-file-manager {
+    width: 500px;
+    height: 300px;
+}
+
+
+.window-file-manager .file-size-header {
+    width: 85px;
+}
+
+.window-file-manager .file-size {
+    text-align: right;
 }

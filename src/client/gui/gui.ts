@@ -6,6 +6,7 @@ import { TaskManagerWindow } from "./gui-task-manager.js"
 import { ConnectionWindow } from "./gui-connection.js"
 import { GuiHeader } from "./gui-header.js"
 import { GuiRegister } from "./gui-register.js"
+import { DesktopWindow } from "../desktop-window.js"
 
 export const guiContainer = document.createElement('div')
 guiContainer.classList.add('fullScreen')
@@ -26,3 +27,4 @@ export const remoteLog = new LogWindow({ id: 'remote-log', title: 'Remote Log', 
 export const remoteFileManagerWindow = new FileManagerWindow({ id: 'remote-file-manager', title: 'File Manager', domain: remoteDomain })
 
 export const connectionWindow = new ConnectionWindow()
+

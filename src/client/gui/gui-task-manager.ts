@@ -1,32 +1,36 @@
+import { te } from "date-fns/locale"
 import { Gui } from "../../common/types.js"
+import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
 import { syncGuiAndDataArray } from "../internals.js"
-import { Window, WindowConfig } from "../window.js"
+import { TableHelper } from "../lib/table-helper.js"
 import { StateAware } from "./gui-game-state.js"
 import { WorkerProcessGuiElement } from "./gui-worker-process.js"
 
 
-export class TaskManagerWindow extends Window<Gui.TaskManager> implements StateAware<Gui.TaskManager>{
+export class TaskManagerWindow extends DesktopWindow implements StateAware<Gui.TaskManager>{
 
     processes: WorkerProcessGuiElement[] = []
     taskManagerTable: HTMLTableElement
+    taskManagerTableBody: HTMLTableSectionElement
 
-    constructor(config: WindowConfig) {
+    constructor(config: DesktopWindowConfig) {
         super(config)
 
-        this.taskManagerTable = document.createElement('table')
-        this.taskManagerTable.innerHTML = '<thead><td>PID</td><td>progress</td></thead>'
+        const table = new TableHelper(this.contentElement)
 
-        this.contentElement.appendChild(this.taskManagerTable)
+        table.header.tr
+            .td.text('PID')
+            .td.text('Progress').class('progress-header')
+
+        this.taskManagerTable = table.element
+        this.taskManagerTableBody = table.body.element
     }
 
     updateState(state?: Gui.TaskManager): void {
-        if (state) {
-            syncGuiAndDataArray(state.processes, this.processes, (newElement) => this.taskManagerTable.appendChild(newElement.element))
-        }
-    }
+        syncGuiAndDataArray(state?.processes || [], this.processes, (newElement) => this.taskManagerTableBody.appendChild(newElement.element))
 
-
-    getDefaultPosition() {
-        return { width: 500 }
+        if (state) this.show()
+        else this.hide()
     }
 }
+

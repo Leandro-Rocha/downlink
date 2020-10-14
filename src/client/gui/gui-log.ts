@@ -1,38 +1,34 @@
 import { Gui } from "../../common/types.js"
+import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
 import { syncGuiAndDataArray } from "../internals.js"
-import { Window, WindowConfig } from "../window.js"
+import { TableHelper } from "../lib/table-helper.js"
 import { StateAware } from "./gui-game-state.js"
 import { LogEntryGuiElement } from "./gui-log-entry.js"
 
-export class LogWindow extends Window<Gui.Log> implements StateAware<Gui.Log> {
+export class LogWindow extends DesktopWindow implements StateAware<Gui.Log> {
 
     entries: LogEntryGuiElement[] = []
     logTable: HTMLTableElement
     logTableBody: HTMLTableSectionElement
 
-    constructor(config: WindowConfig) {
-        super(config)
+    constructor(config: DesktopWindowConfig) {
+        super(config, ['window-log'])
 
-        this.element.classList.add('window-log')
+        const table = new TableHelper(this.contentElement)
 
-        this.logTable = document.createElement('table')
-        this.logTable.innerHTML = `<thead><td id='timestamp_header' >Timestamp</td><td>Message</td></thead>`
+        table.header.tr
+            .td.text('Timestamp')
+            .td.text('Message')
 
-        this.logTableBody = document.createElement('tbody')
-        this.logTable.appendChild(this.logTableBody)
-
-        this.contentElement.appendChild(this.logTable)
+        this.logTable = table.element
+        this.logTableBody = table.body.element
     }
 
     updateState(state?: Gui.Log): void {
+        syncGuiAndDataArray(state?.entries || [], this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
 
-        if (state) {
-            syncGuiAndDataArray(state.entries, this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
-        }
-    }
-
-    getDefaultPosition() {
-        return { width: 500 }
+        if (state) this.show()
+        else this.hide()
     }
 }
 

@@ -1,4 +1,4 @@
-import { applyMixins } from "../../shared"
+import { applyMixins } from "../../common/utils"
 
 export enum SIGNALS {
     RESOURCE_ALLOCATION_UPDATED = 'RESOURCE_ALLOCATION_UPDATED',

@@ -1,47 +1,34 @@
 import { Gui } from "../../common/types.js"
+import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
 import { syncGuiAndDataArray as syncGuiAndDataArray } from "../internals.js"
-import { Window, WindowConfig } from "../window.js"
+import { TableHelper } from "../lib/table-helper.js"
 import { FileGuiElement } from "./gui-file.js"
 import { StateAware } from "./gui-game-state.js"
 
 
-export class FileManagerWindow extends Window<Gui.Storage> implements StateAware<Gui.Storage> {
+export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.Storage> {
     fileList: FileGuiElement[] = []
 
     fileTable: HTMLTableElement
     fileTableBody: HTMLTableSectionElement
 
-    constructor(config: WindowConfig) {
-        super(config)
+    constructor(config: DesktopWindowConfig) {
+        super(config, ['window-file-manager'])
 
-        this.fileTable = document.createElement('table')
-        this.fileTable.innerHTML = `<thead>
-        <td id='timestamp_header'>File Name</td>
-        <td>Size</td></thead>`
+        const table = new TableHelper(this.contentElement)
 
-        this.fileTableBody = document.createElement('tbody')
-        this.fileTable.appendChild(this.fileTableBody)
+        table.header.tr
+            .td.text('File Name')
+            .td.text('Size').class('file-size-header')
 
-        this.contentElement.appendChild(this.fileTable)
+        this.fileTable = table.element
+        this.fileTableBody = table.body.element
     }
 
     updateState(state?: Gui.Storage): void {
         syncGuiAndDataArray(state?.files || [], this.fileList, (newElement) => this.fileTableBody.appendChild(newElement.element))
 
-        //TODO make generic Window hide 
-        if (state) {
-            this.element.classList.remove('hidden')
-            this.minimizedElement.classList.remove('hidden')
-        }
-        else {
-            syncGuiAndDataArray([], this.fileList)
-            this.element.classList.add('hidden')
-            this.minimizedElement.classList.add('hidden')
-        }
-    }
-
-
-    getDefaultPosition() {
-        return { width: 500 }
+        if (state) this.show()
+        else this.hide()
     }
 }
