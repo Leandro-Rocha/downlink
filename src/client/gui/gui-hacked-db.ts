@@ -5,9 +5,6 @@ import { TableHelper } from "../lib/table-helper.js"
 import { HackedDbEntryGuiElement } from "./gui-hacked-db-entry.js"
 
 
-
-
-
 export class HackedDbWindow extends DesktopWindow {
 
     entries: HackedDbEntryGuiElement[] = []

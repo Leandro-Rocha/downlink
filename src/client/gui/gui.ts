@@ -6,7 +6,7 @@ import { TaskManagerWindow } from "./gui-task-manager.js"
 import { ConnectionWindow } from "./gui-connection.js"
 import { GuiHeader } from "./gui-header.js"
 import { GuiRegister } from "./gui-register.js"
-import { DesktopWindow } from "../desktop-window.js"
+import { PortsWindow } from "./window/ports-window.js"
 
 export const guiContainer = document.createElement('div')
 guiContainer.classList.add('fullScreen')
@@ -16,14 +16,15 @@ export const guiHeader = new GuiHeader()
 export const guiRegister = new GuiRegister()
 
 export const localDomain = new Domain(DomainType.LOCAL)
-export const localLog = new LogWindow({ id: 'local-log', title: 'Local Log', domain: localDomain })
+export const localLogWindow = new LogWindow({ id: 'local-log', title: 'Local Log', domain: localDomain })
 export const localFileManagerWindow = new FileManagerWindow({ id: 'local-file-manager', title: 'File Manager', domain: localDomain })
-export const taskManager = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager', domain: localDomain })
-export const hackedDB = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB', domain: localDomain })
+export const taskManagerWindow = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager', domain: localDomain })
+export const hackedDBWindow = new HackedDbWindow({ id: 'hacked-db', title: 'HackedDB', domain: localDomain })
 
 
 export const remoteDomain = new Domain(DomainType.REMOTE)
-export const remoteLog = new LogWindow({ id: 'remote-log', title: 'Remote Log', domain: remoteDomain })
+export const remotePortsWindow = new PortsWindow({ id: 'remote-ports', title: 'Ports', domain: remoteDomain })
+export const remoteLogWindow = new LogWindow({ id: 'remote-log', title: 'Remote Log', domain: remoteDomain })
 export const remoteFileManagerWindow = new FileManagerWindow({ id: 'remote-file-manager', title: 'File Manager', domain: remoteDomain })
 
 export const connectionWindow = new ConnectionWindow()

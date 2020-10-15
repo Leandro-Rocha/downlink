@@ -1,7 +1,7 @@
 import './internals.js'
 import { PlayerActions, SocketEvents } from '../common/constants.js'
 import { socket } from './socket.js'
-import { hackedDB, localLog, localFileManagerWindow, taskManager, remoteLog, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiContainer } from './gui/gui.js'
+import { hackedDBWindow, localLogWindow, localFileManagerWindow, taskManagerWindow, remoteLogWindow, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiContainer } from './gui/gui.js'
 import { GameStateType } from '../common/types.js'
 
 
@@ -42,14 +42,14 @@ export function updateGameState(newState: GameStateType) {
 
 function updateLocalGateway(newState: GameStateType) {
 
-    hackedDB.updateContent(newState.hackedDB)
-    localLog.updateState(newState.localGateway.log)
+    hackedDBWindow.updateContent(newState.hackedDB)
+    localLogWindow.updateState(newState.localGateway.log)
     localFileManagerWindow.updateState(newState.localGateway.storage)
-    taskManager.updateState(newState.localGateway.taskManager)
+    taskManagerWindow.updateState(newState.localGateway.taskManager)
 }
 
 function updateRemoteGateway(newState: GameStateType) {
-    remoteLog.updateState(newState.remoteGateway?.log)
+    remoteLogWindow.updateState(newState.remoteGateway?.log)
     remoteFileManagerWindow.updateState(newState.remoteGateway?.storage)
 }
 
