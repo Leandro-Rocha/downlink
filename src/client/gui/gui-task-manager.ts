@@ -13,13 +13,15 @@ export class TaskManagerWindow extends DesktopWindow implements StateAware<Gui.T
     taskManagerTableBody: HTMLTableSectionElement
 
     constructor(config: DesktopWindowConfig) {
-        super(config)
+        super(config, ['window-task-manager'])
 
         const table = new TableHelper(this.contentElement)
 
         table.header.tr
-            .td.text('PID')
-            .td.text('Progress').class('progress-header')
+            .td.text('PID').class('pid-header')
+            .td.text('%').class('progress-header')
+            .td.text('CPU').class('cpu-header')
+            .td.text('Mem').class('mem-header')
 
         this.taskManagerTable = table.element
         this.taskManagerTableBody = table.body.element

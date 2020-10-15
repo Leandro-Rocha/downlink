@@ -49,7 +49,7 @@ export class DesktopWindow {
         const storedPosition = Desktop.getWindowData(this.id)
         this.x = config.x || storedPosition?.x || (window.innerWidth - this.element.offsetWidth) / 2
         this.y = config.y || storedPosition?.y || (window.innerHeight - this.element.offsetHeight) / 2
-        this.zIndex = config.zIndex || storedPosition?.zIndex || Desktop.windowList.findIndex(w => w === this) + 1
+        this.zIndex = config.zIndex || storedPosition?.zIndex || document.querySelectorAll('.window').length
 
         this.state = config.state || storedPosition?.state || WindowState.MINIMIZED
 

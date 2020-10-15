@@ -141,6 +141,25 @@
 }
 
 
+.window-task-manager {
+    width: 500px;
+    height: 300px;
+}
+
+.window-task-manager .pid-header {
+    width: 190px;
+}
+
+.window-task-manager .progress-header {
+    width: 40px;
+}
+
+.window-task-manager .cpu-header,
+.mem-header {
+    width: 40px;
+}
+
+
 .window-file-manager {
     width: 500px;
     height: 300px;
@@ -153,4 +172,9 @@
 
 .window-file-manager .file-size {
     text-align: right;
+}
+
+.window-hacked-db {
+    width: 300px;
+    height: 500px;
 }

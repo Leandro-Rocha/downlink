@@ -15,12 +15,12 @@ export class HackedDbWindow extends DesktopWindow {
     hackedDbTableBody: HTMLTableSectionElement
 
     constructor(config: DesktopWindowConfig) {
-        super(config)
+        super(config, ['window-hacked-db'])
 
         const table = new TableHelper(this.contentElement)
 
         table.header.tr
-            .td.text('IP')
+            .td.text('IP').class('ip-header')
 
         this.hackedDbTable = table.element
         this.hackedDbTableBody = table.body.element
