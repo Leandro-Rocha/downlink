@@ -1,6 +1,32 @@
 abstract class Element {
     abstract element: HTMLElement
 
+    constructor(options?: { parent?: HTMLElement }) {
+
+        this.createElement()
+
+        if (options?.parent) {
+            options.parent.appendChild(this.getElement())
+        }
+    }
+
+    private getElement() {
+        return this.element
+    }
+
+    protected abstract createElement(): void
+
+
+    addClass(...newClass: string[]) {
+        this.element.classList.add(...newClass)
+        return this
+    }
+
+    removeClass(...newClass: string[]) {
+        this.element.classList.remove(...newClass)
+        return this
+    }
+
     id(id: string) {
         this.element.id = id
         return this
@@ -11,10 +37,6 @@ abstract class Element {
         return this
     }
 
-    class(newClass: string) {
-        this.element.classList.add(newClass)
-        return this
-    }
 }
 
 
@@ -38,25 +60,23 @@ abstract class Container extends Element {
         return table
     }
 
+    get span() {
+        const span = new Span()
+        this.element.appendChild(span.element)
+        return span
+    }
+
 
 }
 
-class Div extends Container {
-    element: HTMLDivElement
-
-    constructor() {
-        super()
-        this.element = document.createElement('div')
-    }
+export class Div extends Container {
+    element!: HTMLDivElement
+    createElement() { this.element = document.createElement('div') }
 }
 
-class Input extends Element {
-    element: HTMLInputElement
-
-    constructor() {
-        super()
-        this.element = document.createElement('input')
-    }
+export class Input extends Element {
+    element!: HTMLInputElement
+    createElement() { this.element = document.createElement('input') }
 
     value(value: string) {
         this.element.value = value
@@ -64,18 +84,13 @@ class Input extends Element {
     }
 }
 
-
 export class Table extends Element {
-    element: HTMLTableElement
+    element!: HTMLTableElement
+    createElement() { this.element = document.createElement('table') }
 
     #header?: TableHead
     #body?: TableBody
 
-    constructor() {
-        super()
-
-        this.element = document.createElement('table')
-    }
 
     get header(): TableHead {
         if (!this.#header) this.#header = new TableHead()
@@ -103,25 +118,18 @@ abstract class TableSection extends Element {
 }
 
 class TableHead extends TableSection {
-    element: HTMLTableSectionElement
-
-    constructor() {
-        super()
-        this.element = document.createElement('thead')
-    }
+    element!: HTMLTableSectionElement
+    createElement() { this.element = document.createElement('thead') }
 }
 
 class TableBody extends TableSection {
-    element: HTMLTableSectionElement
-
-    constructor() {
-        super()
-        this.element = document.createElement('tbody')
-    }
+    element!: HTMLTableSectionElement
+    createElement() { this.element = document.createElement('tbody') }
 }
 
-class TableRow extends Element {
-    element: HTMLTableRowElement
+export class TableRow extends Element {
+    element!: HTMLTableRowElement
+    createElement() { this.element = document.createElement('tr') }
 
     constructor() {
         super()
@@ -136,7 +144,8 @@ class TableRow extends Element {
 }
 
 class TableCell extends Container {
-    element: HTMLTableDataCellElement
+    element!: HTMLTableDataCellElement
+    createElement() { this.element = document.createElement('td') }
 
     constructor() {
         super()
@@ -145,3 +154,7 @@ class TableCell extends Container {
 }
 
 
+export class Span extends Container {
+    element!: HTMLSpanElement
+    createElement() { this.element = document.createElement('span') }
+}

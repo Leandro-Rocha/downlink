@@ -14,11 +14,10 @@ export class HackedDbWindow extends DesktopWindow {
     constructor(config: DesktopWindowConfig) {
         super(config, ['window-hacked-db'])
 
-        const table = new Table()
-        this.contentElement.appendChild(table.element)
+        const table = this.content.table
 
         table.header.tr
-            .td.text('IP').class('ip-header')
+            .td.text('IP').addClass('ip-header')
 
         this.hackedDbTable = table.element
         this.hackedDbTableBody = table.body.element

@@ -1,5 +1,4 @@
 import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
-import { Table } from "../../lib/html-helper.js"
 
 export class PortsWindow extends DesktopWindow {
     hackedDbTable: HTMLTableElement
@@ -12,8 +11,7 @@ export class PortsWindow extends DesktopWindow {
     constructor(config: DesktopWindowConfig) {
         super(config, ['window-ports'])
 
-        const table = new Table()
-        this.contentElement.appendChild(table.element)
+        const table = this.content.table
 
         const ftpRow = table.body.tr
         ftpRow.td.text('FTP:21')
@@ -22,7 +20,7 @@ export class PortsWindow extends DesktopWindow {
 
         const sshRow = table.body.tr
         sshRow.td.text('SSH:22')
-        this.sshInput = sshRow.td.input.value('1@#asf@41@').id('ftp-input-password').element
+        this.sshInput = sshRow.td.input.value('1@#asf@41@').id('ssh-input-password').element
 
 
         this.hackedDbTable = table.element

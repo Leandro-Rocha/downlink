@@ -1,4 +1,5 @@
 import { Gui } from "../../common/types.js"
+import { TableRow } from "../lib/html-helper.js"
 import { GuiElement } from "./gui-base.js"
 
 export class FileGuiElement extends GuiElement<Gui.File>{
@@ -8,12 +9,12 @@ export class FileGuiElement extends GuiElement<Gui.File>{
 
     constructor() {
         super()
-        this.element = document.createElement('tr')
-        this.fileNameElement = this.element.appendChild(document.createElement('td'))
-        this.fileSizeElement = this.element.appendChild(document.createElement('td'))
 
-        this.fileNameElement.classList.add('file-name')
-        this.fileSizeElement.classList.add('file-size')
+        const row = new TableRow()
+        this.element = row.element
+
+        this.fileNameElement = row.td.addClass('file-name').element
+        this.fileSizeElement = row.td.addClass('file-size').element
     }
 
     updateContent(data: Gui.File): void {

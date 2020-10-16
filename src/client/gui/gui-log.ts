@@ -14,8 +14,7 @@ export class LogWindow extends DesktopWindow implements StateAware<Gui.Log> {
     constructor(config: DesktopWindowConfig) {
         super(config, ['window-log'])
 
-        const table = new Table()
-        this.contentElement.appendChild(table.element)
+        const table = this.content.table
 
         const headerRow = table.header.tr
         headerRow.td.text('Timestamp')

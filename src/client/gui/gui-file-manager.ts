@@ -9,25 +9,22 @@ import { StateAware } from "./gui-game-state.js"
 export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.Storage> {
     fileList: FileGuiElement[] = []
 
-    fileTable: HTMLTableElement
-    fileTableBody: HTMLTableSectionElement
+    fileTable: Table
 
     constructor(config: DesktopWindowConfig) {
         super(config, ['window-file-manager'])
 
-        const table = new Table()
-        this.contentElement.appendChild(table.element)
+        this.fileTable = this.content.table
 
-        const headerRow = table.header.tr
+        const headerRow = this.fileTable.header.tr
         headerRow.td.text('File Name')
-        headerRow.td.text('Size').class('file-size-header')
+        headerRow.td.text('Type').addClass('type-header')
+        headerRow.td.text('Size').addClass('file-size-header')
 
-        this.fileTable = table.element
-        this.fileTableBody = table.body.element
     }
 
     updateState(state?: Gui.Storage): void {
-        syncGuiAndDataArray(state?.files || [], this.fileList, (newElement) => this.fileTableBody.appendChild(newElement.element))
+        syncGuiAndDataArray(state?.files || [], this.fileList, (newElement) => this.fileTable.body.element.appendChild(newElement.element))
 
         if (state) this.show()
         else this.hide()

@@ -21,34 +21,34 @@ export class DesktopWindow {
         this.title = config.title
 
         createWindowElements(this, guiContainer)
-        this.element.classList.add(...extraCssClasses)
+        this.windowDiv.addClass(...extraCssClasses)
 
         addHeader(this, this.title)
         addWindowControls(this)
         createMinimizedElement(this)
 
-        makeDraggable(this, this.headerElement, {
+        makeDraggable(this, this.header.element, {
             callbacks: {
-                start: () => this.element.style.transition = 'none',
+                start: () => this.windowDiv.element.style.transition = 'none',
                 end: () => {
-                    this.element.style.transition = ''
+                    this.windowDiv.element.style.transition = ''
                     this.savePosition()
                 }
             },
             skipElements: [this.windowControls.minimize]
         })
-        this.element.addEventListener('mousedown', () => Desktop.bringToFront(this))
+        this.windowDiv.element.addEventListener('mousedown', () => Desktop.bringToFront(this))
 
 
         const domainClass = this.domain.cssClass
-        this.element.classList.add(domainClass)
-        this.headerElement.classList.add(domainClass)
-        this.contentElement.classList.add(domainClass)
+        this.windowDiv.addClass(domainClass)
+        this.header.addClass(domainClass)
+        this.content.addClass(domainClass)
 
         // Position
         const storedPosition = Desktop.getWindowData(this.id)
-        this.x = config.x || storedPosition?.x || (window.innerWidth - this.element.offsetWidth) / 2
-        this.y = config.y || storedPosition?.y || (window.innerHeight - this.element.offsetHeight) / 2
+        this.x = config.x || storedPosition?.x || (window.innerWidth - this.windowDiv.element.offsetWidth) / 2
+        this.y = config.y || storedPosition?.y || (window.innerHeight - this.windowDiv.element.offsetHeight) / 2
         this.zIndex = config.zIndex || storedPosition?.zIndex || document.querySelectorAll('.window').length
 
         this.state = config.state || storedPosition?.state || WindowState.MINIMIZED
@@ -63,11 +63,11 @@ export class DesktopWindow {
 
         (<any>this.positionCSS).style.top = this.minimizedElement.offsetTop + 40 + 'px' // HACK =[
 
-        this.element.classList.remove('restored')
-        this.element.classList.add('minimized')
+        this.windowDiv.removeClass('restored')
+        this.windowDiv.addClass('minimized')
 
-        this.contentElement.classList.remove('restored')
-        this.contentElement.classList.add('minimized')
+        this.content.removeClass('restored')
+        this.content.addClass('minimized')
     }
 
     restore() {
@@ -75,20 +75,20 @@ export class DesktopWindow {
         (<any>this.positionCSS).style.top = Desktop.getWindowData(this.id)?.y || 0 + 'px' // HACK =[
         this.savePosition()
 
-        this.element.classList.remove('minimized')
-        this.element.classList.add('restored')
+        this.windowDiv.removeClass('minimized')
+        this.windowDiv.addClass('restored')
 
-        this.contentElement.classList.remove('minimized')
-        this.contentElement.classList.add('restored')
+        this.content.removeClass('minimized')
+        this.content.addClass('restored')
     }
 
     hide() {
-        this.element.classList.add('hidden')
+        this.windowDiv.addClass('hidden')
         this.minimizedElement.classList.add('hidden')
     }
 
     show() {
-        this.element.classList.remove('hidden')
+        this.windowDiv.removeClass('hidden')
         this.minimizedElement.classList.remove('hidden')
     }
 
@@ -146,14 +146,13 @@ interface WindowControls {
 }
 
 function addWindowControls(window: DesktopWindow) {
-    const windowControlDiv = document.createElement('div')
-    window.headerElement.appendChild(windowControlDiv)
-    windowControlDiv.classList.add('window-control')
 
-    const minimizeDiv = document.createElement('div')
-    windowControlDiv.appendChild(minimizeDiv)
-    minimizeDiv.classList.add('minimize-control')
-    minimizeDiv.addEventListener('click', window.minimize.bind(window))
+    const windowControlDiv = window.header.div
+    windowControlDiv.addClass('window-control')
 
-    window.windowControls = { controls: windowControlDiv, minimize: minimizeDiv }
+    const minimizeDiv = windowControlDiv.div
+    minimizeDiv.addClass('minimize-control')
+    minimizeDiv.element.addEventListener('click', window.minimize.bind(window))
+
+    window.windowControls = { controls: windowControlDiv.element, minimize: minimizeDiv.element }
 }

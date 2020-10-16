@@ -1,17 +1,17 @@
 import { createCSSRule } from "../internals.js"
 import { Mouse } from "../mouse.js"
+import { Div } from "./html-helper.js"
 
 export class Window {
-    element!: HTMLDivElement
-    contentElement!: HTMLDivElement
+    windowDiv!: Div
+    content!: Div
 
     id!: string
-    // this.state = config.state || storedPosition?.state || WindowState.MINIMIZED
 }
 
 
 export abstract class HeadedWindow extends Window {
-    headerElement!: HTMLDivElement
+    header!: Div
     title!: string
 }
 
@@ -44,40 +44,37 @@ export abstract class DraggableWindow extends Window {
 
 
 export function createWindowElements(window: Window, parent: HTMLElement) {
-    const windowDiv = document.createElement('div')
-    parent.appendChild(windowDiv)
-    window.element = windowDiv
-    windowDiv.id = `window-${window.id}`
-    windowDiv.classList.add('window')
 
-    const contentDiv = document.createElement('div')
-    window.contentElement = contentDiv
-    contentDiv.classList.add('content')
-    windowDiv.appendChild(contentDiv)
+    window.windowDiv = new Div({ parent })
+    window.windowDiv
+        .id(`window-${window.id}`)
+        .addClass('window')
+
+
+    window.content = window.windowDiv.div
+    window.content.addClass('content')
 
 }
 
 
 export function addWindowHeaderElement(headedWindow: HeadedWindow, title: string) {
-    const headerDiv = document.createElement('div')
-    headedWindow.element.insertBefore(headerDiv, headedWindow.contentElement)
-    headedWindow.headerElement = headerDiv
-    headerDiv.classList.add('header')
 
-    const headerTitleDiv = document.createElement('span')
-    headerDiv.appendChild(headerTitleDiv)
-    headerTitleDiv.textContent = title
+    headedWindow.header = new Div()
+    headedWindow.windowDiv.element.insertBefore(headedWindow.header.element, headedWindow.content.element)
+    headedWindow.header.addClass('header')
+
+    headedWindow.header.span.text(title)
 }
 
 
 export function addDraggableElement(draggableWindow: DraggableWindow) {
 
     draggableWindow.positionCSS = createCSSRule(`.${draggableWindow.id}-position`)
-    draggableWindow.element.classList.add(`${draggableWindow.id}-position`)
+    draggableWindow.windowDiv.addClass(`${draggableWindow.id}-position`)
 
     // Disable transitions while creating the window
-    draggableWindow.element.style.transition = 'none'
-    setTimeout(() => draggableWindow.element.style.transition = '', 1); //TODO: Promise
+    draggableWindow.windowDiv.element.style.transition = 'none'
+    setTimeout(() => draggableWindow.windowDiv.element.style.transition = '', 1); //TODO: Promise
 }
 
 
@@ -131,7 +128,7 @@ function bindPositionAccessors(myWindow: DraggableWindow) {
         get() { return this._x },
         set(newValue) {
             var boundedValue = Math.max(newValue, 0)
-            boundedValue = Math.min(boundedValue, window.innerWidth - this.element.offsetWidth)
+            boundedValue = Math.min(boundedValue, window.innerWidth - myWindow.windowDiv.element.offsetWidth)
 
             this.positionCSS.style.left = boundedValue + 'px'
             this._x = boundedValue
@@ -143,7 +140,7 @@ function bindPositionAccessors(myWindow: DraggableWindow) {
         get() { return this._y },
         set(newValue) {
             var boundedValue = Math.max(newValue, 35)
-            boundedValue = Math.min(boundedValue, window.innerHeight - this.element.offsetHeight)
+            boundedValue = Math.min(boundedValue, window.innerHeight - myWindow.windowDiv.element.offsetHeight)
 
 
             this.positionCSS.style.top = boundedValue + 'px'
@@ -156,7 +153,7 @@ function bindPositionAccessors(myWindow: DraggableWindow) {
         get() { return this._zIndex },
         set(newValue) {
             this._zIndex = newValue
-            this.element.style.zIndex = newValue
+            myWindow.windowDiv.element.style.zIndex = newValue
         },
         enumerable: true
     })
