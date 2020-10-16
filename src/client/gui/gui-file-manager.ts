@@ -1,7 +1,7 @@
 import { Gui } from "../../common/types.js"
 import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
 import { syncGuiAndDataArray as syncGuiAndDataArray } from "../internals.js"
-import { TableHelper } from "../lib/table-helper.js"
+import { Table } from "../lib/html-helper.js"
 import { FileGuiElement } from "./gui-file.js"
 import { StateAware } from "./gui-game-state.js"
 
@@ -15,11 +15,12 @@ export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.S
     constructor(config: DesktopWindowConfig) {
         super(config, ['window-file-manager'])
 
-        const table = new TableHelper(this.contentElement)
+        const table = new Table()
+        this.contentElement.appendChild(table.element)
 
-        table.header.tr
-            .td.text('File Name')
-            .td.text('Size').class('file-size-header')
+        const headerRow = table.header.tr
+        headerRow.td.text('File Name')
+        headerRow.td.text('Size').class('file-size-header')
 
         this.fileTable = table.element
         this.fileTableBody = table.body.element

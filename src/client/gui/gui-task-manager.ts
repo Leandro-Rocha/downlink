@@ -1,7 +1,7 @@
 import { Gui } from "../../common/types.js"
 import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
 import { syncGuiAndDataArray } from "../internals.js"
-import { TableHelper } from "../lib/table-helper.js"
+import { Table } from "../lib/html-helper.js"
 import { StateAware } from "./gui-game-state.js"
 import { WorkerProcessGuiElement } from "./gui-worker-process.js"
 
@@ -15,13 +15,15 @@ export class TaskManagerWindow extends DesktopWindow implements StateAware<Gui.T
     constructor(config: DesktopWindowConfig) {
         super(config, ['window-task-manager'])
 
-        const table = new TableHelper(this.contentElement)
+        const table = new Table()
+        this.contentElement.appendChild(table.element)
 
-        table.header.tr
-            .td.text('PID').class('pid-header')
-            .td.text('%').class('progress-header')
-            .td.text('CPU').class('cpu-header')
-            .td.text('Mem').class('mem-header')
+        const headerRow = table.header.tr
+        headerRow.td.text('PID').class('pid-header')
+        headerRow.td.text('%').class('progress-header')
+        headerRow.td.text('Priority')
+        headerRow.td.text('CPU').class('cpu-header')
+        headerRow.td.text('Mem').class('mem-header')
 
         this.taskManagerTable = table.element
         this.taskManagerTableBody = table.body.element
