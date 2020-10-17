@@ -1,9 +1,5 @@
-import { Gui } from "../../common/types.js"
-import { GuiElement } from "./gui-base.js"
-
-
-
-
+import { Gui } from "../../../common/types.js"
+import { GuiElement } from "../gui-base.js"
 
 
 export class HackedDbEntryGuiElement extends GuiElement<Gui.HackedDbEntry>{
@@ -18,7 +14,6 @@ export class HackedDbEntryGuiElement extends GuiElement<Gui.HackedDbEntry>{
 
     updateContent(data: Gui.HackedDbEntry): void {
         this.data = data
-
         this.ipElement.textContent = this.data.ip
     }
 }

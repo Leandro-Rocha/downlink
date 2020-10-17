@@ -1,33 +1,31 @@
 import { registerUser } from "../client.js"
+import { Div, Input } from "../lib/html-helper.js"
 import { createIcon, IconType } from "./gui-icon.js"
 
 
 
 export class GuiRegister {
-    element: HTMLDivElement
-    userNameInput: HTMLInputElement
+    screen: Div
+    userNameInput: Input
 
     constructor() {
-        this.element = document.createElement('div')
-        this.element.classList.add('fullScreen')
-        this.element.classList.add('hidden')
-        this.element.classList.add('guiRegister')
-        document.body.appendChild(this.element)
 
-        const label = document.createElement('span')
-        label.textContent = 'Register User'
-        this.element.appendChild(label)
+        this.screen = new Div({ parent: document.body })
+        this.screen.addClass('fullScreen')
+        this.screen.addClass('guiRegister')
+        this.screen.addClass('hidden')
 
-        this.userNameInput = document.createElement('input')
-        this.userNameInput.classList.add('ipInput')
-        this.element.appendChild(this.userNameInput)
+        this.screen.span.text('Register User')
+
+        this.userNameInput = this.screen.input
+        this.userNameInput.addClass('ipInput')
 
         const loginButton = createIcon(IconType.login)
         loginButton.classList.add('loginButton')
-        loginButton.addEventListener('click', () => registerUser(this.userNameInput.value))
-        this.element.appendChild(loginButton)
+        loginButton.addEventListener('click', () => registerUser(this.userNameInput.element.value))
+        this.screen.element.appendChild(loginButton)
 
-        this.userNameInput.addEventListener("keydown", function (event) {
+        this.userNameInput.element.addEventListener("keydown", function (event) {
             if (event.key === 'Enter') {
                 loginButton.click();
             }

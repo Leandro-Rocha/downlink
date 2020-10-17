@@ -1,9 +1,9 @@
-import { Gui } from "../../common/types.js"
-import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
-import { syncGuiAndDataArray as syncGuiAndDataArray } from "../internals.js"
-import { Table } from "../lib/html-helper.js"
-import { FileGuiElement } from "./gui-file.js"
-import { StateAware } from "./gui-game-state.js"
+import { Gui } from "../../../common/types.js"
+import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
+import { syncGuiAndDataArray as syncGuiAndDataArray } from "../../internals.js"
+import { Table } from "../../lib/html-helper.js"
+import { FileGuiElement } from "./file-manager-entry.js"
+import { StateAware } from "../gui-game-state.js"
 
 
 export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.Storage> {

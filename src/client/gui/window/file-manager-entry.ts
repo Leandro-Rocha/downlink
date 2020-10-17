@@ -1,6 +1,6 @@
-import { Gui } from "../../common/types.js"
-import { TableRow } from "../lib/html-helper.js"
-import { GuiElement } from "./gui-base.js"
+import { Gui } from "../../../common/types.js"
+import { TableRow } from "../../lib/html-helper.js"
+import { GuiElement } from "../gui-base.js"
 
 export class FileGuiElement extends GuiElement<Gui.File>{
     element: HTMLElement

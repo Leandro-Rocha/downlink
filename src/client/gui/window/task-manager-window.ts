@@ -1,9 +1,8 @@
-import { Gui } from "../../common/types.js"
-import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
-import { syncGuiAndDataArray } from "../internals.js"
-import { Table } from "../lib/html-helper.js"
-import { StateAware } from "./gui-game-state.js"
-import { WorkerProcessGuiElement } from "./gui-worker-process.js"
+import { Gui } from "../../../common/types.js"
+import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
+import { syncGuiAndDataArray } from "../../internals.js"
+import { StateAware } from "../gui-game-state.js"
+import { WorkerProcessGuiElement } from "../gui-worker-process.js"
 
 
 export class TaskManagerWindow extends DesktopWindow implements StateAware<Gui.TaskManager>{

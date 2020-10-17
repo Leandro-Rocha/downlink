@@ -1,6 +1,6 @@
 import { PlayerActions, SocketEvents } from "../../common/constants.js"
 import { socket } from "../socket.js"
-import { FileGuiElement } from "./gui-file.js"
+import { FileGuiElement } from "./window/file-manager-entry.js"
 
 export class SoftwareGuiElement extends FileGuiElement {
 

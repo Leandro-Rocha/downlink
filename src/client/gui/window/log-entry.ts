@@ -1,5 +1,5 @@
-import { Gui } from "../../common/types.js"
-import { GuiElement } from "./gui-base.js"
+import { Gui } from "../../../common/types.js"
+import { GuiElement } from "../gui-base.js"
 
 
 export class LogEntryGuiElement extends GuiElement<Gui.LogEntry>{

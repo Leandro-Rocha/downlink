@@ -1,11 +1,11 @@
 import { EntityType, GameEntity } from "../common/types.js"
 import { WorkerProcessGuiElement } from "./gui/gui-worker-process.js"
-import { HackedDbEntryGuiElement } from "./gui/gui-hacked-db-entry.js"
-import { LogEntryGuiElement } from "./gui/gui-log-entry.js"
-import { FileGuiElement } from "./gui/gui-file.js"
+import { LogEntryGuiElement } from "./gui/window/log-entry.js"
+import { FileGuiElement } from "./gui/window/file-manager-entry.js"
 import { SoftwareGuiElement } from "./gui/gui-software.js"
 import { PasswordCrackerGuiElement } from "./gui/gui-password-cracker.js"
 import { GuiElement } from "./internals.js"
+import { HackedDbEntryGuiElement } from "./gui/window/hacked-db-entry.js"
 
 export function createClientElement(type: EntityType): GuiElement<GameEntity> {
     if (type === EntityType.PROCESS_CRACKER) {

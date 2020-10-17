@@ -1,9 +1,8 @@
-import { Gui } from "../../common/types.js"
-import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
-import { syncGuiAndDataArray } from "../internals.js"
-import { Table } from "../lib/html-helper.js"
-import { StateAware } from "./gui-game-state.js"
-import { LogEntryGuiElement } from "./gui-log-entry.js"
+import { Gui } from "../../../common/types.js"
+import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
+import { syncGuiAndDataArray } from "../../internals.js"
+import { StateAware } from "../gui-game-state.js"
+import { LogEntryGuiElement } from "./log-entry.js"
 
 export class LogWindow extends DesktopWindow implements StateAware<Gui.Log> {
 

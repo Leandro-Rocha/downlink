@@ -23,7 +23,7 @@ function playerConnected() {
 function playerAuthenticated(newState: GameStateType) {
 
     guiLoadingScreen.classList.add('hidden')
-    guiRegister.element.classList.add('hidden')
+    guiRegister.screen.addClass('hidden')
     guiContainer.classList.remove('hidden')
 
     updateGameState(newState)
@@ -33,7 +33,7 @@ function handleError(error: ErrorCodes) {
     console.log(`Error [${ErrorCodes[error]}]`)
 
     if (error === ErrorCodes.PLAYER_NOT_FOUND) {
-        guiRegister.element.classList.remove('hidden')
+        guiRegister.screen.removeClass('hidden')
         guiContainer.classList.add('hidden')
         guiLoadingScreen.classList.add('hidden')
 

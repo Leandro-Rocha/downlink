@@ -1,8 +1,8 @@
-import { Gui } from "../../common/types.js"
-import { DesktopWindow, DesktopWindowConfig } from "../desktop-window.js"
-import { syncGuiAndDataArray } from "../internals.js"
-import { Table } from "../lib/html-helper.js"
-import { HackedDbEntryGuiElement } from "./gui-hacked-db-entry.js"
+import { Gui } from "../../../common/types.js"
+import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
+import { syncGuiAndDataArray } from "../../internals.js"
+import { Table } from "../../lib/html-helper.js"
+import { HackedDbEntryGuiElement } from "./hacked-db-entry.js"
 
 
 export class HackedDbWindow extends DesktopWindow {
