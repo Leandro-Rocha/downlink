@@ -37,11 +37,6 @@ export abstract class DraggableWindow extends Window {
     }
 }
 
-// export class ResizableWindow extends Window {
-//     width!: number
-//     height!: number
-// }
-
 
 export function createWindowElements(window: Window, parent: HTMLElement) {
 

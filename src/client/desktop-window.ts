@@ -72,7 +72,7 @@ export class DesktopWindow {
 
     restore() {
         this.state = WindowState.RESTORED;
-        (<any>this.positionCSS).style.top = Desktop.getWindowData(this.id)?.y || 0 + 'px' // HACK =[
+        (<any>this.positionCSS).style.top = (Desktop.getWindowData(this.id)?.y || 0) + 'px' // HACK =[
         this.savePosition()
 
         this.windowDiv.removeClass('minimized')

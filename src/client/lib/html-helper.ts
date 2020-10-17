@@ -36,11 +36,16 @@ abstract class Element {
         this.element.textContent = text
         return this
     }
-
 }
 
 
 abstract class Container extends Element {
+
+    get button() {
+        const button = new Button()
+        this.element.appendChild(button.element)
+        return button
+    }
 
     get div() {
         const div = new Div()
@@ -67,6 +72,11 @@ abstract class Container extends Element {
     }
 
 
+}
+
+export class Button extends Container {
+    element!: HTMLButtonElement
+    createElement() { this.element = document.createElement('button') }
 }
 
 export class Div extends Container {

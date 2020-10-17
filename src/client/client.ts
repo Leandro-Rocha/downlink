@@ -15,9 +15,7 @@ export function registerUser(userName: string) {
     window.location.reload()
 }
 
-function login() {
-    const userName = (<HTMLInputElement>document.querySelector('#userNameInput')).value
-    const password = (<HTMLInputElement>document.querySelector('#passwordInput')).value
+export function login(userName: string, password: string) {
     socket.emit(SocketEvents.PLAYER_ACTION, PlayerActions.LOGIN, userName, password)
 }
 

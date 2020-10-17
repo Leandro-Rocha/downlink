@@ -7,6 +7,7 @@ import { ConnectionWindow } from "./gui-connection.js"
 import { GuiHeader } from "./gui-header.js"
 import { GuiRegister } from "./gui-register.js"
 import { PortsWindow } from "./window/ports-window.js"
+import { LoginWindow } from "./window/login-window.js"
 
 export const guiContainer = document.createElement('div')
 guiContainer.classList.add('fullScreen')
@@ -23,7 +24,8 @@ export const hackedDBWindow = new HackedDbWindow({ id: 'hacked-db', title: 'Hack
 
 
 export const remoteDomain = new Domain(DomainType.REMOTE)
-export const remotePortsWindow = new PortsWindow({ id: 'remote-ports', title: 'Ports', domain: remoteDomain })
+export const loginWindow = new LoginWindow({ id: 'remote-login', title: 'Login', domain: remoteDomain })
+// export const remotePortsWindow = new PortsWindow({ id: 'remote-ports', title: 'Ports', domain: remoteDomain })
 export const remoteLogWindow = new LogWindow({ id: 'remote-log', title: 'Remote Log', domain: remoteDomain })
 export const remoteFileManagerWindow = new FileManagerWindow({ id: 'remote-file-manager', title: 'File Manager', domain: remoteDomain })
 
