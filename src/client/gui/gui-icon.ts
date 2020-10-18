@@ -10,6 +10,8 @@ export enum IconType {
     server = 'fa-server',
     circleNotch = 'fa-circle-o-notch',
     tasks = 'fa-tasks',
+    toggleLeft = 'fa-caret-square-o-left',
+    toggleRight = 'fa-caret-square-o-right',
     userSecret = 'icon-user-secret',
 }
 

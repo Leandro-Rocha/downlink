@@ -218,20 +218,47 @@ li {
     height: 100%;
 }
 
-.sideNav.local{
+.sideNav.local {
     text-align: right;
 }
 
-.sideNav.local i{
+.sideNav.minimized {
+    width: 38px;
+}
+
+.sideNav.minimized span {
+    display: none;
+}
+
+.sideNav.local .dock-button {
+    position: absolute;
+    left: 0px;
+    bottom: 50px;
+    color: #7897B5;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.sideNav.remote .dock-button {
+    position: absolute;
+    right: 0px;
+    bottom: 50px;
+    color: #b57878;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+
+.sideNav.local i {
     margin-left: 10px;
     margin-right: 6px;
 }
 
-.sideNav.remote{
+.sideNav.remote {
     text-align: left;
 }
 
-.sideNav.remote i{
+.sideNav.remote i {
     margin-left: 6px;
     margin-right: 10px;
 }

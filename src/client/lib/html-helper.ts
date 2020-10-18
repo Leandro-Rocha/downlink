@@ -27,6 +27,11 @@ export abstract class Element {
         return this
     }
 
+    toggleClass(newClass: string) {
+        this.element.classList.toggle(newClass)
+        return this
+    }
+
     id(id: string) {
         this.element.id = id
         return this

@@ -3,6 +3,7 @@ import { Desktop } from "./gui/desktop.js"
 import { Domain, DomainType } from "./gui/domain.js"
 import { Icon, IconType } from "./gui/gui-icon.js"
 import { guiContainer } from "./gui/gui.js"
+import { Span } from "./lib/html-helper.js"
 import { Window, HeadedWindow, DraggableWindow, addHeader, createWindowElements, makeDraggable, } from "./lib/window-core.js"
 
 
@@ -134,14 +135,16 @@ function createMinimizedElement(window: DesktopWindow) {
     window.minimizedElement = minimizedElement
     targetMenu.appendChild(minimizedElement)
 
-    const titleText = document.createElement('span')
+    const titleText = new Span().addClass('menu-title').element
     titleText.innerText = window.title
     minimizedElement.appendChild(titleText)
 
     const icon = new Icon(window.getIcon())
 
-    if (window.domain.type === DomainType.LOCAL) titleText.after(icon.element)
-    else titleText.before(icon.element)
+    if (window.domain.type === DomainType.LOCAL)
+        titleText.after(icon.element)
+    else
+        titleText.before(icon.element)
 
 
     minimizedElement.addEventListener('click', () => {
