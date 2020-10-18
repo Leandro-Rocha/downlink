@@ -1,4 +1,4 @@
-import { createIcon, IconType } from "./gui-icon.js"
+import { Icon, IconType } from "./gui-icon.js"
 
 export const guiLoadingScreen = document.createElement('div')
 guiLoadingScreen.classList.add('fullScreen')
@@ -10,7 +10,7 @@ spinnerDiv.classList.add('centerHV')
 spinnerDiv.style.textAlign = 'center'
 guiLoadingScreen.appendChild(spinnerDiv)
 
-const spinner = createIcon(IconType.spin2)
+const spinner = new Icon(IconType.circleNotch).element
 spinner.classList.add('loadingIcon')
-spinner.classList.add('animate-spin')
+spinner.classList.add('fa-spin')
 spinnerDiv.appendChild(spinner)

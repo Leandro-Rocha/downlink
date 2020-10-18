@@ -2,7 +2,7 @@ import { ConnectionStatus } from "../../common/constants.js"
 import { GameStateType } from "../../common/types.js"
 import { connectToGateway, disconnect } from "../client.js"
 import { StateAware } from "./gui-game-state.js"
-import { createIcon, IconType } from "./gui-icon.js"
+import { Icon, IconType } from "./gui-icon.js"
 import { guiContainer, guiHeader } from "./gui.js"
 
 
@@ -36,17 +36,15 @@ export class ConnectionWindow implements StateAware<GameStateType> {
         this.minimizedDiv.classList.add('minimized')
         this.minimizedDiv.addEventListener('click', () => this.toggleWindow())
 
-        const localIcon = createIcon(IconType.server)
-        localIcon.classList.add('local')
-        this.minimizedDiv.appendChild(localIcon)
+        const localIcon = new Icon(IconType.server, { parent: this.minimizedDiv })
+        localIcon.addClass('local')
 
-        this.linkIcon = createIcon(IconType.link)
+        this.linkIcon = new Icon(IconType.link, { parent: this.minimizedDiv }).element
         this.linkIcon.classList.add('link')
         this.minimizedDiv.appendChild(this.linkIcon)
 
-        const remoteIcon = createIcon(IconType.server)
+        const remoteIcon = new Icon(IconType.server, { parent: this.minimizedDiv }).element
         remoteIcon.classList.add('remote')
-        this.minimizedDiv.appendChild(remoteIcon)
     }
 
     private createRestoredWindow() {
@@ -60,7 +58,7 @@ export class ConnectionWindow implements StateAware<GameStateType> {
         localGatewayDiv.classList.add('local')
         this.restoredDiv.appendChild(localGatewayDiv)
 
-        const localIcon = createIcon(IconType.server)
+        const localIcon = new Icon(IconType.server).element
         localIcon.classList.add('local')
         localGatewayDiv.appendChild(localIcon)
 
@@ -74,7 +72,7 @@ export class ConnectionWindow implements StateAware<GameStateType> {
         remoteGatewayDiv.classList.add('remote')
         this.restoredDiv.appendChild(remoteGatewayDiv)
 
-        const remoteIcon = createIcon(IconType.server)
+        const remoteIcon = new Icon(IconType.server).element
         remoteIcon.classList.add('remote')
         remoteGatewayDiv.appendChild(remoteIcon)
 

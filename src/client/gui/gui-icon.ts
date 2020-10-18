@@ -1,30 +1,24 @@
 import { Element } from "../lib/html-helper.js"
 
 export enum IconType {
-    brokenLink = 'icon-unlink',
-    folder = 'icon-folder',
-    link = 'icon-link',
-    list = 'icon-list',
-    login = 'icon-login',
-    network = 'icon-network',
-    server = 'icon-server',
-    spin1 = 'icon-spin1',
-    spin2 = 'icon-spin2',
-    tasks = 'icon-tasks',
+    brokenLink = 'fa-unlink',
+    folder = 'fa-folder',
+    link = 'fa-link',
+    list = 'fa-list',
+    signIn = 'fa-sign-in',
+    network = 'fa-connectdevelop',
+    server = 'fa-server',
+    circleNotch = 'fa-circle-o-notch',
+    tasks = 'fa-tasks',
     userSecret = 'icon-user-secret',
-}
-
-export function createIcon(code: IconType): HTMLElement {
-    const icon = document.createElement('i')
-    icon.classList.add(code)
-    return icon
 }
 
 export class Icon extends Element {
     element!: HTMLElement
 
-    constructor(code: IconType) {
-        super()
+    constructor(code: IconType, options?: { parent?: HTMLElement }) {
+        super(options)
+        this.addClass('fa')
         this.addClass(code)
     }
 

@@ -160,24 +160,24 @@
     top: 80px;
 }
 
-.connectionDiv.restored .icon-server {
+.connectionDiv.restored i {
     position: absolute;
     font-size: 40px;
     left: 50%;
     transform: translate(-50%, 0%);
 }
 
-.connectionDiv.minimized .icon-server {
+.connectionDiv.minimized i {
     top: 7px;
     position: relative;
 }
 
-.connectionDiv.minimized .icon-server.local {
+.connectionDiv.minimized i.local {
     float: left;
     left: 8px;
 }
 
-.connectionDiv.minimized .icon-server.remote {
+.connectionDiv.minimized i.remote {
     float: right;
     right: 8px;
 }
@@ -189,11 +189,11 @@
     transform: translate(-50%, -50%);
 }
 
-.icon-server.local {
+.connectionDiv .local {
     color: #3973ad;
 }
 
-.icon-server.remote {
+.connectionDiv .remote {
     color: #ad3939;
 }
 
@@ -224,6 +224,7 @@ li {
 
 .sideNav.local i{
     margin-left: 10px;
+    margin-right: 6px;
 }
 
 .sideNav.remote{
@@ -231,6 +232,7 @@ li {
 }
 
 .sideNav.remote i{
+    margin-left: 6px;
     margin-right: 10px;
 }
 

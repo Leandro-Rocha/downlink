@@ -1,6 +1,6 @@
 import { registerUser } from "../client.js"
 import { Div, Input } from "../lib/html-helper.js"
-import { createIcon, IconType } from "./gui-icon.js"
+import { Icon, IconType } from "./gui-icon.js"
 
 
 
@@ -20,7 +20,7 @@ export class GuiRegister {
         this.userNameInput = this.screen.input
         this.userNameInput.addClass('ipInput')
 
-        const loginButton = createIcon(IconType.login)
+        const loginButton = new Icon(IconType.signIn).element
         loginButton.classList.add('loginButton')
         loginButton.addEventListener('click', () => registerUser(this.userNameInput.element.value))
         this.screen.element.appendChild(loginButton)

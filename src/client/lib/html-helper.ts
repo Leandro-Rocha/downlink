@@ -39,7 +39,7 @@ export abstract class Element {
 }
 
 
-abstract class Container extends Element {
+export abstract class Container extends Element {
 
     get button() {
         const button = new Button()
@@ -85,7 +85,7 @@ abstract class Container extends Element {
 
 }
 
-export class Button extends Container {
+export class Button extends Element {
     element!: HTMLButtonElement
     createElement() { this.element = document.createElement('button') }
 }

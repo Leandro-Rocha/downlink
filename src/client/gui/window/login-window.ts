@@ -4,7 +4,7 @@ import { login } from '../../client.js'
 import { DesktopWindow, DesktopWindowConfig } from '../../desktop-window.js'
 import { Input } from '../../lib/html-helper.js'
 import { StateAware } from '../gui-game-state.js'
-import { createIcon, IconType } from '../gui-icon.js'
+import { Icon, IconType } from '../gui-icon.js'
 
 
 export class LoginWindow extends DesktopWindow implements StateAware<GameStateType> {
@@ -26,7 +26,7 @@ export class LoginWindow extends DesktopWindow implements StateAware<GameStateTy
         passRow.td.text('Password')
         this.passInput = passRow.td.input
 
-        this.loginButton = createIcon(IconType.login)
+        this.loginButton = new Icon(IconType.signIn).element
         this.loginButton.classList.add('login-button')
         this.loginButton.addEventListener('click', () => login(this.userInput.element.value, this.passInput.element.value))
         this.content.element.appendChild(this.loginButton)
