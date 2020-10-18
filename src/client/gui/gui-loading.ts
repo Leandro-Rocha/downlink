@@ -10,7 +10,6 @@ spinnerDiv.classList.add('centerHV')
 spinnerDiv.style.textAlign = 'center'
 guiLoadingScreen.appendChild(spinnerDiv)
 
-const spinner = new Icon(IconType.circleNotch).element
-spinner.classList.add('loadingIcon')
+const spinner = new Icon(IconType.circleNotch).id('loadingIcon').element
 spinner.classList.add('fa-spin')
 spinnerDiv.appendChild(spinner)
