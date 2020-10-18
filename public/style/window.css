@@ -77,10 +77,6 @@
     cursor: pointer;
 }
 
-.window .content table {
-    /* width: 100%; */
-}
-
 .window .content td {
     padding: 10px 5px 10px 5px;
 }
@@ -205,4 +201,30 @@
 
 .window-login .login-button {
     font-size: 27px;
+}
+
+.window-network {
+    width: fit-content;
+    height: 600px;
+}
+
+.window-network p {
+    margin: 0px;
+}
+
+.window-network .content .actions-cell {
+    text-align: center;
+}
+
+.window-network .content .connect-button {
+    cursor: pointer;
+}
+
+.window-network .content tr:hover {
+    color: var(--local-light-color);
+
+}
+
+.window-network .content tr:hover {
+    background-color: unset;
 }

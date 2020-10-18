@@ -21,13 +21,15 @@ export class HackedDbEntry implements GameEntity, Presentable<Gui.HackedDbEntry>
     id: string
     entityType: EntityType = EntityType.HACKED_DB_ENTRY
 
+    hostname: string
     ip: string
-    users: User[]
+    user: User
 
     constructor(config: Partial<HackedDbEntry>) {
         this.id = config.id || `HackedDbEntry_${Date.now()}`
+        this.hostname = config.hostname || ''
         this.ip = config.ip || ''
-        this.users = config.users || []
+        this.user = config.user!
     }
 
     toClient(): GameEntity & Gui.HackedDbEntry {
@@ -36,7 +38,8 @@ export class HackedDbEntry implements GameEntity, Presentable<Gui.HackedDbEntry>
             entityType: this.entityType,
 
             ip: this.ip,
-            users: this.users
+            hostname: this.hostname,
+            user: this.user
         }
     }
 }
@@ -77,13 +80,14 @@ export class HackedDB implements GameEntity, Presentable<Gui.HackedDB> {
         if (!newEntry) {
             newEntry = new HackedDbEntry({
                 id: remoteGateway.id,
+                hostname: remoteGateway.hostname,
                 ip: remoteGateway.ip,
             })
 
             this.entries.push(newEntry)
         }
 
-        var dbUser = newEntry.users.find(u => u.userName === paramUser.userName)
+        var dbUser = newEntry.user
 
         if (dbUser) {
             dbUser.password = paramUser.password
@@ -94,7 +98,7 @@ export class HackedDB implements GameEntity, Presentable<Gui.HackedDB> {
                 password: paramUser.password,
                 partial: paramUser.partial
             })
-            newEntry.users.push(dbUser)
+            newEntry.user = dbUser
         }
 
         result.details = { entry: newEntry }

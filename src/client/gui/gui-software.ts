@@ -10,10 +10,10 @@ export class SoftwareGuiElement extends FileGuiElement {
     }
 
     executeSoftware() {
+        this.softwareActions()
         socket.emit(SocketEvents.PLAYER_ACTION, PlayerActions.EXECUTE_SOFTWARE, this.data.id, this.getExecutionArgs())
     }
 
-    getExecutionArgs() {
-        return {}
-    }
+    softwareActions(): void { }
+    getExecutionArgs(): any { }
 }

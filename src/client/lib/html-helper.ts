@@ -1,4 +1,4 @@
-abstract class Element {
+export abstract class Element {
     abstract element: HTMLElement
 
     constructor(options?: { parent?: HTMLElement }) {
@@ -59,6 +59,12 @@ abstract class Container extends Element {
         return input
     }
 
+    get p() {
+        const newElement = new Paragraph()
+        this.element.appendChild(newElement.element)
+        return newElement
+    }
+
     get table() {
         const table = new Table()
         this.element.appendChild(table.element)
@@ -69,6 +75,11 @@ abstract class Container extends Element {
         const span = new Span()
         this.element.appendChild(span.element)
         return span
+    }
+
+    get br() {
+        this.element.appendChild(document.createElement('br'))
+        return this
     }
 
 
@@ -92,6 +103,11 @@ export class Input extends Element {
         this.element.value = value
         return this
     }
+}
+
+export class Paragraph extends Element {
+    element!: HTMLParagraphElement
+    createElement() { this.element = document.createElement('p') }
 }
 
 export class Table extends Element {
@@ -164,7 +180,7 @@ class TableCell extends Container {
 }
 
 
-export class Span extends Container {
+export class Span extends Element {
     element!: HTMLSpanElement
     createElement() { this.element = document.createElement('span') }
 }

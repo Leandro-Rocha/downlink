@@ -1,0 +1,130 @@
+{
+    "name": "",
+    "css_prefix_text": "icon-",
+    "css_use_suffix": false,
+    "hinting": true,
+    "units_per_em": 1000,
+    "ascent": 850,
+    "glyphs": [
+      {
+        "uid": "d59ff824282fc6edaeca991deab522aa",
+        "css": "server",
+        "code": 62003,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "3a00327e61b997b58518bd43ed83c3df",
+        "css": "login",
+        "code": 59392,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "e99461abfef3923546da8d745372c995",
+        "css": "cog",
+        "code": 59393,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "72109d2fb3088d0e66ea6a9204297651",
+        "css": "spin1",
+        "code": 59440,
+        "src": "fontelico"
+      },
+      {
+        "uid": "f0c301ac841dafc38d8eb1b933fc73e5",
+        "css": "spin2",
+        "code": 59441,
+        "src": "fontelico"
+      },
+      {
+        "uid": "2a6740fc2f9d0edea54205963f662594",
+        "css": "spin3",
+        "code": 59442,
+        "src": "fontelico"
+      },
+      {
+        "uid": "9bd60140934a1eb9236fd7a8ab1ff6ba",
+        "css": "spin4",
+        "code": 59444,
+        "src": "fontelico"
+      },
+      {
+        "uid": "5d2d07f112b8de19f2c0dbfec3e42c05",
+        "css": "spin5",
+        "code": 59448,
+        "src": "fontelico"
+      },
+      {
+        "uid": "9bc2902722abb366a213a052ade360bc",
+        "css": "spin6",
+        "code": 59449,
+        "src": "fontelico"
+      },
+      {
+        "uid": "347c38a8b96a509270fdcabc951e7571",
+        "css": "database",
+        "code": 61888,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "2c413e78faf1d6631fd7b094d14c2253",
+        "css": "cloud",
+        "code": 59394,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "cba6018f5de17c76f70b7d2c06037e5a",
+        "css": "mail",
+        "code": 59395,
+        "src": "websymbols"
+      },
+      {
+        "uid": "cfb6e143c0650c485536374f2a2f88fb",
+        "css": "television",
+        "code": 62060,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "a19527dd18f0e45e597e8a2622604d14",
+        "css": "wifi",
+        "code": 59396,
+        "src": "typicons"
+      },
+      {
+        "uid": "f8aa663c489bcbd6e68ec8147dca841e",
+        "css": "folder",
+        "code": 59397,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "c95735c17a10af81448c7fed98a04546",
+        "css": "folder-open",
+        "code": 59398,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "b091a8bd0fdade174951f17d936f51e4",
+        "css": "folder-empty",
+        "code": 61716,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "6533bdc16ab201eb3f3b27ce989cab33",
+        "css": "folder-open-empty",
+        "code": 61717,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "7ea4150d9eb2d2ade9491d5ad905718c",
+        "css": "credit-card-alt",
+        "code": 62083,
+        "src": "fontawesome"
+      },
+      {
+        "uid": "f279f25007794fa6837ff78fe94b216e",
+        "css": "money",
+        "code": 61654,
+        "src": "fontawesome"
+      }
+    ]
+  }

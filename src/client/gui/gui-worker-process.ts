@@ -1,14 +1,16 @@
-import { Gui } from "../../common/types.js"
+import { EntityType, Gui } from "../../common/types.js"
 import { GuiElement } from "./gui-base.js"
+import { PasswordCrackerGuiElement } from "./gui-password-cracker.js"
 
 
 export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
-    element: HTMLTableRowElement 
+    element: HTMLTableRowElement
 
     pidElement: HTMLElement
     progressElement: HTMLElement
 
-    progressInterval: NodeJS.Timeout | undefined
+    progressInterval?: NodeJS.Timeout
+    effectInterval?: NodeJS.Timeout
 
     constructor() {
         super()
@@ -19,18 +21,19 @@ export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
 
     destroy() {
         if (this.progressInterval !== undefined) clearInterval(this.progressInterval)
+        if (this.effectInterval !== undefined) clearInterval(this.effectInterval)
         super.destroy()
     }
 
     updateContent(data: Gui.WorkerProcess): void {
         this.data = data
-
         this.pidElement.textContent = this.data.id
 
         const totalWork = this.data.totalWork
         var workDone = this.data.workDone
 
-        if (this.progressInterval !== undefined) clearInterval(this.progressInterval)
+        if (this.progressInterval) clearInterval(this.progressInterval)
+        if (this.effectInterval) clearInterval(this.effectInterval)
 
         this.progressInterval = setInterval(() => {
 
@@ -40,8 +43,15 @@ export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
 
         }, 1000 / 30)
 
-
+        const effect = getEffect(this.data.entityType)
+        if (effect) this.effectInterval = effect()
 
         // this.progressElement.textContent = `${Math.round(workDone / totalWork * 100)}%`
+    }
+}
+
+function getEffect(type: EntityType) {
+    if (type === EntityType.PROCESS_CRACKER) {
+        return PasswordCrackerGuiElement.effect
     }
 }

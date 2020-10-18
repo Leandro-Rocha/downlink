@@ -1,5 +1,7 @@
 :root {
     --icon-color-blue: #005c82;
+
+    --local-light-color: #93b9df;
     --local-background-color: #052133;
     --remote-background-color: #3a0303;
     --GUI_HEADER_HEIGHT: 35px;
@@ -237,7 +239,7 @@ li {
 
 #localNav li:hover {
     background-color: #0B4C6D;
-    color: #93b9df;
+    color: var(--local-light-color);
     cursor: pointer;
 }
 

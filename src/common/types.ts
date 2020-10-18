@@ -131,8 +131,9 @@ export namespace Gui {
     }
 
     export interface HackedDbEntry extends GameEntity {
+        hostname: string
         ip: string
-        users: User[]
+        user: User
     }
 
     export interface HackedDB extends GameEntity {

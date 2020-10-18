@@ -1,3 +1,5 @@
+import { Element } from "../lib/html-helper.js"
+
 export enum IconType {
     server = 'icon-server',
     link = 'icon-link',
@@ -11,4 +13,15 @@ export function createIcon(code: IconType): HTMLElement {
     const icon = document.createElement('i')
     icon.classList.add(code)
     return icon
+}
+
+export class Icon extends Element {
+    element!: HTMLElement
+
+    constructor(code: IconType) {
+        super()
+        this.addClass(code)
+    }
+
+    createElement() { this.element = document.createElement('i') }
 }

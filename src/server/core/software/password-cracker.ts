@@ -41,11 +41,10 @@ export class PasswordCracker extends Software {
         const addEntryResult = player.hackedDB.addEntry(remoteGateway, { userName: targetUserName, password: '', partial: true })
         const entry = addEntryResult.details.entry
 
-        const userToHack = entry.users.find(u => u.userName === targetUserName)
         //TODO: implement dynamic parameters based on password strength
         const process = new PasswordCrackerProcess({
             totalWork: 5000,
-            userToHack: userToHack!,
+            userToHack: entry.user,
             password: targetUser.password
         })
 
@@ -91,7 +90,7 @@ export class PasswordCrackerProcess extends WorkerProcess {
         this.interval = setInterval(() => {
             this.checkStatus()
             cracked++
-            this.userToHack.password = targetPassword.substr(0, cracked) + faker.random.alphaNumeric(targetPassword.length - cracked)
+            this.userToHack.password = targetPassword.substr(0, cracked)
             this.sendSignal(this, SIGNALS.PROCESS_UPDATED)
 
             if (cracked >= targetPassword.length) {

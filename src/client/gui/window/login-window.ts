@@ -1,9 +1,16 @@
+import { ConnectionStatus } from '../../../common/constants.js'
+import { GameStateType } from '../../../common/types.js'
 import { login } from '../../client.js'
 import { DesktopWindow, DesktopWindowConfig } from '../../desktop-window.js'
+import { Input } from '../../lib/html-helper.js'
+import { StateAware } from '../gui-game-state.js'
 import { createIcon, IconType } from '../gui-icon.js'
 
 
-export class LoginWindow extends DesktopWindow {
+export class LoginWindow extends DesktopWindow implements StateAware<GameStateType> {
+
+    userInput: Input
+    passInput: Input
     loginButton: HTMLElement
 
     constructor(config: DesktopWindowConfig) {
@@ -13,19 +20,19 @@ export class LoginWindow extends DesktopWindow {
 
         const userRow = loginTable.body.tr
         userRow.td.text('User')
-        const userInput = userRow.td.input
+        this.userInput = userRow.td.input
 
         const passRow = loginTable.body.tr
         passRow.td.text('Password')
-        const passInput = passRow.td.input
+        this.passInput = passRow.td.input
 
         this.loginButton = createIcon(IconType.login)
         this.loginButton.classList.add('login-button')
-        this.loginButton.addEventListener('click', () => login(userInput.element.value, passInput.element.value))
+        this.loginButton.addEventListener('click', () => login(this.userInput.element.value, this.passInput.element.value))
         this.content.element.appendChild(this.loginButton)
 
-        userInput.element.addEventListener("keydown", (event) => this.enterHandler(event))
-        passInput.element.addEventListener("keydown", (event) => this.enterHandler(event))
+        this.userInput.element.addEventListener("keydown", (event) => this.enterHandler(event))
+        this.passInput.element.addEventListener("keydown", (event) => this.enterHandler(event))
 
     }
 
@@ -33,5 +40,23 @@ export class LoginWindow extends DesktopWindow {
         if (event.key === 'Enter') {
             this.loginButton.click()
         }
+    }
+
+    updateState(state?: GameStateType): void {
+
+        if (state?.remoteGateway?.users) {
+            const entry = state.hackedDB.entries.find(e => e.ip === state.remoteGateway?.ip)?.user
+
+            const password = entry!.password
+            const userName = entry!.userName
+            this.userInput.value(userName)
+            this.passInput.value(password)
+        }
+
+        if (state?.localGateway.outboundConnection
+            && state.localGateway.outboundConnection.status === ConnectionStatus.CONNECTED)
+            this.show()
+
+        else this.hide()
     }
 }

@@ -30,7 +30,7 @@ export class NetworkScanner extends Software {
 
         //TODO: implement dynamic parameters based on password strength
         const process = new NetworkScannerProcess({
-            totalWork: 10000,
+            totalWork: 5000,
         })
 
 

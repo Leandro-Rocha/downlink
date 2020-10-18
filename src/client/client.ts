@@ -1,13 +1,10 @@
 import './internals.js'
 import { PlayerActions, SocketEvents } from '../common/constants.js'
 import { socket } from './socket.js'
-import { hackedDBWindow, localLogWindow, localFileManagerWindow, taskManagerWindow, remoteLogWindow, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiContainer } from './gui/gui.js'
+import { hackedDBWindow, localLogWindow, localFileManagerWindow, taskManagerWindow, remoteLogWindow, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiContainer, loginWindow as remoteLoginWindow } from './gui/gui.js'
 import { GameStateType } from '../common/types.js'
 
-
-
-guiContainer.classList.add('hidden')
-
+export var gameState: GameStateType
 
 export function registerUser(userName: string) {
     localStorage.setItem('user', userName)
@@ -29,6 +26,7 @@ export function disconnect() {
 
 export function updateGameState(newState: GameStateType) {
     console.log(socket.id, newState)
+    gameState = newState
 
     connectionWindow.updateState(newState)
     localDomain.navigation.updateState(newState.localGateway)
@@ -49,6 +47,8 @@ function updateLocalGateway(newState: GameStateType) {
 function updateRemoteGateway(newState: GameStateType) {
     remoteLogWindow.updateState(newState.remoteGateway?.log)
     remoteFileManagerWindow.updateState(newState.remoteGateway?.storage)
+    remoteLoginWindow.updateState(newState)
+
 }
 
 export function godMode(newState: any) {
