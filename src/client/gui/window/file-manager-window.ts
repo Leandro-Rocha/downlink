@@ -4,6 +4,7 @@ import { syncGuiAndDataArray as syncGuiAndDataArray } from "../../internals.js"
 import { Table } from "../../lib/html-helper.js"
 import { FileGuiElement } from "./file-manager-entry.js"
 import { StateAware } from "../gui-game-state.js"
+import { IconType } from "../gui-icon.js"
 
 
 export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.Storage> {
@@ -22,6 +23,8 @@ export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.S
         headerRow.td.text('Size').addClass('file-size-header')
 
     }
+
+    getIcon(): IconType { return IconType.folder }
 
     updateState(state?: Gui.Storage): void {
         syncGuiAndDataArray(state?.files || [], this.fileList, (newElement) => this.fileTable.body.element.appendChild(newElement.element))

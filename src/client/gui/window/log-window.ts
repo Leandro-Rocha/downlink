@@ -2,6 +2,7 @@ import { Gui } from "../../../common/types.js"
 import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
 import { syncGuiAndDataArray } from "../../internals.js"
 import { StateAware } from "../gui-game-state.js"
+import { IconType } from "../gui-icon.js"
 import { LogEntryGuiElement } from "./log-entry.js"
 
 export class LogWindow extends DesktopWindow implements StateAware<Gui.Log> {
@@ -23,6 +24,8 @@ export class LogWindow extends DesktopWindow implements StateAware<Gui.Log> {
         this.logTableBody = table.body.element
     }
 
+    getIcon(): IconType { return IconType.list }
+    
     updateState(state?: Gui.Log): void {
         syncGuiAndDataArray(state?.entries || [], this.entries, (newElement) => this.logTableBody.appendChild(newElement.element))
 

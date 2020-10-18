@@ -30,6 +30,7 @@ class SideNav implements StateAware<{ hostname?: string }>{
         this.navElement = document.createElement('div')
         this.navElement.id = `${domain.toLowerCase()}Nav`
         this.navElement.classList.add('sideNav')
+        this.navElement.classList.add(`${domain.toLowerCase()}`)
         guiContainer.appendChild(this.navElement)
 
         this.hostname = document.createElement('div')
@@ -46,7 +47,7 @@ class SideNav implements StateAware<{ hostname?: string }>{
         if (state) {
             this.navElement.classList.remove('hidden')
         }
-        else{
+        else {
             this.navElement.classList.add('hidden')
         }
     }

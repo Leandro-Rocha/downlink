@@ -1,4 +1,5 @@
 import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
+import { IconType } from "../gui-icon.js"
 
 export class PortsWindow extends DesktopWindow {
     hackedDbTable: HTMLTableElement
@@ -26,4 +27,6 @@ export class PortsWindow extends DesktopWindow {
         this.hackedDbTable = table.element
         this.hackedDbTableBody = table.body.element
     }
+
+    getIcon(): IconType { return IconType.userSecret }
 }

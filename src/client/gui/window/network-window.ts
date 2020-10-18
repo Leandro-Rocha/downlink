@@ -1,10 +1,11 @@
 import { Gui } from "../../../common/types.js"
 import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
 import { syncGuiAndDataArray } from "../../internals.js"
+import { IconType } from "../gui-icon.js"
 import { HackedDbEntryGuiElement } from "./hacked-db-entry.js"
 
 
-export class HackedDbWindow extends DesktopWindow {
+export class NetworkWindow extends DesktopWindow {
 
     entries: HackedDbEntryGuiElement[] = []
     hackedDbTable: HTMLTableElement
@@ -22,6 +23,8 @@ export class HackedDbWindow extends DesktopWindow {
         this.hackedDbTable = table.element
         this.hackedDbTableBody = table.body.element
     }
+    
+    getIcon(): IconType { return IconType.network }
 
     updateContent(data: Gui.HackedDB): void {
         syncGuiAndDataArray(data.entries, this.entries, (newElement) => this.hackedDbTable.appendChild(newElement.element))

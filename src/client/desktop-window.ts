@@ -1,12 +1,13 @@
 import { applyMixins } from "../common/utils.js"
 import { Desktop } from "./gui/desktop.js"
-import { Domain } from "./gui/domain.js"
+import { Domain, DomainType } from "./gui/domain.js"
+import { Icon, IconType } from "./gui/gui-icon.js"
 import { guiContainer } from "./gui/gui.js"
 import { Window, HeadedWindow, DraggableWindow, addHeader, createWindowElements, makeDraggable, } from "./lib/window-core.js"
 
 
 export interface DesktopWindow extends Window, HeadedWindow, DraggableWindow { }
-export class DesktopWindow {
+export abstract class DesktopWindow {
     domain: Domain
     state: WindowState
 
@@ -56,6 +57,8 @@ export class DesktopWindow {
         if (this.state === WindowState.MINIMIZED) this.minimize()
         else this.restore()
     }
+
+    abstract getIcon(): IconType
 
     minimize() {
         this.state = WindowState.MINIMIZED;
@@ -131,7 +134,16 @@ function createMinimizedElement(window: DesktopWindow) {
     window.minimizedElement = minimizedElement
     targetMenu.appendChild(minimizedElement)
 
-    minimizedElement.innerText = window.title
+    const titleText = document.createElement('span')
+    titleText.innerText = window.title
+    minimizedElement.appendChild(titleText)
+
+    const icon = new Icon(window.getIcon())
+
+    if (window.domain.type === DomainType.LOCAL) titleText.after(icon.element)
+    else titleText.before(icon.element)
+
+
     minimizedElement.addEventListener('click', () => {
         if (window.state === WindowState.MINIMIZED) {
             window.restore()

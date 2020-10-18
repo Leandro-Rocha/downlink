@@ -36,6 +36,8 @@ export class LoginWindow extends DesktopWindow implements StateAware<GameStateTy
 
     }
 
+    getIcon(): IconType { return IconType.userSecret }
+
     enterHandler(event: KeyboardEvent): void {
         if (event.key === 'Enter') {
             this.loginButton.click()

@@ -1,5 +1,5 @@
 import { FileManagerWindow } from "./window/file-manager-window.js"
-import { HackedDbWindow } from "./window/hacked-db-window.js"
+import { NetworkWindow } from "./window/network-window.js"
 import { LogWindow } from "./window/log-window.js"
 import { Domain, DomainType } from "./domain.js"
 import { TaskManagerWindow } from "./window/task-manager-window.js"
@@ -17,7 +17,7 @@ export const guiHeader = new GuiHeader()
 export const guiRegister = new GuiRegister()
 
 export const localDomain = new Domain(DomainType.LOCAL)
-export const hackedDBWindow = new HackedDbWindow({ id: 'hacked-db', title: 'Network', domain: localDomain })
+export const hackedDBWindow = new NetworkWindow({ id: 'network', title: 'Network', domain: localDomain })
 export const localLogWindow = new LogWindow({ id: 'local-log', title: 'Local Log', domain: localDomain })
 export const localFileManagerWindow = new FileManagerWindow({ id: 'local-file-manager', title: 'File Manager', domain: localDomain })
 export const taskManagerWindow = new TaskManagerWindow({ id: 'task-manager', title: 'Task Manager', domain: localDomain })

@@ -2,6 +2,7 @@ import { Gui } from "../../../common/types.js"
 import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
 import { syncGuiAndDataArray } from "../../internals.js"
 import { StateAware } from "../gui-game-state.js"
+import { IconType } from "../gui-icon.js"
 import { WorkerProcessGuiElement } from "../gui-worker-process.js"
 
 
@@ -26,6 +27,8 @@ export class TaskManagerWindow extends DesktopWindow implements StateAware<Gui.T
         this.taskManagerTable = table.element
         this.taskManagerTableBody = table.body.element
     }
+
+    getIcon(): IconType { return IconType.tasks }
 
     updateState(state?: Gui.TaskManager): void {
         syncGuiAndDataArray(state?.processes || [], this.processes, (newElement) => this.taskManagerTableBody.appendChild(newElement.element))

@@ -208,15 +208,30 @@ li {
     margin: 3px;
     padding-top: 10px;
     padding-bottom: 10px;
-    padding-left: 10px;
 }
 
 .sideNav {
     position: fixed;
     top: var(--GUI_HEADER_HEIGHT);
 
-    width: 150px;
+    width: 160px;
     height: 100%;
+}
+
+.sideNav.local{
+    text-align: right;
+}
+
+.sideNav.local i{
+    margin-left: 10px;
+}
+
+.sideNav.remote{
+    text-align: left;
+}
+
+.sideNav.remote i{
+    margin-right: 10px;
 }
 
 .sideNav .hostname {

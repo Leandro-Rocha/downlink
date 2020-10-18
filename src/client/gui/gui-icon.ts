@@ -1,12 +1,17 @@
 import { Element } from "../lib/html-helper.js"
 
 export enum IconType {
-    server = 'icon-server',
-    link = 'icon-link',
     brokenLink = 'icon-unlink',
+    folder = 'icon-folder',
+    link = 'icon-link',
+    list = 'icon-list',
     login = 'icon-login',
+    network = 'icon-network',
+    server = 'icon-server',
     spin1 = 'icon-spin1',
     spin2 = 'icon-spin2',
+    tasks = 'icon-tasks',
+    userSecret = 'icon-user-secret',
 }
 
 export function createIcon(code: IconType): HTMLElement {
