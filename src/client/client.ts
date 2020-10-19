@@ -1,7 +1,7 @@
 import './internals.js'
 import { PlayerActions, SocketEvents } from '../common/constants.js'
 import { socket } from './socket.js'
-import { hackedDBWindow, localLogWindow, localFileManagerWindow, taskManagerWindow, remoteLogWindow, remoteFileManagerWindow, localDomain, remoteDomain, connectionWindow, guiContainer, loginWindow as remoteLoginWindow } from './gui/gui.js'
+import { hackedDBWindow, localLogWindow, localFileManagerWindow, taskManagerWindow, remoteLogWindow, remoteFileManagerWindow, localDomain, remoteDomain, remoteLoginWindow } from './gui/gui.js'
 import { GameStateType } from '../common/types.js'
 
 export var gameState: GameStateType
@@ -28,7 +28,6 @@ export function updateGameState(newState: GameStateType) {
     console.log(socket.id, newState)
     gameState = newState
 
-    connectionWindow.updateState(newState)
     localDomain.navigation.updateState(newState.localGateway)
     remoteDomain.navigation.updateState(newState.remoteGateway)
 

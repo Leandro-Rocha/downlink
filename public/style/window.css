@@ -8,7 +8,6 @@
     display: flex;
     flex-direction: column;
     border: 1px white solid;
-    height: 200px;
     position: absolute;
     background-color: white;
     box-shadow: 0px 10px 20px -10px black;
@@ -53,6 +52,12 @@
     height: 25px;
     color: #e6e6e6;
     cursor: default;
+}
+
+.header .header-icon {
+    position: relative;
+    top: 5px;
+    left: 4px;
 }
 
 .header.local {
@@ -122,7 +127,7 @@
 }
 
 .header span {
-    padding-left: 5px;
+    padding-left: 10px;
     position: relative;
     top: 5px;
 }
@@ -183,7 +188,6 @@
 .window-login {
     width: 270px;
     height: 160px;
-    text-align: center;
 }
 
 
@@ -208,7 +212,7 @@
     height: 600px;
 }
 
-.window-network .gateway-header{
+.window-network .gateway-header {
     width: 410px;
 }
 

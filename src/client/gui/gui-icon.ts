@@ -13,7 +13,7 @@ export enum IconType {
     tasks = 'fa-tasks',
     toggleLeft = 'fa-caret-square-o-left',
     toggleRight = 'fa-caret-square-o-right',
-    userSecret = 'icon-user-secret',
+    userSecret = 'fa-user-secret',
 }
 
 export class Icon extends Element {

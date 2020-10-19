@@ -324,7 +324,7 @@ li {
 
 
 .sideNav.local i {
-    margin-left: 10px;
+    margin-left: 6px;
     margin-right: 6px;
 }
 
@@ -334,7 +334,7 @@ li {
 
 .sideNav.remote i {
     margin-left: 6px;
-    margin-right: 10px;
+    margin-right: 6px;
 }
 
 .sideNav .hostname {

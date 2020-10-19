@@ -137,22 +137,22 @@ export class Table extends Element {
     element!: HTMLTableElement
     createElement() { this.element = document.createElement('table') }
 
-    #header?: TableHead
-    #body?: TableBody
+    private _header?: TableHead
+    private _body?: TableBody
 
 
     get header(): TableHead {
-        if (!this.#header) this.#header = new TableHead()
+        if (!this._header) this._header = new TableHead()
 
-        this.element.appendChild(this.#header.element)
-        return this.#header
+        this.element.appendChild(this._header.element)
+        return this._header
     }
 
     get body(): TableBody {
-        if (!this.#body) this.#body = new TableBody()
+        if (!this._body) this._body = new TableBody()
 
-        this.element.appendChild(this.#body.element)
-        return this.#body
+        this.element.appendChild(this._body.element)
+        return this._body
     }
 
 }

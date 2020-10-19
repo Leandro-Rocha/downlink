@@ -8,6 +8,7 @@ export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
 
     pidElement: HTMLElement
     progressElement: HTMLElement
+    priorityElement: HTMLTableDataCellElement
 
     progressInterval?: NodeJS.Timeout
     effectInterval?: NodeJS.Timeout
@@ -17,6 +18,7 @@ export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
         this.element = document.createElement('tr')
         this.pidElement = this.element.appendChild(document.createElement('td'))
         this.progressElement = this.element.appendChild(document.createElement('td'))
+        this.priorityElement = this.element.appendChild(document.createElement('td'))
     }
 
     destroy() {
@@ -28,6 +30,7 @@ export class WorkerProcessGuiElement extends GuiElement<Gui.WorkerProcess>{
     updateContent(data: Gui.WorkerProcess): void {
         this.data = data
         this.pidElement.textContent = this.data.id
+        this.priorityElement.textContent = this.data.priority.toString()
 
         const totalWork = this.data.totalWork
         var workDone = this.data.workDone

@@ -1,3 +1,4 @@
+import { IconType } from "../gui/gui-icon.js"
 import { createCSSRule } from "../internals.js"
 import { Mouse } from "../mouse.js"
 import { Div } from "./html-helper.js"
@@ -52,11 +53,14 @@ export function createWindowElements(window: Window, parent: HTMLElement) {
 }
 
 
-export function addWindowHeaderElement(headedWindow: HeadedWindow, title: string) {
+export function addWindowHeaderElement(headedWindow: HeadedWindow, title: string, icon?: IconType) {
 
     headedWindow.header = new Div()
     headedWindow.windowDiv.element.insertBefore(headedWindow.header.element, headedWindow.content.element)
     headedWindow.header.addClass('header')
+
+    if (icon)
+        headedWindow.header.icon.code(icon).addClass('header-icon')
 
     headedWindow.header.span.text(title)
 }
@@ -74,10 +78,10 @@ export function addDraggableElement(draggableWindow: DraggableWindow) {
 
 
 
-export function addHeader(window: Window, title: string) {
+export function addHeader(window: Window, title: string, icon?: IconType) {
     Object.assign(window, HeadedWindow)
     const headedWindow = window as HeadedWindow
-    addWindowHeaderElement(headedWindow, title)
+    addWindowHeaderElement(headedWindow, title, icon)
     return headedWindow
 }
 

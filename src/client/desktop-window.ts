@@ -25,7 +25,7 @@ export abstract class DesktopWindow {
         createWindowElements(this, guiContainer)
         this.windowDiv.addClass(...extraCssClasses)
 
-        addHeader(this, this.title)
+        addHeader(this, config.title, this.getIcon())
         addWindowControls(this)
         createMinimizedElement(this)
 
