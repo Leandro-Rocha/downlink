@@ -164,10 +164,14 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
         const software = file as Software
         Validator.assert(software.spawnProcess !== undefined, `File [${file!.name}] is not a software.`)
 
-        const result = software.spawnProcess(...args)
+        const process = software.spawnProcess(...args)
 
-        if (result.isSuccessful()) {
-            this.taskManager.startProcess(result.details.process)
+        const softwareTypeAlreadyRunning = this.taskManager.processes.some(p => p.entityType === process.entityType)
+        Validator.assert(!softwareTypeAlreadyRunning, `Software of the same type already running.`)
+
+
+        if (process) {
+            this.taskManager.startProcess(process)
         }
 
 
@@ -177,26 +181,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
         // validator.validate(this.memory.canAllocate(requirements.memory)
         //     , `Not enough memory. You need ${requirements.memory + this.memory.allocated - this.memory.capacity} more.`)
 
-        // validator.validate(requirements.remoteConnection !== true || this.remoteConnection.status === ConnectionStatus.CONNECTED
-        //     , `A connection to a remote server is required`)
 
-
-        // const process = new Process('123')
-        // this.processes.push(process)
-        // validator.details.process = process
     }
 }
 
-
-
-/**
- * New players will start with this gateway config
- */
-export function createInitialGateway(userName: string) {
-    const newGateway = new Gateway({ hostname: `${userName}-gateway` })
-
-    newGateway.storage.files.push(new NetworkScanner())
-    newGateway.storage.files.push(new PasswordCracker())
-
-    return newGateway
-}

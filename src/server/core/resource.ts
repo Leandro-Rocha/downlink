@@ -54,11 +54,13 @@ export class File implements GameEntity, Presentable<Gui.File> {
     entityType: EntityType = EntityType.FILE
 
     name: string
+    type: string
     size: number
 
     constructor(config?: Partial<File>) {
         this.name = config?.name || faker.system.fileName()
         this.id = config?.id || `${this.name}_${Date.now()}`
+        this.type = config?.type || 'unknown'
         this.size = config?.size || 0
     }
 
@@ -68,6 +70,7 @@ export class File implements GameEntity, Presentable<Gui.File> {
             entityType: this.entityType,
 
             name: this.name,
+            type: this.type,
             size: this.size,
         }
     }

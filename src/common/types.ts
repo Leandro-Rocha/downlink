@@ -39,9 +39,9 @@ export namespace Gui {
 
     export interface Process extends GameEntity {
         priority: number
-        userName: string
         status: ProcessStatus
-        description?: string
+        shortName:string
+        description: string
     }
 
     export interface WorkerProcess extends Process {
@@ -95,6 +95,7 @@ export namespace Gui {
 
     export interface File extends GameEntity {
         name: string
+        type: string
         size: number
     }
 

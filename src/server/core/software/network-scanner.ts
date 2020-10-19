@@ -15,6 +15,7 @@ export class NetworkScanner extends Software {
     entityType = EntityType.SOFTWARE_NETWORK_SCANNER
     version: number
 
+    type: string = 'scanner'
 
     constructor(config?: Partial<NetworkScanner>) {
         super(config)
@@ -25,17 +26,13 @@ export class NetworkScanner extends Software {
     }
 
 
-    spawnProcess(): OperationResult<SpawnProcessResult> {
-        const result = new OperationResult<SpawnProcessResult>()
+    spawnProcess() {
 
-        //TODO: implement dynamic parameters based on password strength
         const process = new NetworkScannerProcess({
-            totalWork: 5000,
+            totalWork: 10000 / this.version,
         })
 
-
-        result.details = { process: process }
-        return result
+        return process
     }
 }
 

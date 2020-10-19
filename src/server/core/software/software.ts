@@ -8,6 +8,7 @@ export type SpawnProcessResult = { process: Process }
 export abstract class Software extends File implements GameEntity, Gui.Software {
     abstract entityType: EntityType
 
+    abstract type: string
     abstract version: number
-    abstract spawnProcess(...args: any[]): OperationResult<SpawnProcessResult>
+    abstract spawnProcess(...args: any[]): Process
 }

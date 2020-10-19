@@ -1,12 +1,7 @@
-import { SocketEvents } from "../../common/constants"
 import { GatewayStore } from "../../storage/gateway-store"
 import { PlayerStore } from "../../storage/player-store"
-import { createInitialGateway, Gateway } from "../core/gateway"
+import { createInitialGateway } from "../../storage/staticInfo"
 import { Player } from "../core/player/player"
-
-
-
-
 
 export function onRegisterUser(userName: string) {
     if (PlayerStore.getPlayerByUsername(userName)) {

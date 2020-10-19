@@ -35,9 +35,9 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
             id: this.id,
             entityType: this.entityType,
 
-            userName: this.userName,
             status: this.status,
             priority: this.priority,
+            shortName: this.shortName,
             description: this.description,
         }
     }
@@ -141,7 +141,6 @@ export abstract class WorkerProcess extends Process implements Presentable<Gui.W
     totalWork: number
     workDone: number
 
-    private timeout!: NodeJS.Timeout
     private lastUpdate: number
 
     constructor(config: WorkerProcessConstructor) {
@@ -154,7 +153,6 @@ export abstract class WorkerProcess extends Process implements Presentable<Gui.W
 
     start() {
         this.lastUpdate = Date.now()
-        // this.timeout = setTimeout(() => this.finish(), this.totalWork - this.workDone)
         super.start()
     }
 

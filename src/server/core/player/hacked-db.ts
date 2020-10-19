@@ -67,6 +67,10 @@ export class HackedDB implements GameEntity, Presentable<Gui.HackedDB> {
         return this.entries.find(e => e.id === id)
     }
 
+    getEntryByIp(ip: string) {
+        return this.entries.find(e => e.ip === ip)
+    }
+
     // TODO: remove need for user
     addEntry(remoteGateway: Gateway, paramUser: Gui.User) {
         const result = new OperationResult<{ entry: Gui.HackedDbEntry }>()
