@@ -20,6 +20,15 @@ export class OperationResult<T> {
     }
 }
 
+export class Validator {
+    static assert(condition: boolean, message: string) {
+        if (!condition) {
+            console.error(message)
+            throw new Error(message)
+        }
+    }
+}
+
 export function generateIp() {
     return (Math.floor(Math.random() * 255) + 1)
         + "." + (Math.floor(Math.random() * 255))

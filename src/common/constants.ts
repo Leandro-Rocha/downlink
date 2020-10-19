@@ -12,7 +12,9 @@ export enum SocketEvents {
     PLAYER_CONNECT = 'PLAYER_CONNECT',
     PLAYER_AUTHENTICATED = 'PLAYER_AUTHENTICATED',
 
-    PLAYER_ACTION = 'PLAYER_ACTION'
+    PLAYER_ACTION = 'PLAYER_ACTION',
+
+    TOAST = 'TOAST',
 }
 
 export enum ErrorCodes {
@@ -55,3 +57,7 @@ export enum ResourceTypes {
     STORAGE = 'STORAGE',
 }
 
+export enum ToastSeverity {
+    INFO = 'info',
+    ERROR = 'error',
+}

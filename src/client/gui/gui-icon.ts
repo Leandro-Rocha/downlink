@@ -2,6 +2,7 @@ import { Element } from "../lib/html-helper.js"
 
 export enum IconType {
     brokenLink = 'fa-unlink',
+    close = 'fa-times',
     folder = 'fa-folder',
     link = 'fa-link',
     list = 'fa-list',

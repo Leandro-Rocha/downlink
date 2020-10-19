@@ -1,3 +1,5 @@
+import { IconType } from "../gui/gui-icon"
+
 export abstract class Element {
     abstract element: HTMLElement
 
@@ -32,6 +34,10 @@ export abstract class Element {
         return this
     }
 
+    onClick(action: (event: MouseEvent) => void) {
+        this.element.addEventListener('click', action)
+    }
+
     id(id: string) {
         this.element.id = id
         return this
@@ -58,6 +64,12 @@ export abstract class Container extends Element {
         return div
     }
 
+    get icon() {
+        const newElement = new Icon()
+        this.element.appendChild(newElement.element)
+        return newElement
+    }
+
     get input() {
         const input = new Input()
         this.element.appendChild(input.element)
@@ -66,6 +78,12 @@ export abstract class Container extends Element {
 
     get p() {
         const newElement = new Paragraph()
+        this.element.appendChild(newElement.element)
+        return newElement
+    }
+
+    get ul() {
+        const newElement = new UnorderedList()
         this.element.appendChild(newElement.element)
         return newElement
     }
@@ -168,7 +186,7 @@ export class TableRow extends Element {
     }
 
     get td() {
-        const td = new TableCell()
+        const td = new TableCell(this)
         this.element.appendChild(td.element)
         return td
     }
@@ -178,9 +196,13 @@ class TableCell extends Container {
     element!: HTMLTableDataCellElement
     createElement() { this.element = document.createElement('td') }
 
-    constructor() {
+    constructor(public parentRow: TableRow) {
         super()
         this.element = document.createElement('td')
+    }
+
+    get td() {
+        return this.parentRow.td
     }
 }
 
@@ -188,4 +210,42 @@ class TableCell extends Container {
 export class Span extends Element {
     element!: HTMLSpanElement
     createElement() { this.element = document.createElement('span') }
+}
+
+export class UnorderedList extends Element {
+    element!: HTMLUListElement
+    createElement() { this.element = document.createElement('ul') }
+
+    get li() {
+        const li = new ListItem(this)
+        this.element.appendChild(li.element)
+        return li
+    }
+}
+
+export class ListItem extends Container {
+    element!: HTMLLIElement
+    createElement() { this.element = document.createElement('li') }
+
+    constructor(public parentList: UnorderedList) {
+        super()
+    }
+
+    get li() {
+        return this.parentList.li
+    }
+}
+
+export class Icon extends Element {
+    element!: HTMLElement
+
+    createElement() {
+        this.element = document.createElement('i')
+        this.addClass('fa')
+    }
+
+    code(code: IconType) {
+        this.addClass(code)
+        return this
+    }
 }

@@ -1,14 +1,13 @@
 import io from 'socket.io'
 import http from 'http'
-import { ConnectionStatus, ErrorCodes, PlayerActions, SocketEvents } from '../../common/constants'
+import { ErrorCodes, PlayerActions, SocketEvents } from '../../common/constants'
 import { PlayerStore } from '../../storage/player-store'
 import { GatewayStore } from '../../storage/gateway-store'
-import { createClientState, createPlayerContext } from './game-state'
+import { createClientState } from './game-state'
 import { Gateway } from './gateway'
 import { SIGNALS } from './signal'
 import { Process } from './process'
 import { TaskManager } from './task-manager'
-import { createNamespace } from 'cls-hooked'
 import { RemoteConnection } from './network-interfaces'
 import { onRegisterUser } from '../infra/register-player'
 import { Player } from './player/player'
@@ -62,6 +61,7 @@ function onPlayerConnect(socket: io.Socket, userName: string) {
 }
 
 function setPlayerEvents(socket: io.Socket, player: Player) {
+    player.socket = socket
     socket.on('disconnect', (socket: io.Socket) => onPlayerDisconnect(socket, player))
 
     socket.on(SocketEvents.PLAYER_ACTION, (action: PlayerActions, ...args: any[]) => {

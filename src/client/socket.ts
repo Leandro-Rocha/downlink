@@ -1,8 +1,8 @@
-import { ErrorCodes, SocketEvents } from "../common/constants.js"
+import { ErrorCodes, SocketEvents, ToastSeverity } from "../common/constants.js"
 import { GameStateType } from "../common/types.js"
 import { godMode, updateGameState } from "./client.js"
 import { guiLoadingScreen } from "./gui/gui-loading.js"
-import { guiRegister, guiContainer } from "./gui/gui.js"
+import { guiRegister, guiContainer, toastList } from "./gui/gui.js"
 
 export const socket = io()
 
@@ -13,6 +13,8 @@ socket.on(SocketEvents.PLAYER_AUTHENTICATED, (newState: GameStateType) => player
 
 socket.on(SocketEvents.UPDATE_STATE, (newState: GameStateType) => updateGameState(newState))
 socket.on(SocketEvents.GOD_MODE, (newState: any) => godMode(newState))
+
+socket.on(SocketEvents.TOAST, (message: string, severity: ToastSeverity) => toastList.newToast(message, severity))
 
 
 function playerConnected() {
@@ -36,6 +38,5 @@ function handleError(error: ErrorCodes) {
         guiRegister.screen.removeClass('hidden')
         guiContainer.classList.add('hidden')
         guiLoadingScreen.classList.add('hidden')
-
     }
 }

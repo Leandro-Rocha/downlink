@@ -3,7 +3,7 @@ import { EntityType, GameEntity, Presentable, Gui } from "../../common/types"
 import { Downlink, RemoteConnection, Uplink } from "./network-interfaces"
 import { Log } from './log'
 import { Memory, Storage, CPU } from './resource'
-import { OperationResult } from '../../shared'
+import { OperationResult, Validator } from '../../shared'
 import { TaskManager } from './task-manager'
 import { Software } from './software/software'
 import { User } from './player/hacked-db'
@@ -123,7 +123,7 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
         //TODO: unregister all handlers
         this.outboundConnection = undefined
-        
+
         connection?.disconnect()
     }
 
@@ -157,17 +157,12 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
     }
 
     executeSoftware(id: string, ...args: any[]) {
-        const validator = new OperationResult()
 
         const file = this.storage.files.find(f => f.id === id)
-
-        validator.assert(file !== undefined, `File [${file}] not found.`)
-        if (!file) return validator
+        Validator.assert(file !== undefined, `File [${file}] not found.`)
 
         const software = file as Software
-
-        validator.assert(software.spawnProcess !== undefined, `File [${file.name}] is not a software.`)
-        if (!software.spawnProcess) return validator
+        Validator.assert(software.spawnProcess !== undefined, `File [${file!.name}] is not a software.`)
 
         const result = software.spawnProcess(...args)
 
@@ -185,13 +180,10 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
         // validator.validate(requirements.remoteConnection !== true || this.remoteConnection.status === ConnectionStatus.CONNECTED
         //     , `A connection to a remote server is required`)
 
-        if (!validator.isSuccessful()) return validator
 
         // const process = new Process('123')
         // this.processes.push(process)
         // validator.details.process = process
-
-        return validator
     }
 }
 

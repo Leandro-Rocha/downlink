@@ -1,22 +1,47 @@
-import { guiContainer } from "./gui"
+import { ToastSeverity } from "../../common/constants.js"
+import { Div } from "../lib/html-helper.js"
+import { IconType } from "./gui-icon.js"
 
 
-export enum ToastSeverity {
-    INFO,
-    ERROR
-}
+export class ToastList {
 
+    private toastDiv: Div
 
-export class Toast {
+    constructor(parent: HTMLElement) {
 
-    static toastList: Toast[] = []
-
-    constructor(public message: string, public severity: ToastSeverity) {
-        Toast.toastList.push(this)
+        this.toastDiv = new Div({ parent })
+            .addClass('toast-div')
+            .addClass('center-h')
     }
 
-    render() {
-        guiContainer.appendChild
+    newToast(message: string, severity: ToastSeverity) {
+        const toast = this.toastDiv.div
+            .addClass('toast')
+            .addClass('show')
+            .addClass(severity)
+
+
+        toast.span.text(message)
+
+        toast.icon
+            .code(IconType.close)
+            .addClass('toast-close')
+            .onClick(() => this.dismiss(toast))
+
+
+        setTimeout(() => {
+            this.dismiss(toast)
+        }, 3000);
+
     }
+
+    private dismiss(toast: Div) {
+        toast.addClass('dismiss')
+
+        setTimeout(() => {
+            toast.element.remove()
+        }, 480);
+    }
+
 
 }

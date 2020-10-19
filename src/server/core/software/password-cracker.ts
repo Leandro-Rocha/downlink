@@ -1,6 +1,6 @@
 import { ROOT } from "../../../common/constants"
 import { EntityType, Gui } from "../../../common/types"
-import { OperationResult } from "../../../shared"
+import { OperationResult, Validator } from "../../../shared"
 import { getCurrentPlayer } from "../game-state"
 import { WorkerProcess, WorkerProcessConstructor } from "../process"
 import { signalEmitter, SIGNALS } from "../signal"
@@ -28,7 +28,7 @@ export class PasswordCracker extends Software {
         const player: Player = getCurrentPlayer()
 
         const remoteGateway = player.gateway.outboundConnection?.gateway!
-        result.assert(remoteGateway !== undefined, `Not connected to a remote gateway.`)
+        Validator.assert(remoteGateway !== undefined, `Not connected to a remote gateway.`)
         if (!result.isSuccessful()) return result
 
         const targetUser = remoteGateway.users.find(u => u.userName === targetUserName)!

@@ -204,8 +204,12 @@
 }
 
 .window-network {
-    width: fit-content;
+    width: 500px;
     height: 600px;
+}
+
+.window-network .gateway-header{
+    width: 410px;
 }
 
 .window-network p {

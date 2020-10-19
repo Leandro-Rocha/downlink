@@ -1,8 +1,9 @@
 import io from 'socket.io'
-import { AccessPrivileges, PlayerActions } from "../../../common/constants"
+import { AccessPrivileges, PlayerActions, ToastSeverity } from "../../../common/constants"
 import { GatewayStore } from "../../../storage/gateway-store"
 import { createPlayerContext } from "../game-state"
 import { Gateway } from "../gateway"
+import { sendToast } from '../toast'
 import { HackedDB } from "./hacked-db"
 
 export class Player {
@@ -35,7 +36,6 @@ export class Player {
         const context = createPlayerContext()
         context.run(() => {
             context.set('player', this)
-            const connection = this.gateway.outboundConnection
 
             if (action === PlayerActions.CONNECT_TO_GATEWAY) {
                 const [ip] = [...args]
@@ -81,7 +81,12 @@ export class Player {
 
     onExecuteSoftware(id: string, ...args: any[]) {
         // TODO: move error to gateway and add observer to player
-        this.gateway.executeSoftware(id, ...args)
+        try {
+            this.gateway.executeSoftware(id, ...args)
+        }
+        catch (error) {
+            sendToast(this.socket, error.message, ToastSeverity.ERROR)
+        }
     }
 
 }

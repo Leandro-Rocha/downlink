@@ -7,11 +7,14 @@ import { ConnectionWindow } from "./gui-connection.js"
 import { GuiHeader } from "./gui-header.js"
 import { GuiRegister } from "./gui-register.js"
 import { LoginWindow } from "./window/login-window.js"
+import { ToastList } from "./toast.js"
 
 export const guiContainer = document.createElement('div')
 guiContainer.classList.add('fullScreen')
 guiContainer.classList.add('hidden')
 document.body.appendChild(guiContainer)
+
+export const toastList = new ToastList(guiContainer)
 
 export const guiHeader = new GuiHeader()
 export const guiRegister = new GuiRegister()
