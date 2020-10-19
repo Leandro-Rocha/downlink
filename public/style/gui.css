@@ -39,13 +39,13 @@
 
 .toast-div {
     bottom: 10px;
+    z-index: 1000;
 }
 
 .toast {
     visibility: hidden;
-    border-color: black;
-    border-style: solid;
-    border-width: 2px;
+    border: white solid 2px;
+
     padding: 10px;
     padding-right: 30px;
     padding-left: 30px;
@@ -71,7 +71,6 @@
 .toast.error {
     background: #821919;
     color: white;
-    border: 0;
 }
 
 @keyframes fadein {
