@@ -1,6 +1,11 @@
 import { Gui } from "../../../common/types.js"
+import { addCssRule, } from "../../lib/css-helper.js"
 import { TableRow } from "../../lib/html-helper.js"
 import { GuiElement } from "../gui-base.js"
+
+addCssRule('.fileSize',
+    { "text-align": "right" }
+)
 
 export class FileGuiElement extends GuiElement<Gui.File>{
     element: HTMLElement
@@ -16,7 +21,7 @@ export class FileGuiElement extends GuiElement<Gui.File>{
 
         this.fileNameElement = row.td.element
         this.fileTypeElement = row.td.element
-        this.fileSizeElement = row.td.addClass('file-size').element
+        this.fileSizeElement = row.td.addClass('fileSize').element
     }
 
     updateContent(data: Gui.File): void {

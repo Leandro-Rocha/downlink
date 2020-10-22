@@ -1,10 +1,23 @@
+import { IconType } from "../gui-icon.js"
 import { Gui } from "../../../common/types.js"
+import { Table } from "../../lib/html-helper.js"
+import { StateAware } from "../gui-game-state.js"
+import { FileGuiElement } from "./file-manager-entry.js"
+import { addCssRule, } from "../../lib/css-helper.js"
 import { DesktopWindow, DesktopWindowConfig } from "../../desktop-window.js"
 import { syncGuiAndDataArray as syncGuiAndDataArray } from "../../internals.js"
-import { Table } from "../../lib/html-helper.js"
-import { FileGuiElement } from "./file-manager-entry.js"
-import { StateAware } from "../gui-game-state.js"
-import { IconType } from "../gui-icon.js"
+
+
+addCssRule('.windowFileManager',
+    {
+        width: '500px',
+        height: '300px',
+    }
+)
+
+addCssRule('.fileSizeHeader',
+    { width: '85px', }
+)
 
 
 export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.Storage> {
@@ -13,14 +26,15 @@ export class FileManagerWindow extends DesktopWindow implements StateAware<Gui.S
     fileTable: Table
 
     constructor(config: DesktopWindowConfig) {
-        super(config, ['window-file-manager'])
+        super(config, ['windowFileManager'])
 
         this.fileTable = this.content.table
+        this.fileTable.addClass('test')
 
         const headerRow = this.fileTable.header.tr
         headerRow.td.text('File Name')
-        headerRow.td.text('Type').addClass('type-header')
-        headerRow.td.text('Size').addClass('file-size-header')
+        headerRow.td.text('Type')
+        headerRow.td.text('Size').addClass('fileSizeHeader')
 
     }
 

@@ -4,23 +4,6 @@
 }
 
 
-.window {
-    display: flex;
-    flex-direction: column;
-    border: 1px white solid;
-    position: absolute;
-    background-color: white;
-    box-shadow: 0px 10px 20px -10px black;
-}
-
-.window.restored {
-    transition: opacity cubic-bezier(0.075, 0.82, 0.165, 1),
-        left 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
-        width 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
-        top 0.2s cubic-bezier(0.19, 1, 0.22, 1) 0.2s,
-        height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1) 0.2s
-}
-
 .window.minimized {
     width: 0px;
     height: 22px;
@@ -158,21 +141,6 @@
 .window-task-manager .cpu-header,
 .mem-header {
     width: 40px;
-}
-
-
-.window-file-manager {
-    width: 500px;
-    height: 300px;
-}
-
-
-.window-file-manager .file-size-header {
-    width: 85px;
-}
-
-.window-file-manager .file-size {
-    text-align: right;
 }
 
 .window-hacked-db {

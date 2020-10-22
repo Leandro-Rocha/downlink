@@ -1,7 +1,30 @@
 import { IconType } from "../gui/gui-icon.js"
 import { createCSSRule } from "../internals.js"
 import { Mouse } from "../mouse.js"
+import { addCssRule } from "./css-helper.js"
 import { Div } from "./html-helper.js"
+
+addCssRule('.window',
+    {
+        display: 'flex',
+        'flex-direction': 'column',
+        'border': '1px white solid',
+        'position': 'absolute',
+        'background-color': 'white',
+        'box-shadow': '0px 10px 20px -10px black',
+    }
+)
+
+addCssRule('.window.restored',
+    {
+        transition: `opacity cubic-bezier(0.075, 0.82, 0.165, 1),
+        left 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
+        width 0.2s cubic-bezier(0.075, 0.82, 0.165, 1),
+        top 0.2s cubic-bezier(0.19, 1, 0.22, 1) 0.2s,
+        height 0.1s cubic-bezier(0.075, 0.82, 0.165, 1) 0.2s`
+    }
+)
+
 
 export class Window {
     windowDiv!: Div
