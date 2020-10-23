@@ -9,13 +9,12 @@ import { Software } from './software/software'
 import { User } from './player/hacked-db'
 import { getCurrentPlayer } from './game-state'
 import { ConnectionStatus } from '../../common/constants'
-import { ISignalEmitter, signalEmitter, SIGNALS } from './signal'
-import { PasswordCracker } from './software/password-cracker'
-import { NetworkScanner } from './software/network-scanner'
+import { propagator, Propagator, Watcher, watcher } from './signal'
 
-export interface Gateway extends ISignalEmitter { }
+export interface Gateway extends Propagator, Watcher { }
 
-@signalEmitter
+@propagator
+@watcher
 export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
     id: string
@@ -57,6 +56,16 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
 
         this.outboundConnection = config?.outboundConnection
         this.inboundConnections = config?.inboundConnections || []
+
+        this.watchComponents()
+    }
+
+    watchComponents() {
+        this.watch(this.taskManager)
+        this.watch(this.log)
+
+        if (this.outboundConnection)
+            this.watch(this.outboundConnection)
     }
 
     toClient(): GameEntity & Gui.Gateway {
@@ -104,9 +113,11 @@ export class Gateway implements GameEntity, Presentable<Gui.Gateway> {
         remoteGateway.log.addEntry(`connection established from [${this.ip}]`)
 
         this.outboundConnection = new RemoteConnection({ gateway: remoteGateway })
-        this.sendSignal(this, SIGNALS.NEW_REMOTE_CONNECTION, this.outboundConnection)
+        this.watch(this.outboundConnection)
 
         this.outboundConnection.connect(remoteGateway)
+
+        this.watch(remoteGateway.log)
 
         console.log(`[${this.id}]-[${this.hostname}] connected to [${remoteGateway.id}]-[${remoteGateway.ip}] - [${remoteGateway.hostname}]`)
     }

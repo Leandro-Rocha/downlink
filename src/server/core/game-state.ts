@@ -1,8 +1,9 @@
 import { createNamespace, getNamespace } from 'cls-hooked'
-import { ConnectionStatus } from "../../common/constants"
+import { ConnectionStatus, SocketEvents } from "../../common/constants"
 import { GameStateType } from "../../common/types"
 import { Log } from "./log"
 import { Player } from './player/player'
+import io from 'socket.io'
 
 const CONTEXT_NAME = 'playerContext'
 
@@ -42,4 +43,11 @@ export function createClientState(player: Player) {
 
 
     return gameState
+}
+
+
+export function sendClientState(socket: io.Socket, player: Player) {
+    console.log(`Updating player [${player.userName}] on socket [${socket.id}]`)
+
+    socket.emit(SocketEvents.UPDATE_STATE, createClientState(player))
 }

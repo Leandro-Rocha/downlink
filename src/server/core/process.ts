@@ -1,10 +1,10 @@
-import { ISignalEmitter, signalEmitter, SIGNALS } from "./signal"
+import { SignalEmitter, signalEmitter, SIGNALS } from "./signal"
 import { EntityType, GameEntity, Presentable, Gui } from '../../common/types'
 import { ProcessStatus, ROOT } from "../../common/constants"
 import { OperationResult } from "../../shared"
 
 interface ProcessConstructor { userName?: string, id?: string, priority?: number, status?: ProcessStatus }
-export interface Process extends ISignalEmitter { }
+export interface Process extends SignalEmitter { }
 
 export abstract class Process implements GameEntity, Presentable<Gui.Process> {
     static MIN_PRIORITY = 0
@@ -74,7 +74,7 @@ export abstract class Process implements GameEntity, Presentable<Gui.Process> {
 }
 
 
-export interface StreamerProcess extends ISignalEmitter { }
+export interface StreamerProcess extends SignalEmitter { }
 
 // TODO: refactor download logic
 @signalEmitter
@@ -163,11 +163,13 @@ export abstract class WorkerProcess extends Process implements Presentable<Gui.W
     }
 
     checkStatus() {
-        const now = Date.now()
-        const elapsedTime = now - this.lastUpdate
+        if (this.status === ProcessStatus.RUNNING) {
+            const now = Date.now()
+            const elapsedTime = now - this.lastUpdate
 
-        this.lastUpdate = now
-        this.workDone += elapsedTime
+            this.lastUpdate = now
+            this.workDone += elapsedTime
+        }
     }
 
     doWork(elapsedTime: number): void {

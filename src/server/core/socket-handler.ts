@@ -3,12 +3,7 @@ import http from 'http'
 import { ErrorCodes, PlayerActions, SocketEvents } from '../../common/constants'
 import { PlayerStore } from '../../storage/player-store'
 import { GatewayStore } from '../../storage/gateway-store'
-import { createClientState } from './game-state'
-import { Gateway } from './gateway'
-import { SIGNALS } from './signal'
-import { Process } from './process'
-import { TaskManager } from './task-manager'
-import { RemoteConnection } from './network-interfaces'
+import { createClientState, sendClientState } from './game-state'
 import { onRegisterUser } from '../infra/register-player'
 import { Player } from './player/player'
 
@@ -74,51 +69,15 @@ function setPlayerEvents(socket: io.Socket, player: Player) {
 
 
 function registerPlayerSignals(socket: io.Socket, player: Player) {
-
-    player.gateway.registerHandler(player, SIGNALS.NEW_REMOTE_CONNECTION, (gateway: Gateway, outboundConnection: RemoteConnection) =>
-        outboundConnection.registerHandler(player, SIGNALS.REMOTE_CONNECTION_CHANGED, () => sendClientState(socket, player)))
-
-    player.gateway.log.registerHandler(player, SIGNALS.LOG_CHANGED, () => sendClientState(socket, player))
-    player.gateway.outboundConnection?.registerHandler(player, SIGNALS.REMOTE_CONNECTION_CHANGED, () => sendClientState(socket, player))
-
-    player.gateway.taskManager.processes.forEach(p => {
-        p.checkStatus()
-
-        p.registerHandler(player, SIGNALS.PROCESS_STARTED, () => sendClientState(socket, player))
-        p.registerHandler(player, SIGNALS.PROCESS_FINISHED, () => sendClientState(socket, player))
-        p.registerHandler(player, SIGNALS.PROCESS_UPDATED, () => sendClientState(socket, player))
-    })
-
-    player.gateway.taskManager.registerHandler(player, SIGNALS.TASK_SCHEDULED, (taskManager: TaskManager, process: Process) => {
-        process.registerHandler(player, SIGNALS.PROCESS_STARTED, () => sendClientState(socket, player))
-        process.registerHandler(player, SIGNALS.PROCESS_FINISHED, () => sendClientState(socket, player))
-        process.registerHandler(player, SIGNALS.PROCESS_UPDATED, () => sendClientState(socket, player))
-    })
-
-    player.gateway.taskManager.registerHandler(player, SIGNALS.TASK_UNSCHEDULED, (taskManager: TaskManager, process: Process) => {
-        process.unregisterHandler(player)
-        sendClientState(socket, player)
-    })
+    player.watch(player.gateway)
 }
 
 function onPlayerDisconnect(socket: io.Socket, player: Player) {
     console.info(`[${player.userName}] disconnected: [${socket}]`)
 
-    unregisterPlayerSignals(player)
+    player.unwatch(player.gateway)
 }
 
-function unregisterPlayerSignals(player: Player) {
-    player.gateway.log.unregisterHandler(player)
-    player.gateway.outboundConnection?.unregisterHandler(player)
-    player.gateway.taskManager.unregisterHandler(player)
-}
-
-
-function sendClientState(socket: io.Socket, player: Player) {
-    console.log(`Updating player [${player.userName}] on socket [${socket.id}]`)
-
-    socket.emit(SocketEvents.UPDATE_STATE, createClientState(player))
-}
 
 // TODO: define client error handling
 function emitError(message: string) {

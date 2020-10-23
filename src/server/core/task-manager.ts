@@ -1,6 +1,6 @@
 import { EntityType, Presentable, Gui, GameEntity } from '../../common/types'
 import { Process, WorkerProcess } from './process';
-import { SignalEmitter, signalEmitter, SIGNALS } from './signal';
+import { SignalEmitter, signalEmitter, SIGNALS, watcher, Watcher } from './signal';
 import { PasswordCrackerProcess } from './software/password-cracker';
 
 export function createProcess(type: EntityType, data: any) {
@@ -11,8 +11,9 @@ export function createProcess(type: EntityType, data: any) {
     throw {}//TODO:
 }
 
-export interface TaskManager extends SignalEmitter { }
+export interface TaskManager extends SignalEmitter, Watcher { }
 @signalEmitter
+@watcher
 export class TaskManager implements GameEntity, Presentable<Gui.TaskManager> {
     id: string
     entityType: EntityType = EntityType.TASK_MANAGER
@@ -38,6 +39,7 @@ export class TaskManager implements GameEntity, Presentable<Gui.TaskManager> {
 
         this.sendSignal(this, SIGNALS.TASK_SCHEDULED, process)
 
+        this.watch(process)
         process.registerHandler(this, SIGNALS.PROCESS_FINISHED, () => this.endProcess(process))
         process.start()
     }

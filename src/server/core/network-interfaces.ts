@@ -1,11 +1,10 @@
-import { ISignalEmitter, SIGNALS, signalEmitter, SignalEmitter } from "./signal"
 import { OperationResult } from "../../shared"
 import { ConnectionStatus, ResourceTypes } from "../../common/constants"
 import { EntityType, GameEntity, Gui } from "../../common/types"
 import { StreamerProcess } from "./process"
 import { Gateway } from "./gateway"
 import { File } from "./resource"
-import { getCurrentPlayer } from "./game-state"
+import { signalEmitter, SignalEmitter, SIGNALS } from "./signal"
 
 
 
@@ -22,7 +21,7 @@ export class BounceInfo {
     maxBandwidth: number = Number.MAX_VALUE
     limiters: Gui.Stream[] = []
 }
-export interface BounceInfo extends ISignalEmitter { }
+export interface BounceInfo extends SignalEmitter { }
 
 interface IBouncer {
     bounceInfo: BounceInfo

@@ -1,11 +1,15 @@
 import io from 'socket.io'
 import { AccessPrivileges, PlayerActions, ToastSeverity } from "../../../common/constants"
 import { GatewayStore } from "../../../storage/gateway-store"
-import { createPlayerContext } from "../game-state"
+import { createPlayerContext, sendClientState } from "../game-state"
 import { Gateway } from "../gateway"
+import { watcher, Watcher } from '../signal'
 import { sendToast } from '../toast'
 import { HackedDB } from "./hacked-db"
 
+export interface Player extends Watcher { }
+
+@watcher
 export class Player {
     userName: string
 
@@ -56,6 +60,11 @@ export class Player {
                 this.onExecuteSoftware(id, ...params)
             }
         })
+    }
+
+    handlePropagation(signal: string) {
+        console.log(`Handling signal [${signal}]`)
+        sendClientState(this.socket, this)
     }
 
     onConnectToGateway(ip: string) {
